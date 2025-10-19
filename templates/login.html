@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deep Blue Portal – Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7fa;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .left-panel h1 {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .left-panel {
+            width: 50%;
+            color: white;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .custom-login-bg {
+            background: linear-gradient(to bottom, rgba(14, 58, 109, 0.9), rgba(14, 58, 109, 0.9)),
+                        url("{{ url_for('static', filename='images/LoginPageImage.PNG') }}") no-repeat center center;
+            background-size: cover;
+        }
+
+        .left-panel img {
+            width: 80px;
+            margin-bottom: 30px;
+            filter: brightness(0) invert(1);
+        }
+
+        .left-panel h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .left-panel p {
+            font-size: 18px;
+            line-height: 1.5;
+            max-width: 400px;
+        }
+
+        .right-panel {
+            width: 50%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .login-box {
+            width: 350px;
+            padding: 30px 40px;
+            background: white;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: #0078D7;
+            text-decoration: none;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 350px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+<div class="left-panel custom-login-bg">
+    <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS Logo">
+    <h1>Hello Demuro!</h1>
+    <p>Making laytime calculations seamless. Automate time sheets, demurrage tracking, and charter party compliance with confidence.</p>
+</div>
+
+<div class="right-panel">
+    <div class="login-box">
+        <h2>Welcome Back</h2>
+
+        {% if db_status %}
+            <p class="status">{{ db_status }}</p>
+        {% endif %}
+
+        <!-- ✅ Corrected Login Form -->
+        <form method="post" action="/login">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" required autocapitalize="none" autocorrect="off" autocomplete="username">
+
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required autocapitalize="none" autocorrect="off" autocomplete="current-password">
+
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+            <div class="success">{{ success }}</div>
+            {% endif %}
+
+            <button type="submit">Log In</button>
+        </form>
+
+        <div class="links">
+            <p><a href="#" onclick="openRegisterModal()">New user? Register here</a></p>
+            <p><a href="#" onclick="openForgotModal()">Forgot password?</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeForgotModal()">&times;</span>
+        <h3>Reset Your Password</h3>
+        <form method="post" action="/forgot-password">
+            <label for="reset-username">Username</label>
+            <input type="text" name="username" id="reset-username" required>
+
+            <label for="reset-email">Email</label>
+            <input type="email" name="email" id="reset-email" required>
+
+            <label for="reset-password">New Password</label>
+            <input type="password" name="new_password" id="reset-password" required autocomplete="new-password">
+
+            <button type="submit">Reset Password</button>
+        </form>
+    </div>
+</div>
+
+<!-- Register Modal -->
+<div id="registerModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRegisterModal()">&times;</span>
+        <h3>Register New User</h3>
+        <form method="post" action="/register">
+            <label for="register-key">Secret Key</label>
+            <input type="text" name="secret_key" id="register-key" required>
+
+            <label for="register-username">Username</label>
+            <input type="text" name="username" id="register-username" required>
+
+            <label for="register-email">Email</label>
+            <input type="email" name="email" id="register-email" required>
+
+            <label for="register-password">Password</label>
+            <input type="password" name="password" id="register-password" required oninput="checkRegisterPasswordStrength()" autocomplete="new-password">
+
+            <small id="register-strength-msg" style="font-size: 12px;"></small>
+
+            <div class="show-password" style="margin-top: 8px; font-size: 14px;">
+                <input type="checkbox" id="register-show-password" onclick="toggleRegisterPassword()"> Show Password
+            </div>
+
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openForgotModal() { document.getElementById("forgotModal").style.display = "block"; }
+    function closeForgotModal() { document.getElementById("forgotModal").style.display = "none"; }
+    function openRegisterModal() { document.getElementById("registerModal").style.display = "block"; }
+    function closeRegisterModal() { document.getElementById("registerModal").style.display = "none"; }
+
+    window.onclick = function(event) {
+        const forgot = document.getElementById("forgotModal");
+        const register = document.getElementById("registerModal");
+        if (event.target === forgot) forgot.style.display = "none";
+        if (event.target === register) register.style.display = "none";
+    }
+
+    function checkRegisterPasswordStrength() {
+        const password = document.getElementById("register-password").value;
+        const msg = document.getElementById("register-strength-msg");
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        if (strength === 0) msg.textContent = "";
+        else if (strength <= 1) { msg.textContent = "Weak password"; msg.style.color = "red"; }
+        else if (strength === 2) { msg.textContent = "Moderate password"; msg.style.color = "orange"; }
+        else { msg.textContent = "Strong password"; msg.style.color = "green"; }
+    }
+
+    function toggleRegisterPassword() {
+        const pw = document.getElementById("register-password");
+        pw.type = pw.type === "password" ? "text" : "password";
+    }
+</script>
+</body>
+</html>
