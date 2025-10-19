@@ -1,63 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Deep Blue Portal — Home</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-</head>
-<body class="dbs-body">
-  <aside class="dbs-sidebar">
-    <div class="brand">
-      <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS" />
-      <span>Deep Blue</span>
+{% extends "base.html" %}
+{% block title %}Home | Deep Blue Portal{% endblock %}
+
+{% block content %}
+    <main class="main-content">
+  <h1 class="page-title">Welcome to Deep Blue Portal</h1>
+  <p class="page-subtitle">Manage Laytime, Demurrage, Email Rules, and more.</p>
+
+  <div class="dashboard-grid">
+    <div class="dashboard-card">
+      <h3>Email Tagging</h3>
+      <p>Manage automatic categorization rules for incoming emails.</p>
     </div>
-    <nav>
-      <a class="active" href="{{ url_for('home') }}">Dashboard</a>
-      <a href="{{ url_for('email_rules') }}">Email Rules</a>
-      <a href="#" onclick="alert('Settings coming soon')">Settings</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-  </aside>
 
-  <header class="dbs-topbar">
-    <div class="search">
-      <input type="text" placeholder="Search… (coming soon)" />
+    <div class="dashboard-card">
+      <h3>Laytime Calculator</h3>
+      <p>Run and manage demurrage calculations.</p>
     </div>
-    <div class="user" onclick="toggleUserMenu()">
-      <div class="avatar">{{ (user.initials if user else 'DB') }}</div>
-      <div id="user-menu" class="user-menu">
-        <div class="user-meta">
-          <div class="name">{{ user.name if user else 'Deep Blue' }}</div>
-          <div class="email">{{ user.email if user else '' }}</div>
-          <div class="company">{{ user.company_name if user else '' }}</div>
-        </div>
-        <a href="#" onclick="alert('Account coming soon')">View Account</a>
-        <a href="{{ url_for('logout') }}">Sign Out</a>
-      </div>
+
+    <div class="dashboard-card">
+      <h3>SOF Parser</h3>
+      <p>Extract key time events from Statements of Facts (coming soon).</p>
     </div>
-  </header>
-
-  <main class="dbs-content">
-    <h1>Welcome to Deep Blue Portal</h1>
-    <p>This is your unified dashboard. Use the sidebar to navigate.</p>
-
-    <section class="cards">
-      <a class="card" href="{{ url_for('email_rules') }}">
-        <h3>Email Tagging</h3>
-        <p>Open the Luberef Rule Manager</p>
-      </a>
-      <a class="card disabled" href="#" onclick="alert('Demurrage Calculator will be added in Phase 2')">
-        <h3>Demurrage Calculator</h3>
-        <p>Coming in Phase 2</p>
-      </a>
-      <a class="card disabled" href="#" onclick="alert('SOF Parser will be added later')">
-        <h3>SOF Parser</h3>
-        <p>Coming soon</p>
-      </a>
-    </section>
-  </main>
-
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html>
+  </div>
+</main>
+{% endblock %}

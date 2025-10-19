@@ -1,0 +1,46 @@
+/* ==============================
+   Login / Register / Forms
+   ============================== */
+
+form label {
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+input, button {
+  font-family: 'Inter', sans-serif;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--primary-light);
+}
+
+/* Modal input alignment fix */
+#categoryModal input[type="text"],
+#categoryModal select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+#categoryModal label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-color);
+}

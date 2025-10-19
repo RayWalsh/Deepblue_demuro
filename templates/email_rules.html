@@ -1,53 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Email Tagging — Deep Blue Portal</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-</head>
-<body class="dbs-body">
-  <aside class="dbs-sidebar">
-    <div class="brand">
-      <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS" />
-      <span>Deep Blue</span>
-    </div>
-    <nav>
-      <a href="{{ url_for('home') }}">Dashboard</a>
-      <a class="active" href="{{ url_for('email_rules') }}">Email Rules</a>
-      <a href="#" onclick="alert('Settings coming soon')">Settings</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-  </aside>
+{% extends "base.html" %}
+{% block title %}Mailbox Manager | Deep Blue Portal{% endblock %}
 
-  <header class="dbs-topbar">
-    <div class="search">
-      <input type="text" placeholder="Search… (coming soon)" />
+{% block content %}
+<section class="email-rules">
+  <!-- Header Row -->
+  <div class="email-rules-header">
+    <div class="header-left">
+      <h1>Mailbox Manager</h1>
+      <p class="mailbox-subtitle">
+        <a href="#" class="mailbox-link">
+          {{ mailbox or 'luberef@deepblueshipping.com' }}
+          <span class="chevron">▼</span>
+        </a>
+      </p>
     </div>
-    <div class="user" onclick="toggleUserMenu()">
-      <div class="avatar">{{ (user.initials if user else 'DB') }}</div>
-      <div id="user-menu" class="user-menu">
-        <div class="user-meta">
-          <div class="name">{{ user.name if user else 'Deep Blue' }}</div>
-          <div class="email">{{ user.email if user else '' }}</div>
-          <div class="company">{{ user.company_name if user else '' }}</div>
+    <div class="header-right">
+      <input
+        type="text"
+        id="searchInput"
+        class="search-bar"
+        placeholder="Search categories, ships, or dates..."
+      />
+    </div>
+  </div>
+
+  <!-- Description -->
+  <p>Manage automatic email tagging categories and rules for Luberef messages.</p>
+
+  <!-- Cards Section -->
+  <section class="cards" id="categoryList">
+    {% for cat in categories %}
+      {% set parts = cat.displayName.split(' - ') %}
+      {% set ref = (parts[0] if parts|length>0 else '').strip() %}
+      {% set ship = (parts[1] if parts|length>1 else '').strip() %}
+      {% set cpdate = (parts[2] if parts|length>2 else '').strip() %}
+
+      {% set colors = {
+        'preset0':'#b4a0ff','preset1':'#92c353','preset2':'#00b7c3',
+        'preset3':'#b4009e','preset4':'#0078d4','preset5':'#00cc6a',
+        'preset6':'#ff8c00','preset7':'#e3008c','preset8':'#f7630c',
+        'preset9':'#a4262c','preset10':'#bad80a','preset11':'#002050',
+        'preset12':'#498205','preset13':'#515c6b','preset14':'#ffb900',
+        'preset15':'#800000','preset16':'#5c005c'
+      } %}
+      {% set hex = colors.get(cat.color, '#ccc') %}
+
+      <article class="card" data-search="{{ cat.displayName | lower }}">
+        <div class="card-header">
+          <span class="color-dot" style="background-color: {{ hex }}"></span>
+
+          <!-- Title opens modal pre-filled -->
+          <a href="#" class="card-title edit-category"
+             data-ref="{{ ref }}"
+             data-ship="{{ ship }}"
+             data-cpdate="{{ cpdate }}"
+             data-color="{{ cat.color }}">
+            {{ cat.displayName }}
+          </a>
+
+          {% if cat.rule_exists %}
+            <span class="status-pill status-ok">Rule Exists</span>
+          {% else %}
+            <span class="status-pill status-missing">No Rule</span>
+          {% endif %}
+
+          <div class="kebab-wrap">
+            <button class="kebab-btn" aria-haspopup="true" aria-expanded="false" title="More actions">⋯</button>
+            <div class="kebab-menu">
+              <div class="submenu">
+                <button class="menu-row submenu-trigger">▶ Run Rule ▸</button>
+                <div class="submenu-panel">
+                  <form action="/email/run_rule/{{ cat.displayName }}/90" method="get"><button type="submit" class="menu-row">Last 90 Days</button></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}/180" method="get"><button type="submit" class="menu-row">Last 6 Months</button></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}/365" method="get"><button type="submit" class="menu-row">Last 1 Year</button></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}/730" method="get"><button type="submit" class="menu-row">Last 2 Years</button></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}/1095" method="get"><button type="submit" class="menu-row">Last 3 Years</button></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}/9999" method="get"><button type="submit" class="menu-row">All Years</button></form>
+                </div>
+              </div>
+
+              <form action="/email/create_rule/{{ cat.displayName }}" method="get">
+                <button type="submit" class="menu-row">⚙ Create Rule</button>
+              </form>
+
+              <form action="/email/delete/{{ cat.id }}" method="get" onsubmit="return confirm('Delete this category and its rule?');">
+                <button type="submit" class="menu-row">🗑 Delete</button>
+              </form>
+            </div>
+          </div>
         </div>
-        <a href="#" onclick="alert('Account coming soon')">View Account</a>
-        <a href="{{ url_for('logout') }}">Sign Out</a>
-      </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <!-- Floating Add Button -->
+  <button class="add-btn" id="openModal">+ Add Category</button>
+
+  <!-- Modal -->
+  <div id="categoryModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h3>Create or Edit Category</h3>
+      <form id="createCategoryForm">
+        <label>Reference</label>
+        <input type="text" name="reference" required>
+        <label>Ship Name</label>
+        <input type="text" name="ship" required>
+        <label>CP Date (e.g. 04Feb25)</label>
+        <input type="text" name="cpdate" required>
+        <label>Color</label>
+        <select name="color">
+          {% for i in range(17) %}
+            <option value="preset{{ i }}">preset{{ i }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-actions">
+          <button type="submit">Create Category</button>
+          <button type="button" id="createRuleBtn" class="action-btn">Create Rule</button>
+          <button type="button" id="saveChangesBtn" class="action-btn secondary-btn">Save Changes</button>
+        </div>
+      </form>
     </div>
-  </header>
+  </div>
 
-  <main class="dbs-content">
-    <h1>Email Tagging (Luberef Rule Manager)</h1>
-    <p>Phase 1 placeholder. In Phase 2 we’ll mount the full working module here.</p>
+  <!-- Progress Overlay -->
+  <div id="progressOverlay">
+    <h2>📡 Running Rule...</h2>
+    <div id="progressContainer"><div id="progressBar"></div></div>
+    <div id="progressLog"></div>
+    <button id="closeProgressBtn">Close</button>
+  </div>
+</section>
 
-    <div class="card">
-      <p>This page is secured — only visible after login.</p>
-      <p>When we integrate, we’ll keep your existing CSS, JS, and modals intact.</p>
-    </div>
-  </main>
+<!-- Page-specific JS -->
+<script src="{{ url_for('static', filename='js/email_rules.js') }}"></script>
 
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html>
+{% endblock %}

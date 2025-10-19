@@ -1,0 +1,11 @@
+# Prevent secrets and temp files from being pushed to GitHub
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+instance/
+.vscode/
+.idea/
+.DS_Store

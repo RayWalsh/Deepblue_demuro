@@ -3,12 +3,35 @@ from functools import wraps
 from sqlalchemy import create_engine, text
 from passlib.hash import pbkdf2_sha256
 
+# ----------------------------------------------------
+# ⚙️ Flask App Setup
+# ----------------------------------------------------
 app = Flask(__name__)
-app.secret_key = 'super-secret-key'  # Move to env var for production
+app.secret_key = 'super-secret-key'  # TODO: Move to .env for production
 
-# =====================================================
-# ✅ SQLAlchemy Connection (Azure SQL)
-# =====================================================
+# 🔧 Add this line to allow session cookies over HTTP (for Codespaces)
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+
+# ----------------------------------------------------
+# 🔗 Blueprint: Email Rules
+# ----------------------------------------------------
+from email_rules import email_rules_bp
+app.register_blueprint(email_rules_bp, url_prefix="/email")
+
+@app.route('/debug_session')
+def debug_session():
+    from flask import request
+    info = {
+        "session_contents": dict(session),
+        "cookies_received": dict(request.cookies),
+        "session_cookie_name": app.config.get("SESSION_COOKIE_NAME", "session")
+    }
+    return info
+
+# ----------------------------------------------------
+# 🗄 SQLAlchemy Connection (Azure SQL)
+# ----------------------------------------------------
 conn_str = (
     "mssql+pyodbc://Deepblueadmin:Atlantic!Beaufort6633"
     "@deepbluedb.database.windows.net,1433/DeepBlueDB"
@@ -17,13 +40,12 @@ conn_str = (
 
 engine = create_engine(conn_str, pool_pre_ping=True, pool_recycle=3600)
 
-# Helper
 def get_db_connection():
     return engine.connect()
 
-# =====================================================
-# ✅ Authentication Decorator
-# =====================================================
+# ----------------------------------------------------
+# 🔐 Authentication Decorator
+# ----------------------------------------------------
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -32,9 +54,9 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# =====================================================
-# ✅ Inject User Context (for header / topbar)
-# =====================================================
+# ----------------------------------------------------
+# 👤 Inject User Context (for topbar / header)
+# ----------------------------------------------------
 @app.context_processor
 def inject_user():
     if 'username' in session:
@@ -59,10 +81,9 @@ def inject_user():
             print("User context fetch error:", e)
     return dict(user=None)
 
-# =====================================================
-# ✅ Routes
-# =====================================================
-
+# ----------------------------------------------------
+# 🏠 Routes
+# ----------------------------------------------------
 @app.route('/')
 def root():
     return redirect(url_for('home'))
@@ -72,10 +93,10 @@ def root():
 def home():
     return render_template('index.html')
 
-@app.route('/email_rules')
-@login_required
-def email_rules():
-    return render_template('email_rules.html')
+#@app.route('/email_rules')
+#@login_required
+#def email_rules():
+#    return render_template('email_rules.html')
 
 @app.route('/logout')
 @login_required
@@ -83,10 +104,9 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
-# =====================================================
-# ✅ Auth: Register / Login / Forgot Password
-# =====================================================
-
+# ----------------------------------------------------
+# 🔑 Auth: Register / Login / Forgot Password
+# ----------------------------------------------------
 REGISTRATION_SECRET = "SHINC"
 
 @app.route('/register', methods=['POST'])
@@ -201,9 +221,9 @@ def forgot_password():
         print("Password reset error:", e)
         return render_template('login.html', error="Failed to reset password.", db_status="")
 
-# =====================================================
-# ✅ Health Check
-# =====================================================
+# ----------------------------------------------------
+# 🩺 Health Check
+# ----------------------------------------------------
 @app.route('/healthz')
 def healthz():
     try:
@@ -213,8 +233,8 @@ def healthz():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-# =====================================================
-# ✅ Run
-# =====================================================
+# ----------------------------------------------------
+# 🚀 Run
+# ----------------------------------------------------
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

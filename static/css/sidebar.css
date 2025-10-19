@@ -1,0 +1,75 @@
+/* ==============================
+   Sidebar — Deep Blue Gradient Glass
+   ============================== */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 80px;
+  background: linear-gradient(180deg, rgba(14, 58, 109, 0.95) 0%, rgba(20, 62, 119, 0.9) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  z-index: 1000;
+  transition: background 0.3s ease;
+}
+
+.sidebar-logo img {
+  width: 36px;
+  filter: brightness(0) invert(1);
+  margin-bottom: 20px;
+}
+
+.sidebar-divider {
+  width: 40%;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 10px 0 20px;
+}
+
+.sidebar-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.icon-link {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.icon-link:hover {
+  color: var(--accent-color);
+  transform: translateY(-2px);
+  text-shadow: 0 0 6px rgba(54, 162, 239, 0.6);
+}
+
+.icon-link::after {
+  content: attr(title);
+  position: absolute;
+  left: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(14, 58, 109, 0.95);
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+.icon-link:hover::after {
+  opacity: 1;
+}

@@ -1,0 +1,291 @@
+/* ==============================
+   Page-Specific Styling
+   ============================== */
+
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.dashboard-cards {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.card {
+  background: var(--white);
+  flex: 1;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* ==============================
+   Email Rules Page Styling
+   ============================== */
+
+.email-rules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.email-rules-header .header-left h1 {
+  font-size: 1.6rem;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.email-rules .mailbox-subtitle {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.email-rules .mailbox-link {
+  color: var(--accent-color);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.email-rules .mailbox-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--accent-color);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.email-rules .mailbox-link:hover {
+  text-decoration: underline;
+}
+
+.email-rules .chevron {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  transition: transform 0.2s ease;
+}
+
+.email-rules .mailbox-link:hover .chevron {
+  transform: rotate(180deg);
+}
+
+.email-rules .mailbox-link:hover {
+  text-decoration: underline;
+}
+
+/* Inline search bar (scoped) */
+.email-rules .search-bar {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 250px;
+  background-color: white;
+}
+
+/* Compact cards (scoped) */
+.email-rules .cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.email-rules .card {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.2s ease;
+  box-shadow: none;
+}
+
+.email-rules .card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.email-rules .card-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.8rem;
+}
+
+.email-rules .color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.email-rules .card-title {
+  flex: 1;
+  color: var(--text-color);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.email-rules .card-title:hover {
+  color: var(--accent-color);
+}
+
+.email-rules .status-pill {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.email-rules .status-ok {
+  background: #e7f8ee;
+  color: #1f8a42;
+}
+
+.email-rules .status-missing {
+  background: #fde8e8;
+  color: #b91c1c;
+}
+
+.email-rules .kebab-wrap {
+  position: relative;
+}
+
+.email-rules .kebab-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: #888;
+  line-height: 1;
+}
+
+.email-rules .kebab-btn:hover {
+  color: var(--primary-light);
+}
+
+.email-rules .kebab-menu {
+  position: absolute;
+  top: 1.6rem;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  display: none;
+  flex-direction: column;
+  min-width: 130px;
+  z-index: 20;
+}
+
+.email-rules .card.is-open .kebab-menu {
+  display: flex;
+}
+
+.email-rules .menu-row {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  text-align: left;
+  width: 100%;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.email-rules .menu-row:hover {
+  background: #f1f5f9;
+}
+
+/* Floating Add Button */
+.email-rules .add-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.email-rules .add-btn:hover {
+  background: var(--primary-light);
+}
+
+/* ==============================
+   Email Rules – Submenu (Run Rule Options)
+   ============================== */
+
+.submenu {
+  position: relative;
+}
+
+.submenu-trigger {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.submenu-panel {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 5px;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  display: none;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 10;
+}
+
+.submenu-panel form {
+  margin: 0;
+}
+
+.submenu-panel .menu-row {
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.submenu-panel .menu-row:hover {
+  background-color: #f0f4f8;
+}
+
+.submenu:hover .submenu-panel {
+  display: flex;
+}
+
+.submenu.open .submenu-panel {
+  display: flex;
+}

@@ -1,0 +1,59 @@
+/* ==============================
+   Dashboard Cards & Animations
+   ============================== */
+
+/* Card container inside main-content */
+.dashboard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+  align-items: stretch;
+  animation: fadeInBody 0.6s ease both;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Dashboard card */
+.dashboard-card {
+  flex: 1 1 280px;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  transition: all 0.2s ease;
+  animation: fadeUp 0.5s ease both;
+  cursor: pointer;
+}
+
+.dashboard-card:nth-child(2) { animation-delay: 0.1s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.2s; }
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth fade and lift animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInBody {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-card {
+    flex: 1 1 100%;
+  }
+}
