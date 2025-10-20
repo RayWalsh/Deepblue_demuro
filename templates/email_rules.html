@@ -21,6 +21,7 @@
         class="search-bar"
         placeholder="Search categories, ships, or dates..."
       />
+      <button id="openModal" class="header-add-btn" title="Add New Category">+</button>
     </div>
   </div>
 
@@ -70,12 +71,12 @@
               <div class="submenu">
                 <button class="menu-row submenu-trigger">▶ Run Rule ▸</button>
                 <div class="submenu-panel">
-                  <form action="/email/run_rule/{{ cat.displayName }}/90" method="get"><button type="submit" class="menu-row">Last 90 Days</button></form>
-                  <form action="/email/run_rule/{{ cat.displayName }}/180" method="get"><button type="submit" class="menu-row">Last 6 Months</button></form>
-                  <form action="/email/run_rule/{{ cat.displayName }}/365" method="get"><button type="submit" class="menu-row">Last 1 Year</button></form>
-                  <form action="/email/run_rule/{{ cat.displayName }}/730" method="get"><button type="submit" class="menu-row">Last 2 Years</button></form>
-                  <form action="/email/run_rule/{{ cat.displayName }}/1095" method="get"><button type="submit" class="menu-row">Last 3 Years</button></form>
-                  <form action="/email/run_rule/{{ cat.displayName }}/9999" method="get"><button type="submit" class="menu-row">All Years</button></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}" method="get"><button type="submit" class="menu-row">Last 90 Days</button><input type="hidden" name="days" value="90"></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}" method="get"><button type="submit" class="menu-row">Last 6 Months</button><input type="hidden" name="days" value="180"></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}" method="get"><button type="submit" class="menu-row">Last 1 Year</button><input type="hidden" name="days" value="365"></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}" method="get"><button type="submit" class="menu-row">Last 2 Years</button><input type="hidden" name="days" value="730"></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}" method="get"><button type="submit" class="menu-row">Last 3 Years</button><input type="hidden" name="days" value="1095"></form>
+                  <form action="/email/run_rule/{{ cat.displayName }}" method="get"><button type="submit" class="menu-row">All Years</button><input type="hidden" name="days" value="9999"></form>
                 </div>
               </div>
 
@@ -93,8 +94,7 @@
     {% endfor %}
   </section>
 
-  <!-- Floating Add Button -->
-  <button class="add-btn" id="openModal">+ Add Category</button>
+
 
   <!-- Modal -->
   <div id="categoryModal" class="modal">

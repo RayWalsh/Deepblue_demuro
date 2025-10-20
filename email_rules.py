@@ -70,7 +70,7 @@ def generate_date_variants(cp_date_str):
         try:
             cp_date = datetime.strptime(cp_date_str.strip(), "%d%b%Y")
         except ValueError:
-            flash(f"⚠️ Invalid CP date format: {cp_date_str}")
+            print(f"[WARN] Invalid CP date format: {cp_date_str}")  # Safe for SSE and logs
             return []
 
     day = cp_date.day
@@ -305,10 +305,13 @@ def delete_category(cat_id):
 # ------------------------------------------------------------
 # 📨 RUN RULE RETROACTIVELY (SSE STREAM + DATE FILTER)
 # ------------------------------------------------------------
-@email_rules_bp.route("/run_rule/<category_name>", defaults={"days": 90})
-@email_rules_bp.route("/run_rule/<category_name>/<int:days>")
-def run_rule(category_name, days):
-    """Apply the category to all matching messages in the inbox, streaming progress via SSE."""
+@email_rules_bp.route("/run_rule/<category_name>")
+def run_rule(category_name):
+    """Apply the Outlook category retroactively to matching messages via SSE."""
+    from datetime import datetime, timedelta
+
+    days = int(request.args.get("days", 90))  # ✅ read days from ?days= param
+
     def generate():
         token = get_graph_token()
         headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
@@ -316,25 +319,26 @@ def run_rule(category_name, days):
         yield f"data: Starting rule for {category_name} (last {days} days)\n\n"
         time.sleep(0.5)
 
+        # Parse name parts
         parts = category_name.split(" - ")
         ship = parts[1].strip() if len(parts) > 1 else ""
         cpdate = parts[2].strip() if len(parts) > 2 else ""
 
+        # ✅ Generate date variants safely (no flash)
         date_variants = generate_date_variants(cpdate)
         if not date_variants:
-            yield f"data: ⚠️ Invalid date format, stopping.\n\n"
+            yield f"data: ⚠️ Invalid CP date format ({cpdate}).\n\n"
+            yield "data: DONE\n\n"
             return
 
         yield f"data: Searching inbox messages (last {days} days) for '{ship}' + date variants...\n\n"
 
-        from datetime import datetime, timedelta
         start_date = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        # --- Fetch messages manually (paginated, up to 500 total) ---
         base_url = (
             f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/mailFolders/inbox/messages"
-            f"?$top=50&$select=id,subject,bodyPreview,receivedDateTime"
-            f"&$filter=receivedDateTime ge {start_date}"
+            f"?$top=50&$select=id,subject,bodyPreview"
         )
-
         next_link = base_url
         all_messages = []
         max_total = 500
@@ -346,13 +350,14 @@ def run_rule(category_name, days):
                 break
 
             data = resp.json()
-            all_messages.extend(data.get("value", []))
+            batch = data.get("value", [])
+            all_messages.extend(batch)
             next_link = data.get("@odata.nextLink")
             yield f"data: Retrieved {len(all_messages)} messages so far...\n\n"
             time.sleep(0.2)
 
         if not all_messages:
-            yield f"data: ⚠️ No messages found in last {days} days.\n\n"
+            yield f"data: ⚠️ No messages retrieved.\n\n"
             yield "data: DONE\n\n"
             return
 
@@ -385,4 +390,4 @@ def run_rule(category_name, days):
         yield f"data: ✅ Completed — {len(filtered_messages)} messages updated.\n\n"
         yield "data: DONE\n\n"
 
-    return Response(generate(), mimetype='text/event-stream')
+    return Response(generate(), mimetype="text/event-stream")

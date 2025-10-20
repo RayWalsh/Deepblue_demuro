@@ -158,8 +158,12 @@ document.querySelectorAll("form[action^='/email/run_rule/']").forEach((f) => {
     barEl.style.backgroundColor = "var(--accent-color)";
     closeBtn.style.display = "none";
 
-    const categoryName = decodeURIComponent(f.action.split("/email/run_rule/")[1]);
-    const es = new EventSource(`/email/run_rule/${encodeURIComponent(categoryName)}`);
+    // ✅ Cleanly extract category name and days parameter
+    const url = new URL(f.action, window.location.origin);
+    const rawName = decodeURIComponent(url.pathname.split("/email/run_rule/")[1]);
+    const days = f.querySelector("input[name='days']")?.value || 90;
+
+    const es = new EventSource(`/email/run_rule/${encodeURIComponent(rawName)}?days=${days}`);
     let steps = 0;
 
     const add = (t, cls = "info") => {
