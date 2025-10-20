@@ -1,3 +1,6 @@
 flask
 passlib
-pyodbcpython-dotenv
+pyodbc
+python-dotenv
+requests
+gunicorn
