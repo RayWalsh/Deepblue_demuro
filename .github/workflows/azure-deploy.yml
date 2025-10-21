@@ -1,22 +1,21 @@
-name: Azure Web App Deploy
+name: 🚀 Deploy DeepBlue Portal to Azure
 
 on:
   push:
     branches:
-      - main
+      - main  # Deploys whenever you push to main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -27,6 +26,5 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: deepblue-portal
-          slot-name: production
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
