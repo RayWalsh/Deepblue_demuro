@@ -27,9 +27,11 @@ jobs:
         run: |
           zip -r release.zip . -x '*.git*'
 
-      - name: 📦 Deploy to Azure Web App (ZIP Deploy)
+      - name: Deploy to Azure Web App using ZIP package
         uses: azure/webapps-deploy@v2
         with:
           app-name: deepblue-portal
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: release.zip
+          package: .
+          clean: true
+          enable-oryx-build: false
