@@ -22,10 +22,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Deploy to Azure Web App using ZIP package
+      - name: 📦 Deploy to Azure Web App (ZIP Deploy)
         uses: azure/webapps-deploy@v2
         with:
           app-name: deepblue-portal
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: './'
+          package: .
           clean: true
