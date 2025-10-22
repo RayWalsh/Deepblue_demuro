@@ -239,6 +239,3 @@ def healthz():
 if __name__ == '__main__':
     # Local dev only
     app.run(host='0.0.0.0', port=5000, debug=True)
-else:
-    # Expose Flask app object for Gunicorn
-    application = app
