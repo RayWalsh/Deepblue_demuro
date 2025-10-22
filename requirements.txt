@@ -4,4 +4,4 @@ pyodbc
 python-dotenv
 requests
 gunicorn
-SQLAlchemy==2.0.36
+SQLAlchemy
