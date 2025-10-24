@@ -421,3 +421,27 @@
     margin: 0 auto;
   }
 }
+
+/* ==============================
+   Mobile full-width card alignment fix
+   ============================== */
+@media (max-width: 600px) {
+  .email-rules .cards {
+    width: 100vw !important; /* fill full viewport width */
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 6px !important; /* small breathing room on both sides */
+    box-sizing: border-box;
+  }
+
+  .email-rules .card {
+    width: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 8px;
+  }
+
+  .main-content {
+    width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+}
