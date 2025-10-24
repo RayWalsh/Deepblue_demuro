@@ -172,3 +172,42 @@
     transform: translateY(0);
   }
 }
+
+/* ==============================
+   Burger Menu Button
+   ============================== */
+
+.burger-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1.6rem;
+  cursor: pointer;
+  margin-right: 1rem;
+  display: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.burger-btn:hover {
+  color: var(--primary-light);
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .burger-btn {
+    display: inline-block;
+  }
+
+  /* Topbar shift when sidebar hidden on mobile */
+  .topbar {
+    left: 0;
+    max-width: 100%;
+    padding: 0 18px;
+    justify-content: space-between;
+  }
+
+  .search-container {
+    flex-grow: 1;
+    max-width: 75%;
+  }
+}
