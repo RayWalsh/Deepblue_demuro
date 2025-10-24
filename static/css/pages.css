@@ -445,3 +445,17 @@
     overflow-x: hidden !important;
   }
 }
+
+/* ==============================
+   Fix: prevent topbar overlap on mobile
+   ============================== */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 70px !important; /* pushes content below topbar */
+    box-sizing: border-box;
+  }
+
+  .email-rules-header {
+    margin-top: 0 !important;
+  }
+}
