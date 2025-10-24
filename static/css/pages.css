@@ -392,11 +392,32 @@
 }
 
 /* ==============================
-   Desktop container width (retain for larger screens)
+   Responsive container width
    ============================== */
-@media (min-width: 601px) {
+
+/* Mobile first — full width, no cutoff */
+.cards {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* Medium screens (tablets) */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .cards {
+    width: 95%;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+}
+
+/* Larger desktops — keep tidy spacing */
+@media (min-width: 1025px) {
   .cards {
     width: 720px;
     max-width: calc(100% - 40px);
+    margin: 0 auto;
   }
 }
