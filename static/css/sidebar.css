@@ -174,3 +174,27 @@
     margin-left: 0;
   }
 }
+
+/* ==============================
+   Fix right cutoff when sidebar hidden (mobile)
+   ============================== */
+@media (max-width: 768px) {
+  .layout,
+  .main-wrapper,
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .topbar {
+    left: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body, html {
+    overflow-x: hidden !important;
+  }
+}
