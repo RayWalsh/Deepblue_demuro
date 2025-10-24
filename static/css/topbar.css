@@ -17,14 +17,19 @@
   position: fixed;
   top: 0;
   left: 80px; /* start right beside the sidebar */
-  right: 0; /* ensures it stops flush with viewport edge */
+  right: 0;
   z-index: 900;
 
-  /* ✅ Remove calc() — it’s what was causing the overshoot */
   width: auto;
   max-width: calc(100% - 80px);
-
   box-sizing: border-box;
+}
+
+/* Group burger + search neatly */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* ==============================
@@ -183,7 +188,7 @@
   color: var(--primary-color);
   font-size: 1.6rem;
   cursor: pointer;
-  margin-right: 1rem;
+  margin-right: 0.5rem;
   display: none;
   transition: color 0.2s ease, transform 0.2s ease;
 }
@@ -193,21 +198,42 @@
   transform: scale(1.1);
 }
 
+/* ==============================
+   Mobile Optimisation
+   ============================== */
+
 @media (max-width: 768px) {
+  .topbar {
+    left: 0;
+    max-width: 100%;
+    padding: 0 12px;
+    justify-content: space-between;
+  }
+
+  .topbar-left {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   .burger-btn {
     display: inline-block;
   }
 
-  /* Topbar shift when sidebar hidden on mobile */
-  .topbar {
-    left: 0;
-    max-width: 100%;
-    padding: 0 18px;
-    justify-content: space-between;
-  }
-
   .search-container {
     flex-grow: 1;
-    max-width: 75%;
+    width: 100%;
+    margin-left: 6px;
+    max-width: none;
+  }
+
+  .search-container input {
+    font-size: 13px;
+  }
+
+  .user-area {
+    position: absolute;
+    right: 10px;
   }
 }
