@@ -109,21 +109,20 @@
   display: block;
 }
 
+/* ===== MOBILE NAVIGATION ===== */
 @media (max-width: 768px) {
-  .mobile-header {
-    display: flex;
-  }
-
+  /* Hide the permanent sidebar initially */
   .sidebar {
     transform: translateX(-100%);
     width: 220px;
     position: fixed;
     top: 0;
-    bottom: 0;
     left: 0;
+    height: 100vh;
     background: linear-gradient(180deg, rgba(14, 58, 109, 0.95) 0%, rgba(20, 62, 119, 0.9) 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.25);
     z-index: 1000;
     transition: transform 0.3s ease;
   }
@@ -132,6 +131,45 @@
     transform: translateX(0);
   }
 
+  /* Hide the permanent sidebar header (old .mobile-header is now deprecated) */
+  .mobile-header {
+    display: none;
+  }
+
+  /* Overlay for mobile navigation */
+  #overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 900;
+  }
+
+  #overlay.active {
+    display: block;
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Burger button inside top bar */
+  .burger-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    cursor: pointer;
+  }
+
+  /* Prevent background scrolling when sidebar open */
+  body.no-scroll {
+    overflow: hidden;
+  }
+
+  /* Make sure content spans full width when sidebar hidden */
   .main-wrapper {
     margin-left: 0;
   }

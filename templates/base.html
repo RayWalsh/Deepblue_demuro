@@ -1,85 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Deep Blue Portal{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>{% block title %}Deep Blue Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
-    <!-- ===== MOBILE HEADER (hidden on desktop) ===== -->
-    <header class="mobile-header">
-        <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
-        <h1 class="mobile-title">Deep Blue Portal</h1>
-    </header>
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div class="layout">
 
-    <!-- ===== MAIN LAYOUT ===== -->
-    <div class="layout">
+    <!-- ===== SIDEBAR (desktop + tablet only) ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS Logo">
+      </div>
+      <hr class="sidebar-divider">
+      <nav class="sidebar-icons">
+        <a href="{{ url_for('home') }}" class="icon-link" title="Dashboard"><i class="fas fa-home"></i></a>
+        <a href="{{ url_for('email_rules.index') }}" class="icon-link" title="Email Rules"><i class="fas fa-envelope"></i></a>
+        <a href="#" class="icon-link" title="Settings"><i class="fas fa-cog"></i></a>
+        <a href="{{ url_for('logout') }}" class="icon-link logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+      </nav>
+    </aside>
 
-        <!-- ========== SIDEBAR ========== -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo">
-                <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS Logo">
-            </div>
-            <hr class="sidebar-divider">
+    <!-- ===== DARK OVERLAY FOR MOBILE NAV ===== -->
+    <div id="overlay" class="overlay" onclick="toggleNav()"></div>
 
-            <nav class="sidebar-icons">
-                <a href="{{ url_for('home') }}" class="icon-link" title="Dashboard">
-                    <i class="fas fa-home"></i>
-                </a>
-                <a href="{{ url_for('email_rules.index') }}" class="icon-link" title="Email Rules">
-                    <i class="fas fa-envelope"></i>
-                </a>
-                <a href="#" class="icon-link" title="Settings">
-                    <i class="fas fa-cog"></i>
-                </a>
-                <a href="{{ url_for('logout') }}" class="icon-link logout" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
-            </nav>
-        </aside>
+    <!-- ===== MAIN WRAPPER ===== -->
+    <div class="main-wrapper">
 
-        <!-- Overlay for mobile drawer -->
-        <div id="overlay"></div>
+      <!-- ===== TOP BAR ===== -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="menu-toggle" class="burger-btn" onclick="toggleNav()">
+            <i class="fas fa-bars"></i>
+          </button>
 
-        <!-- ========== MAIN AREA ========== -->
-        <div class="main-wrapper">
-
-            <!-- ===== TOP BAR ===== -->
-            <header class="topbar">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" placeholder="Search..." disabled>
-                    <i class="fas fa-sliders-h filter-icon" title="Search Filters (coming soon)"></i>
-                </div>
-
-                <div class="user-area">
-                    <div class="user-initials" onclick="toggleUserMenu()">
-                        {{ user.initials if user else "A" }}
-                    </div>
-
-                    <div id="user-menu" class="user-menu">
-                        <p class="company">{{ user.company_name if user else "Deep Blue" }}</p>
-                        <p class="username">{{ user.name if user else "User" }}</p>
-                        <p class="email">{{ user.email if user else "email@example.com" }}</p>
-                        <hr>
-                        <a href="#" class="menu-item">View Account</a>
-                        <a href="{{ url_for('logout') }}" class="menu-item logout">Sign Out</a>
-                    </div>
-                </div>
-            </header>
-
-            <!-- ===== PAGE CONTENT ===== -->
-            <main class="main-content">
-                {% block content %}{% endblock %}
-            </main>
+          <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" placeholder="Search..." disabled>
+            <i class="fas fa-sliders-h filter-icon" title="Search Filters (coming soon)"></i>
+          </div>
         </div>
+
+        <div class="user-area">
+          <div class="user-initials" onclick="toggleUserMenu()">
+            {{ user.initials if user else "A" }}
+          </div>
+          <div id="user-menu" class="user-menu">
+            <p class="company">{{ user.company_name if user else "Deep Blue" }}</p>
+            <p class="username">{{ user.name if user else "User" }}</p>
+            <p class="email">{{ user.email if user else "email@example.com" }}</p>
+            <hr>
+            <a href="#" class="menu-item">View Account</a>
+            <a href="{{ url_for('logout') }}" class="menu-item logout">Sign Out</a>
+          </div>
+        </div>
+      </header>
+
+      <!-- ===== PAGE CONTENT ===== -->
+      <main class="main-content">
+        {% block content %}{% endblock %}
+      </main>
     </div>
+  </div>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    function toggleNav() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+      document.body.classList.toggle('no-scroll');
+    }
 
-
+    function toggleUserMenu() {
+      document.getElementById('user-menu').classList.toggle('show');
+    }
+  </script>
 </body>
 </html>
