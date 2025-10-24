@@ -459,3 +459,31 @@
     margin-top: 0 !important;
   }
 }
+
+/* ==============================
+   Mobile layout padding polish
+   ============================== */
+@media (max-width: 600px) {
+  /* Add breathing room for header */
+  .email-rules-header {
+    padding: 0 14px !important; /* left/right padding for Mailbox Manager + subtitle */
+    box-sizing: border-box;
+  }
+
+  /* Add equal spacing for the search bar and add button row */
+  .email-rules .header-right {
+    padding: 0 14px !important;
+    box-sizing: border-box;
+  }
+
+  /* Ensure search bar and add button stay aligned within viewport */
+  .email-rules .search-bar {
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Keep card container full width but balanced */
+  .email-rules .cards {
+    padding: 0 10px !important;
+  }
+}
