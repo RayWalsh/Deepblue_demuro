@@ -9,66 +9,77 @@
 </head>
 <body>
 
-    <!-- ========== SIDEBAR ========== -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS Logo">
+    <!-- ===== MOBILE HEADER (hidden on desktop) ===== -->
+    <header class="mobile-header">
+        <button id="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></button>
+        <h1 class="mobile-title">Deep Blue Portal</h1>
+    </header>
+
+    <!-- ===== MAIN LAYOUT ===== -->
+    <div class="layout">
+
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <img src="{{ url_for('static', filename='images/DBS-Icon.png') }}" alt="DBS Logo">
+            </div>
+            <hr class="sidebar-divider">
+
+            <nav class="sidebar-icons">
+                <a href="{{ url_for('home') }}" class="icon-link" title="Dashboard">
+                    <i class="fas fa-home"></i>
+                </a>
+                <a href="{{ url_for('email_rules.index') }}" class="icon-link" title="Email Rules">
+                    <i class="fas fa-envelope"></i>
+                </a>
+                <a href="#" class="icon-link" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </a>
+                <a href="{{ url_for('logout') }}" class="icon-link logout" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile drawer -->
+        <div id="overlay"></div>
+
+        <!-- ========== MAIN AREA ========== -->
+        <div class="main-wrapper">
+
+            <!-- ===== TOP BAR ===== -->
+            <header class="topbar">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Search..." disabled>
+                    <i class="fas fa-sliders-h filter-icon" title="Search Filters (coming soon)"></i>
+                </div>
+
+                <div class="user-area">
+                    <div class="user-initials" onclick="toggleUserMenu()">
+                        {{ user.initials if user else "A" }}
+                    </div>
+
+                    <div id="user-menu" class="user-menu">
+                        <p class="company">{{ user.company_name if user else "Deep Blue" }}</p>
+                        <p class="username">{{ user.name if user else "User" }}</p>
+                        <p class="email">{{ user.email if user else "email@example.com" }}</p>
+                        <hr>
+                        <a href="#" class="menu-item">View Account</a>
+                        <a href="{{ url_for('logout') }}" class="menu-item logout">Sign Out</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ===== PAGE CONTENT ===== -->
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
         </div>
-        <hr class="sidebar-divider">
-
-        <nav class="sidebar-icons">
-            <a href="{{ url_for('home') }}" class="icon-link" title="Dashboard">
-                <i class="fas fa-home"></i>
-            </a>
-            <a href="{{ url_for('email_rules.index') }}" class="icon-link" title="Email Rules">
-                <i class="fas fa-envelope"></i>
-            </a>
-            <a href="#" class="icon-link" title="Settings">
-                <i class="fas fa-cog"></i>
-            </a>
-            <a href="{{ url_for('logout') }}" class="icon-link logout" title="Logout">
-                <i class="fas fa-sign-out-alt"></i>
-            </a>
-        </nav>
-    </aside>
-
-    <!-- ========== MAIN AREA ========== -->
-    <div class="main-wrapper">
-
-        <!-- ===== TOP BAR ===== -->
-        <header class="topbar">
-            <!-- Search Section -->
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" placeholder="Search..." disabled>
-                <i class="fas fa-sliders-h filter-icon" title="Search Filters (coming soon)"></i>
-            </div>
-
-            <!-- User Area -->
-            <div class="user-area">
-                <div class="user-initials" onclick="toggleUserMenu()">
-                    {{ user.initials if user else "A" }}
-                </div>
-
-                <!-- User Dropdown Menu -->
-                <div id="user-menu" class="user-menu">
-                    <p class="company">{{ user.company_name if user else "Deep Blue" }}</p>
-                    <p class="username">{{ user.name if user else "User" }}</p>
-                    <p class="email">{{ user.email if user else "email@example.com" }}</p>
-                    <hr>
-                    <a href="#" class="menu-item">View Account</a>
-                    <a href="{{ url_for('logout') }}" class="menu-item logout">Sign Out</a>
-                </div>
-            </div>
-        </header>
-
-        <!-- ===== PAGE CONTENT ===== -->
-        <main class="main-content">
-            {% block content %}{% endblock %}
-        </main>
-
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+
 </body>
 </html>

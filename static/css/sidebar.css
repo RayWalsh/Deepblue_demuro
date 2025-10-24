@@ -73,3 +73,66 @@
 .icon-link:hover::after {
   opacity: 1;
 }
+
+/* ===== MOBILE NAVIGATION ===== */
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.mobile-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* ===== Sidebar Drawer (mobile mode) ===== */
+#overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 900;
+}
+
+#overlay.active {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    width: 220px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(180deg, rgba(14, 58, 109, 0.95) 0%, rgba(20, 62, 119, 0.9) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 1000;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+}
