@@ -52,12 +52,6 @@
 }
 
 .email-rules .mailbox-link {
-  color: var(--accent-color);
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.email-rules .mailbox-link {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -79,10 +73,6 @@
 
 .email-rules .mailbox-link:hover .chevron {
   transform: rotate(180deg);
-}
-
-.email-rules .mailbox-link:hover {
-  text-decoration: underline;
 }
 
 /* Inline search bar (scoped) */
@@ -328,4 +318,85 @@
 .header-add-btn:active {
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ==============================
+   Mobile Adjustments for Email Rules Page
+   ============================== */
+
+@media (max-width: 600px) {
+  /* Header stacks vertically */
+  .email-rules-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .email-rules-header .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .email-rules .search-bar {
+    width: 100%;
+  }
+
+  .header-add-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+
+  /* Cards fill screen width */
+  .email-rules .cards {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 8px; /* minimal side breathing room */
+    gap: 0.4rem;
+  }
+
+  .email-rules .card {
+    width: 100%;
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    box-sizing: border-box;
+  }
+
+  .email-rules .card-header {
+    gap: 0.6rem;
+  }
+
+  .email-rules .card-title {
+    flex: 1;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .email-rules .status-pill {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .email-rules .kebab-btn {
+    font-size: 1.2rem;
+    padding: 0 6px;
+  }
+
+  /* Main content padding for mobile */
+  .main-content {
+    padding: 20px 8px 60px;
+  }
+}
+
+/* ==============================
+   Desktop container width (retain for larger screens)
+   ============================== */
+@media (min-width: 601px) {
+  .cards {
+    width: 720px;
+    max-width: calc(100% - 40px);
+  }
 }
