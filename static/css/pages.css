@@ -220,6 +220,54 @@
 }
 
 /* ==============================
+   Refined Rule Status Indicators
+   ============================== */
+
+.email-rules .color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Subtle hover animation */
+.email-rules .color-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+}
+
+/* No-rule style */
+.email-rules .color-dot.no-rule {
+  background-color: #d1d5db; /* soft neutral grey */
+  cursor: help;
+}
+
+/* Tooltip */
+.email-rules .color-dot.no-rule::after {
+  content: "No rule exists";
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.email-rules .color-dot.no-rule:hover::after {
+  opacity: 1;
+}
+
+
+/* ==============================
    Email Rules – Submenu (Run Rule Options)
    ============================== */
 
