@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}The Ledger | Deep Blue Portal{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
+<section class="ledger-section">
+  <!-- Header Row -->
+  <div class="heading-row">
+    <h2>The Ledger</h2>
+    <div class="heading-controls">
+      <button id="exportCSVBtn" class="export-button" title="Export to CSV">
+        <i class="fas fa-file-csv"></i>
+      </button>
+      <button id="manageColumnsBtn" class="cog-button" title="Select Columns">
+        <i class="fas fa-cog"></i>
+      </button>
+      <input
+        type="text"
+        id="globalSearch"
+        placeholder="Search ledger..."
+        title="Filter ledger rows"
+      />
+    </div>
+  </div>
+
+  <!-- Ledger Table -->
+  <div id="ledger-table" class="table-wrapper">
+    <table id="ledgerTable" class="case-table">
+      <thead>
+  <tr>
+    <th>Date</th>
+    <th>Description</th>
+    <th>Type</th>
+    <th>Currency</th>
+    <th>Amount</th>
+    <th>Status</th>
+  </tr>
+</thead>
+<tbody id="ledgerTableBody">
+  <tr><td colspan="6">Loading...</td></tr>
+</tbody>
+      <tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Column Picker Panel -->
+<div id="columnPickerPanel" class="side-panel">
+  <div class="side-panel-header">
+    <button id="closeColumnPicker" class="close-panel">&times;</button>
+    <h3>Edit View Columns</h3>
+  </div>
+  <div class="side-panel-body">
+    <ul id="columnToggleList" class="column-toggle-list"></ul>
+    <div class="button-row reset-row">
+      <button id="resetColumnPrefs" class="danger-btn">Reset View</button>
+      <a href="/settings/ledger" class="secondary-btn">More Settings</a>
+    </div>
+  </div>
+  <div class="side-panel-footer">
+    <button id="applyColumnPrefs">Apply</button>
+    <button id="cancelColumnPrefs">Cancel</button>
+  </div>
+</div>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
+{% endblock %}

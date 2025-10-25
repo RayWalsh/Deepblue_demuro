@@ -19,6 +19,15 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 from email_rules import email_rules_bp
 app.register_blueprint(email_rules_bp, url_prefix="/email")
 
+# ----------------------------------------------------
+# 🔗 Blueprint: Ledger
+# ----------------------------------------------------
+from ledger import ledger_bp
+app.register_blueprint(ledger_bp)
+
+# ----------------------------------------------------
+# 
+# ----------------------------------------------------
 @app.route('/debug_session')
 def debug_session():
     from flask import request

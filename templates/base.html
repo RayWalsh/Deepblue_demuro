@@ -19,10 +19,26 @@
       </div>
       <hr class="sidebar-divider">
       <nav class="sidebar-icons">
-        <a href="{{ url_for('home') }}" class="icon-link" title="Dashboard"><i class="fas fa-home"></i></a>
-        <a href="{{ url_for('email_rules.index') }}" class="icon-link" title="Email Rules"><i class="fas fa-envelope"></i></a>
-        <a href="#" class="icon-link" title="Settings"><i class="fas fa-cog"></i></a>
-        <a href="{{ url_for('logout') }}" class="icon-link logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+        <a href="{{ url_for('home') }}" class="icon-link" title="Dashboard">
+          <i class="fas fa-home"></i>
+        </a>
+
+        <a href="{{ url_for('email_rules.index') }}" class="icon-link" title="Email Rules">
+          <i class="fas fa-envelope"></i>
+        </a>
+
+        <!-- ===== LEDGER ENTRY (NEW) ===== -->
+        <a href="{{ url_for('ledger_bp.ledger_page') }}" class="icon-link" title="The Ledger">
+          <i class="fas fa-book"></i>
+        </a>
+
+        <a href="#" class="icon-link" title="Settings">
+          <i class="fas fa-cog"></i>
+        </a>
+
+        <a href="{{ url_for('logout') }}" class="icon-link logout" title="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
       </nav>
     </aside>
 

@@ -1,0 +1,263 @@
+/* ==============================
+   Ledger Page — Deep Blue Portal Theme
+   ============================== */
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  color: var(--text-color);
+  background: linear-gradient(to bottom right, #f7f9fc 0%, #eef3f9 100%);
+}
+
+/* ===== Page Heading Bar ===== */
+.heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(14, 58, 109, 0.9);
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+}
+
+.heading-row h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  margin: 0;
+  color: #fff;
+}
+
+.heading-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.heading-controls input[type="text"] {
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  max-width: 220px;
+}
+
+.export-button,
+.cog-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.export-button:hover,
+.cog-button:hover {
+  color: var(--accent-color);
+}
+
+/* ===== Table Wrapper ===== */
+.table-wrapper {
+  background: white;
+  border-radius: 6px;
+  margin: 1.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: auto;
+}
+
+/* ===== Ledger Table ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+thead th {
+  background-color: var(--primary-color);
+  color: white;
+  text-align: left;
+  font-weight: 600;
+  padding: 10px 14px;
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+thead th:hover {
+  background-color: var(--primary-light);
+}
+
+tbody td {
+  padding: 8px 14px;
+  border-bottom: 1px solid #e2e6ea;
+  white-space: nowrap;
+  text-align: left;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f8f9fb;
+}
+
+tbody tr:hover {
+  background-color: #e9f4ff;
+}
+
+.clickable-ref {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.clickable-ref:hover {
+  text-decoration: underline;
+}
+
+/* ===== Sorting Icons ===== */
+thead th.sorted-asc::after {
+  content: " ↑";
+  color: var(--accent-color);
+}
+
+thead th.sorted-desc::after {
+  content: " ↓";
+  color: var(--accent-color);
+}
+
+/* ===== Column Picker Side Panel ===== */
+#columnPickerPanel {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 300px;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid #ccc;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s ease;
+}
+
+#columnPickerPanel.show {
+  right: 0;
+}
+
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 1rem;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #ddd;
+}
+
+.side-panel-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.side-panel-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0.25rem 1rem;
+}
+
+.column-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.column-item input[type="checkbox"] {
+  transform: scale(1.2);
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.column-controls {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.column-controls button {
+  background: white;
+  border: none;
+  cursor: pointer;
+  color: var(--primary-color);
+}
+
+.column-controls button:hover {
+  background-color: #e6f0ff;
+  border-radius: 3px;
+}
+
+/* ===== Side Panel Footer ===== */
+.side-panel-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f4f4f4;
+  border-top: 1px solid #ddd;
+}
+
+#applyColumnPrefs,
+#cancelColumnPrefs {
+  flex: 1;
+  padding: 10px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#applyColumnPrefs {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+#cancelColumnPrefs {
+  background-color: #ccc;
+  color: #000;
+}
+
+/* ===== Reset Button Row ===== */
+.reset-row {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+}
+
+.reset-row .danger-btn {
+  background-color: #e74c3c;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.reset-row .danger-btn:hover {
+  background-color: #c0392b;
+}
+
+.secondary-btn {
+  background: #e6f0ff;
+  color: var(--primary-color);
+  border-radius: 4px;
+  padding: 6px 12px;
+  text-decoration: none;
+}
+
+.secondary-btn:hover {
+  background: var(--accent-color);
+  color: #fff;
+}
