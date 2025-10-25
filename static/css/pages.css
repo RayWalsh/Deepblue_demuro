@@ -487,3 +487,37 @@
     padding: 0 10px !important;
   }
 }
+
+/* ==============================
+   Mobile submenu stacking fix
+   ============================== */
+@media (max-width: 600px) {
+  /* Make the submenu expand downward within the same menu */
+  .submenu-panel {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    border: none;
+    margin: 0;
+    background: transparent;
+  }
+
+  /* Indent submenu options slightly for clarity */
+  .submenu-panel .menu-row {
+    padding-left: 1.5rem;
+  }
+
+  /* Make sure main kebab menu doesn’t clip vertically */
+  .email-rules .kebab-menu {
+    overflow: visible;
+  }
+
+  /* Adjust touch targets for comfort */
+  .submenu-trigger,
+  .submenu-panel .menu-row {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
