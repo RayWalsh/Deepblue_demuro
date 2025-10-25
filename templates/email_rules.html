@@ -48,7 +48,12 @@
 
       <article class="card" data-search="{{ cat.displayName | lower }}">
         <div class="card-header">
-          <span class="color-dot" style="background-color: {{ hex }}"></span>
+
+          {% if cat.rule_exists %}
+            <span class="color-dot" style="background-color: {{ hex }}"></span>
+          {% else %}
+            <span class="color-dot no-rule"></span>
+          {% endif %}
 
           <!-- Title opens modal pre-filled -->
           <a href="#" class="card-title edit-category"
@@ -58,12 +63,6 @@
              data-color="{{ cat.color }}">
             {{ cat.displayName }}
           </a>
-
-          {% if cat.rule_exists %}
-            <span class="status-pill status-ok">Rule Exists</span>
-          {% else %}
-            <span class="status-pill status-missing">No Rule</span>
-          {% endif %}
 
           <div class="kebab-wrap">
             <button class="kebab-btn" aria-haspopup="true" aria-expanded="false" title="More actions">⋯</button>
