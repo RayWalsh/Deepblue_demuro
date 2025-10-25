@@ -142,69 +142,70 @@ if (searchInput) {
   });
 }
 
-// ============== SSE “Run Rule” Overlay ==============
-document.querySelectorAll("form[action^='/email/run_rule/']").forEach((f) => {
-  f.addEventListener("submit", (e) => {
-    e.preventDefault();
+// ============== SSE “Run Rule” Overlay (Fixed Binding) ==============
+document.addEventListener("submit", (e) => {
+  const f = e.target.closest("form[action^='/email/run_rule/']");
+  if (!f) return; // ignore other forms
+  e.preventDefault();
 
-    const overlay = document.getElementById("progressOverlay");
-    const logEl = document.getElementById("progressLog");
-    const barEl = document.getElementById("progressBar");
-    const closeBtn = document.getElementById("closeProgressBtn");
+  const overlay = document.getElementById("progressOverlay");
+  const logEl = document.getElementById("progressLog");
+  const barEl = document.getElementById("progressBar");
+  const closeBtn = document.getElementById("closeProgressBtn");
 
-    overlay.style.display = "flex";
-    logEl.innerHTML = "";
-    barEl.style.width = "0%";
-    barEl.style.backgroundColor = "var(--accent-color)";
-    closeBtn.style.display = "none";
+  overlay.style.display = "flex";
+  logEl.innerHTML = "";
+  barEl.style.width = "0%";
+  barEl.style.backgroundColor = "var(--accent-color)";
+  closeBtn.style.display = "none";
 
-    // ✅ Cleanly extract category name and days parameter
-    const url = new URL(f.action, window.location.origin);
-    const rawName = decodeURIComponent(url.pathname.split("/email/run_rule/")[1]);
-    const days = f.querySelector("input[name='days']")?.value || 90;
+  // Extract category name + days
+  const url = new URL(f.action, window.location.origin);
+  const rawName = decodeURIComponent(url.pathname.split("/email/run_rule/")[1]);
+  const days = f.querySelector("input[name='days']")?.value || 90;
 
-    const es = new EventSource(`/email/run_rule/${encodeURIComponent(rawName)}?days=${days}`);
-    let steps = 0;
+  // Start EventSource stream
+  const es = new EventSource(`/email/run_rule/${encodeURIComponent(rawName)}?days=${days}`);
+  let steps = 0;
 
-    const add = (t, cls = "info") => {
-      const d = document.createElement("div");
-      d.className = `log-line ${cls}`;
-      d.textContent = t;
-      logEl.appendChild(d);
-      logEl.scrollTop = logEl.scrollHeight;
-    };
+  const add = (t, cls = "info") => {
+    const d = document.createElement("div");
+    d.className = `log-line ${cls}`;
+    d.textContent = t;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  };
 
-    es.onmessage = (ev) => {
-      const msg = ev.data;
-      if (msg === "DONE") {
-        barEl.style.width = "100%";
-        barEl.style.backgroundColor = "#10b981";
-        add("✅ Rule run complete.", "done");
-        closeBtn.style.display = "inline-block";
-        es.close();
-        return;
-      }
-
-      if (msg.includes("Skipping")) add(msg, "skipped");
-      else if (msg.includes("⚠️")) add(msg, "warning");
-      else if (msg.includes("Tagged")) {
-        add(msg, "tagged");
-        steps++;
-        barEl.style.width = Math.min(100, steps * 5) + "%";
-      } else if (msg.includes("✅")) add(msg, "success");
-      else add(msg, "info");
-    };
-
-    es.onerror = () => {
-      add("⚠️ Connection lost or an error occurred.", "warning");
+  es.onmessage = (ev) => {
+    const msg = ev.data;
+    if (msg === "DONE") {
+      barEl.style.width = "100%";
+      barEl.style.backgroundColor = "#10b981";
+      add("✅ Rule run complete.", "done");
       closeBtn.style.display = "inline-block";
       es.close();
-    };
+      return;
+    }
 
-    closeBtn.onclick = () => {
-      overlay.style.display = "none";
-    };
-  });
+    if (msg.includes("Skipping")) add(msg, "skipped");
+    else if (msg.includes("⚠️")) add(msg, "warning");
+    else if (msg.includes("Tagged")) {
+      add(msg, "tagged");
+      steps++;
+      barEl.style.width = Math.min(100, steps * 5) + "%";
+    } else if (msg.includes("✅")) add(msg, "success");
+    else add(msg, "info");
+  };
+
+  es.onerror = () => {
+    add("⚠️ Connection lost or an error occurred.", "warning");
+    closeBtn.style.display = "inline-block";
+    es.close();
+  };
+
+  closeBtn.onclick = () => {
+    overlay.style.display = "none";
+  };
 });
 
 // ============== Submenu Tap Support (for iPad / Touch) ==============
