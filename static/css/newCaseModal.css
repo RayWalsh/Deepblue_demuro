@@ -1,0 +1,181 @@
+/* =========================================
+   ⚙️ Universal New Case Modal Styles
+   ========================================= */
+
+/* Modal Overlay */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s ease;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* Modal Content (Default Desktop Style) */
+.modal-content.new-case-modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 520px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: scale(0.98);
+  opacity: 0;
+  animation: modalFadeIn 0.3s ease forwards;
+}
+
+@keyframes modalFadeIn {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Close Button */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close:hover { color: var(--accent-color); }
+
+/* =========================================
+   ✨ Floating Label Inputs
+   ========================================= */
+.floating-form {
+  margin-top: 1rem;
+}
+
+.floating-form .form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.floating-form input,
+.floating-form select {
+  width: 100%;
+  padding: 10px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: transparent;
+  outline: none;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.floating-form input:focus,
+.floating-form select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 4px rgba(54, 162, 239, 0.2);
+}
+
+.floating-form label {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  color: #888;
+  font-size: 0.9rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  background: #fff;
+  padding: 0 4px;
+}
+
+.floating-form input:focus + label,
+.floating-form input:not(:placeholder-shown) + label,
+.floating-form select:focus + label,
+.floating-form select:not([value=""]) + label {
+  top: -8px;
+  left: 8px;
+  font-size: 0.75rem;
+  color: var(--primary-color);
+}
+
+/* =========================================
+   📱 iPhone-style Slide-Up Modal (Mobile)
+   ========================================= */
+@media (max-width: 768px) {
+  .modal {
+    align-items: flex-end;
+  }
+
+  .modal-content.new-case-modal {
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 1.5rem;
+    transform: translateY(100%);
+    animation: slideUp 0.35s ease forwards;
+    transition: transform 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* Grab Handle */
+  .modal-handle {
+    width: 40px;
+    height: 5px;
+    background: #ccc;
+    border-radius: 4px;
+    margin: 0 auto 10px;
+    transition: background 0.2s;
+  }
+  .modal-handle:active {
+    background: var(--accent-color);
+  }
+
+  /* Close Button Repositioned */
+  .close {
+    top: 10px;
+    right: 14px;
+    font-size: 1.8rem;
+  }
+
+  /* Modal Header */
+  .modal-content.new-case-modal h2 {
+    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+
+  /* Form Buttons */
+  .form-actions {
+    margin-top: 1.5rem;
+  }
+  .form-actions button {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent-color);
+    color: #fff;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+  .form-actions button:hover {
+    background: var(--primary-light);
+  }
+}
+
+/* =========================================
+   🧭 Swipe-down Motion Feedback
+   ========================================= */
+.modal-content.swiping {
+  transition: none !important;
+  transform: translateY(var(--swipe-distance, 0));
+}
