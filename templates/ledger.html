@@ -3,6 +3,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
+
 <section class="ledger-section">
   <!-- Header Row -->
   <div class="heading-row">
@@ -11,9 +12,18 @@
       <button id="exportCSVBtn" class="export-button" title="Export to CSV">
         <i class="fas fa-file-csv"></i>
       </button>
-      <button id="manageColumnsBtn" class="cog-button" title="Select Columns">
+
+      <!-- ⚙️ Settings Button -->
+      <button id="openSettingsBtn" class="cog-button" title="Open Settings">
         <i class="fas fa-cog"></i>
       </button>
+
+      <!-- 🔁 Toggle View -->
+      <button id="toggleViewBtn" class="secondary-btn" title="Switch View Mode">
+        <i class="fas fa-table"></i>
+      </button>
+
+      <!-- 🔍 Search -->
       <input
         type="text"
         id="globalSearch"
@@ -27,19 +37,18 @@
   <div id="ledger-table" class="table-wrapper">
     <table id="ledgerTable" class="case-table">
       <thead>
-  <tr>
-    <th>Date</th>
-    <th>Description</th>
-    <th>Type</th>
-    <th>Currency</th>
-    <th>Amount</th>
-    <th>Status</th>
-  </tr>
-</thead>
-<tbody id="ledgerTableBody">
-  <tr><td colspan="6">Loading...</td></tr>
-</tbody>
-      <tbody>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Type</th>
+          <th>Currency</th>
+          <th>Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="ledgerTableBody">
+        <tr><td colspan="6">Loading...</td></tr>
+      </tbody>
     </table>
   </div>
 </section>
@@ -54,12 +63,36 @@
     <ul id="columnToggleList" class="column-toggle-list"></ul>
     <div class="button-row reset-row">
       <button id="resetColumnPrefs" class="danger-btn">Reset View</button>
-      <a href="/settings/ledger" class="secondary-btn">More Settings</a>
+      <button id="openSettingsBtnAlt" class="secondary-btn">More Settings</button>
     </div>
   </div>
   <div class="side-panel-footer">
     <button id="applyColumnPrefs">Apply</button>
     <button id="cancelColumnPrefs">Cancel</button>
+  </div>
+</div>
+
+<!-- =========================
+     ⚙️ SETTINGS MODAL
+========================= -->
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Ledger Settings</h3>
+      <button id="closeSettingsBtn" class="close-btn">&times;</button>
+    </div>
+
+    <!-- ✅ Tabs -->
+    <div class="modal-tabs">
+      <button data-tab="general" class="active">General</button>
+      <button data-tab="columns">Columns</button>
+      <button data-tab="appearance">Appearance</button>
+    </div>
+
+    <!-- ✅ Tab Content Area -->
+    <div id="modalBody" class="modal-body">
+      <h4>Loading...</h4>
+    </div>
   </div>
 </div>
 

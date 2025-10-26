@@ -261,3 +261,212 @@ thead th.sorted-desc::after {
   background: var(--accent-color);
   color: #fff;
 }
+
+.side-panel {
+  pointer-events: auto !important;
+}
+
+.side-panel .button-row a {
+  position: relative;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+/* ===============================
+   ⚙️ Ledger Settings Modal Styles
+   =============================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #ddd;
+  background: #f9f9f9;
+  padding: 10px 20px;
+}
+
+.modal-tabs button {
+  background: none;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #333;
+}
+
+.modal-tabs button.active {
+  background: #0e3a6d;
+  color: white;
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Column list inside modal */
+#colList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#colList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+#colList li button {
+  border: none;
+  background: #ff5555;
+  color: white;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.add-column-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.add-column-row input,
+.add-column-row select {
+  flex: 1;
+  padding: 6px;
+}
+
+.add-column-row button {
+  background: #0e3a6d;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ===============================
+   Ledger Table Styling — Polished
+   =============================== */
+.ledger-section {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.case-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  font-size: 0.95rem;
+}
+
+.case-table thead th {
+  background: #0e3a6d;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+  padding: 10px 12px;
+}
+
+.case-table tbody tr:nth-child(even) {
+  background: #f7faff;
+}
+
+.case-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e0e6ef;
+}
+
+.case-table td:nth-child(6),
+.case-table td:nth-child(4),
+.case-table td:nth-child(5) {
+  text-align: right;
+}
+
+.case-table tbody tr:hover {
+  background: #eaf3ff;
+  transition: 0.2s ease;
+}
+
+/* Ref column clickable look */
+.case-table td:first-child {
+  font-weight: 600;
+  color: #0e3a6d;
+  cursor: pointer;
+}
+.case-table td:first-child:hover {
+  text-decoration: underline;
+}
+
+/* Status pill badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+}
+.status-blue { background: #3498db; }
+.status-amber { background: #f1c40f; color: #333; }
+.status-green { background: #2ecc71; }
+.status-grey { background: #95a5a6; }
