@@ -26,6 +26,11 @@ from ledger import ledger_bp
 app.register_blueprint(ledger_bp)
 
 # ----------------------------------------------------
+# 🔗 Blueprint: Ledger Settings
+# ----------------------------------------------------
+from settings_bp import settings_bp
+app.register_blueprint(settings_bp)
+# ----------------------------------------------------
 # 
 # ----------------------------------------------------
 @app.route('/debug_session')
@@ -41,16 +46,25 @@ def debug_session():
 # ----------------------------------------------------
 # 🗄 SQLAlchemy Connection (Azure SQL)
 # ----------------------------------------------------
-conn_str = (
-    "mssql+pyodbc://Deepblueadmin:Atlantic!Beaufort6633"
-    "@deepbluedb.database.windows.net,1433/DeepBlueDB"
-    "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=yes"
+import os
+
+# Pull from environment variable if available (Azure)
+conn_str = os.getenv(
+    "DB_CONNECTION_STRING",
+    "mssql+pyodbc://Deepblueadmin:Atlantic!Beaufort6633@deepbluedb.database.windows.net,1433/DeepBlueDB?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=yes"
 )
+
+print(f"🔌 Using database connection string source: {'ENV' if 'DB_CONNECTION_STRING' in os.environ else 'LOCAL'}")
 
 engine = create_engine(conn_str, pool_pre_ping=True, pool_recycle=3600)
 
 def get_db_connection():
-    return engine.connect()
+    try:
+        conn = engine.connect()
+        return conn
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        raise
 
 # ----------------------------------------------------
 # 🔐 Authentication Decorator
