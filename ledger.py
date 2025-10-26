@@ -4,6 +4,7 @@
 from flask import Blueprint, render_template, jsonify
 from sqlalchemy import text
 
+# Create the Blueprint
 ledger_bp = Blueprint('ledger_bp', __name__)
 
 # -------------------------------
@@ -30,26 +31,24 @@ def get_ledger():
     def inner():
         try:
             with get_db_connection() as conn:
-                query = text("""
-                    SELECT 
-                        [CaseID],
-                        [DeepBlueRef],
-                        [VesselName],
-                        [ClientName],
-                        [CPDate],
-                        [ClaimType],
-                        [ClaimFiledAmount],
-                        [ClaimStatus]
+                result = conn.execute(text("""
+                    SELECT *
                     FROM dbo.Cases
-                    ORDER BY [CPDate] DESC
-                """)
-                result = conn.execute(query)
+                    ORDER BY CPDate DESC
+                """))
                 columns = result.keys()
-                data = [dict(zip(columns, row)) for row in result.fetchall()]
-                print(f"✅ Loaded {len(data)} ledger rows from dbo.Cases")
-                return jsonify(data), 200
+                rows = [dict(zip(columns, row)) for row in result.fetchall()]
+
+                print(f"✅ Loaded {len(rows)} ledger rows from dbo.Cases")
+
+            # Return both columns and rows
+            return jsonify({
+                "columns": list(columns),
+                "rows": rows
+            }), 200
+
         except Exception as e:
-            print("🚨 SQL Error in /api/ledger:", e)
+            print("❌ Error fetching ledger data:", e)
             return jsonify({"error": str(e)}), 500
 
     return inner()

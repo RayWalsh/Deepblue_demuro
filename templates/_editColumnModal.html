@@ -1,0 +1,36 @@
+<!-- ==============================================
+🪟 _editColumnModal.html — Edit SQL Column Modal
+============================================== -->
+<div class="sof-modal" id="column-editor-modal" style="display: none;">
+  <div class="sof-modal-content">
+    <h3>Edit Column</h3>
+
+    <div class="form-group">
+      <label for="col-name">Column Name</label>
+      <input type="text" id="col-name" class="readonly-input" disabled />
+    </div>
+
+    <div class="form-group">
+      <label for="friendly-type">Field Type</label>
+      <select id="friendly-type">
+        <option>Text</option>
+        <option>Paragraph</option>
+        <option>Number</option>
+        <option>Decimal Number</option>
+        <option>Date/Time</option>
+        <option>Yes/No</option>
+        <option>ID / Reference</option>
+        <option>File Upload</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="modal-buttons">
+      <div>
+        <button onclick="saveColumnChanges()" class="primary-btn">Save</button>
+        <button onclick="closeColumnEditor()" class="secondary-btn">Cancel</button>
+      </div>
+      <button id="deleteColumnBtn" class="danger-btn">Delete Column</button>
+    </div>
+  </div>
+</div>

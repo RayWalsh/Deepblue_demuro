@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Ledger Settings | Deep Blue Portal{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+
+<section class="settings-wrapper">
+  <!-- Sidebar Navigation -->
+  <aside class="settings-sidebar">
+    <ul class="settings-nav">
+      <li><a data-page="general" class="active">General Settings</a></li>
+      <li><a data-page="columns">Manage Columns</a></li>
+      <li><a data-page="appearance">Table Appearance</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="settings-content" class="settings-main">
+    <!-- Content dynamically injected by JS -->
+  </main>
+</section>
+
+<!-- Include modals -->
+{% include "_editColumnModal.html" %}
+{% include "_newColumnModal.html" %}
+
+<script src="{{ url_for('static', filename='js/settings_ledger.js') }}"></script>
+{% endblock %}

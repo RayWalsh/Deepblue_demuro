@@ -1,11 +1,24 @@
-# Prevent secrets and temp files from being pushed to GitHub
-.env
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.db
-instance/
+
+# Virtual envs
+.env
+.venv
+venv/
+ENV/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
 .vscode/
 .idea/
-.DS_Store
+
+# Build & logs
+dist/
+build/
+*.log
