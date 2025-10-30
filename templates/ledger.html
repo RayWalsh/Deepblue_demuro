@@ -105,20 +105,78 @@
 
 <!-- ===== INLINE STYLES ===== -->
 <style>
-  /* Match Mailbox Manager header styling */
+/* =========================================
+   🧭 Ledger Layout & Responsive Styling
+   ========================================= */
+
+/* ===== Header Section ===== */
 .ledger-header {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.7);
+  padding: 1rem 0;
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(8px);
   border-radius: 10px;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+}
+
+.ledger-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.ledger-subtitle {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 4px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.search-bar {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  flex: 1;
+  min-width: 150px;
+}
+
+.header-add-btn {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.header-add-btn:hover {
+  background: var(--primary-light);
+}
+
+/* ===== Table Section ===== */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-scroll {
@@ -126,82 +184,84 @@
   min-width: max-content;
 }
 
-  .ledger-header h1 {
-    font-size: 1.5rem;
+.case-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.case-table th,
+.case-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.case-table th {
+  background-color: var(--primary-color);
+  color: #fff;
+  font-weight: 600;
+}
+
+.case-table tr:nth-child(even) {
+  background-color: #f9fafc;
+}
+
+/* ===== Mobile Layout Fixes ===== */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .ledger-section {
+    width: 100vw;
     margin: 0;
-    color: var(--primary-color);
+    padding: 0 0.75rem;
   }
 
-  .ledger-subtitle {
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 4px;
-  }
-
-  .header-left {
-    flex: 1;
+  .ledger-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
   }
 
   .header-right {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .search-bar {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(6px);
-    flex: 1;
-    min-width: 150px;
+    flex: 1 1 100%;
+    margin-bottom: 0.5rem;
   }
 
-  .header-add-btn {
-    background: var(--primary-color);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .header-add-btn:hover {
-    background: var(--primary-light);
-  }
-
-  /* Horizontal scroll on mobile */
+  /* Enable true horizontal scroll on mobile */
   .table-wrapper {
-    width: 100%;
-    overflow-x: auto;
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
+    width: 100vw;
+    margin-left: -0.75rem;
   }
 
   .table-scroll {
-    min-width: 600px;
+    display: block;
+    min-width: max-content;
   }
+}
 
-  @media (max-width: 768px) {
-    .ledger-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
-      padding: 1rem;
-    }
-
-    .header-right {
-      width: 100%;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-    }
-
-    .search-bar {
-      flex: 1 1 100%;
-      margin-bottom: 0.5rem;
-    }
+/* ===== Desktop Polish ===== */
+@media (min-width: 1025px) {
+  .ledger-section {
+    max-width: 1200px;
+    margin: 0 auto;
   }
+}
 </style>
 {% endblock %}
