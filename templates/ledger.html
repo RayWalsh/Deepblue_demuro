@@ -5,55 +5,61 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
 
 <section class="ledger-section">
-  <!-- Header Row -->
-  <div class="heading-row">
-    <h2>The Ledger</h2>
-    <div class="heading-controls">
-      <button id="exportCSVBtn" class="export-button" title="Export to CSV">
-        <i class="fas fa-file-csv"></i>
-      </button>
+  <!-- ===== HEADER ===== -->
+  <div class="ledger-header">
+    <div class="header-left">
+      <h1>The Ledger</h1>
+      <p class="ledger-subtitle">
+        Manage financial transactions and ledger entries for Deep Blue.
+      </p>
+    </div>
 
-      <!-- ⚙️ Settings Button -->
-      <button id="openSettingsBtn" class="cog-button" title="Open Settings">
-        <i class="fas fa-cog"></i>
-      </button>
-
-      <!-- 🔁 Toggle View -->
-      <button id="toggleViewBtn" class="secondary-btn" title="Switch View Mode">
-        <i class="fas fa-table"></i>
-      </button>
-
-      <!-- 🔍 Search -->
+    <div class="header-right">
       <input
         type="text"
         id="globalSearch"
+        class="search-bar"
         placeholder="Search ledger..."
         title="Filter ledger rows"
       />
+
+      <button id="exportCSVBtn" class="header-add-btn" title="Export to CSV">
+        <i class="fas fa-file-csv"></i>
+      </button>
+
+      <button id="openSettingsBtn" class="header-add-btn" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+
+      <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
+        <i class="fas fa-table"></i>
+      </button>
     </div>
   </div>
 
-  <!-- Ledger Table -->
+  <!-- ===== LEDGER TABLE ===== -->
   <div id="ledger-table" class="table-wrapper">
-    <table id="ledgerTable" class="case-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Description</th>
-          <th>Type</th>
-          <th>Currency</th>
-          <th>Amount</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="ledgerTableBody">
-        <tr><td colspan="6">Loading...</td></tr>
-      </tbody>
-    </table>
+    <div class="table-scroll">
+      <table id="ledgerTable" class="case-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Currency</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerTableBody">
+          <tr><td colspan="6">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 
-<!-- Column Picker Panel -->
+<!-- ===== COLUMN PICKER PANEL ===== -->
 <div id="columnPickerPanel" class="side-panel">
   <div class="side-panel-header">
     <button id="closeColumnPicker" class="close-panel">&times;</button>
@@ -72,9 +78,7 @@
   </div>
 </div>
 
-<!-- =========================
-     ⚙️ SETTINGS MODAL
-========================= -->
+<!-- ===== SETTINGS MODAL ===== -->
 <div id="settingsModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
@@ -82,20 +86,115 @@
       <button id="closeSettingsBtn" class="close-btn">&times;</button>
     </div>
 
-    <!-- ✅ Tabs -->
+    <!-- Tabs -->
     <div class="modal-tabs">
       <button data-tab="general" class="active">General</button>
       <button data-tab="columns">Columns</button>
       <button data-tab="appearance">Appearance</button>
     </div>
 
-    <!-- ✅ Tab Content Area -->
+    <!-- Tab Body -->
     <div id="modalBody" class="modal-body">
       <h4>Loading...</h4>
     </div>
   </div>
 </div>
 
-<!-- JS -->
+<!-- ===== JS ===== -->
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
+
+<!-- ===== INLINE STYLES ===== -->
+<style>
+  /* Match Mailbox Manager header styling */
+  .ledger-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 1rem 0;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .ledger-header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--primary-color);
+  }
+
+  .ledger-subtitle {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .search-bar {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(6px);
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .header-add-btn {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .header-add-btn:hover {
+    background: var(--primary-light);
+  }
+
+  /* Horizontal scroll on mobile */
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-scroll {
+    min-width: 600px;
+  }
+
+  @media (max-width: 768px) {
+    .ledger-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+
+    .header-right {
+      width: 100%;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .search-bar {
+      flex: 1 1 100%;
+      margin-bottom: 0.5rem;
+    }
+  }
+</style>
 {% endblock %}
