@@ -68,71 +68,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-// -------------------------------
-// ✏️ Edit Entry Modal (Grouped)
-// -------------------------------
-function openEditModal(data) {
-  currentEditItem = data;
-  editModal.style.display = "flex";
-
-  let html = "";
-
-  for (const [groupName, fields] of Object.entries(fieldGroups)) {
-    html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
-    fields.forEach((col) => {
-      const type = inferInputType(col);
-      const value = data[col] ?? "";
-      const disabled = systemFields.includes(col) ? "disabled" : "";
-
-      if (type === "textarea") {
-        html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}>${value}</textarea></div>`;
-      } else if (type === "checkbox") {
-        const checked = value === 1 || value === true ? "checked" : "";
-        html += `<div><label><input type="checkbox" name="${col}" ${checked} ${disabled}/> ${col}</label></div>`;
-      } else {
-        html += `<div><label>${col}</label><input type="${type}" name="${col}" value="${value}" ${disabled}/></div>`;
-      }
-    });
-    html += "</div></section>";
-  }
-
-  editModalBody.innerHTML = html;
-}
-
-  closeEditEntryBtn.onclick = () => (editModal.style.display = "none");
-  editModal.onclick = (e) => {
-    if (e.target === editModal) editModal.style.display = "none";
-  };
-
-  saveEntryBtn.onclick = async () => {
-    const payload = {};
-    editModalBody.querySelectorAll("input").forEach((i) => (payload[i.name] = i.value));
-    const caseId = currentEditItem.CaseID;
-    const res = await fetch(`/api/update-ledger-item/${caseId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.success) {
-      alert("✅ Entry updated");
-      editModal.style.display = "none";
-      loadLedger();
-    } else alert("❌ " + data.error);
-  };
-
-  deleteEntryBtn.onclick = async () => {
-    const caseId = currentEditItem.CaseID;
-    if (!confirm("Delete this entry?")) return;
-    const res = await fetch(`/api/delete-ledger-item/${caseId}`, { method: "DELETE" });
-    const data = await res.json();
-    if (data.success) {
-      alert("🗑 Entry deleted");
-      editModal.style.display = "none";
-      loadLedger();
-    } else alert("❌ " + data.error);
-  };
-
   // -------------------------------
   // 🧱 Grouped Field Rendering
   // -------------------------------
@@ -160,14 +95,92 @@ function openEditModal(data) {
 
   const systemFields = ["CaseID", "CreatedAt"];
 
+  // -------------------------------
+  // 🧩 Smarter Type Inference
+  // -------------------------------
   function inferInputType(name) {
     const lower = name.toLowerCase();
-    if (lower.includes("date")) return "date";
+
+    // Date fields
+    if (lower.includes("date") || lower.endsWith("received")) return "date";
+
+    // Numeric fields
     if (lower.includes("amount") || lower.includes("rate") || lower.includes("days") || lower.includes("hours")) return "number";
+
+    // Long text
     if (lower.includes("notes") || lower.includes("instruction")) return "textarea";
-    if (lower.includes("received") && !lower.includes("date")) return "checkbox";
+
+    // Explicit checkbox fields only
+    const checkboxFields = ["initialclaim", "claimreceived", "reversible"];
+    if (checkboxFields.includes(lower)) return "checkbox";
+
     return "text";
   }
+
+  // -------------------------------
+  // ✏️ Edit Entry Modal (Grouped)
+  // -------------------------------
+  function openEditModal(data) {
+    currentEditItem = data;
+    editModal.style.display = "flex";
+
+    let html = "";
+    for (const [groupName, fields] of Object.entries(fieldGroups)) {
+      html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
+      fields.forEach((col) => {
+        const type = inferInputType(col);
+        const value = data[col] ?? "";
+        const disabled = systemFields.includes(col) ? "disabled" : "";
+
+        if (type === "textarea") {
+          html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}>${value}</textarea></div>`;
+        } else if (type === "checkbox") {
+          const checked = value === 1 || value === true ? "checked" : "";
+          html += `<div><label><input type="checkbox" name="${col}" ${checked} ${disabled}/> ${col}</label></div>`;
+        } else {
+          html += `<div><label>${col}</label><input type="${type}" name="${col}" value="${value}" ${disabled}/></div>`;
+        }
+      });
+      html += "</div></section>";
+    }
+    editModalBody.innerHTML = html;
+  }
+
+  closeEditEntryBtn.onclick = () => (editModal.style.display = "none");
+  editModal.onclick = (e) => { if (e.target === editModal) editModal.style.display = "none"; };
+
+  saveEntryBtn.onclick = async () => {
+    const payload = {};
+    editModalBody.querySelectorAll("input, textarea").forEach((i) => {
+      if (i.type === "checkbox") payload[i.name] = i.checked ? 1 : 0;
+      else payload[i.name] = i.value || null;
+    });
+
+    const caseId = currentEditItem.CaseID;
+    const res = await fetch(`/api/update-ledger-item/${caseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("✅ Entry updated");
+      editModal.style.display = "none";
+      loadLedger();
+    } else alert("❌ " + data.error);
+  };
+
+  deleteEntryBtn.onclick = async () => {
+    const caseId = currentEditItem.CaseID;
+    if (!confirm("Delete this entry?")) return;
+    const res = await fetch(`/api/delete-ledger-item/${caseId}`, { method: "DELETE" });
+    const data = await res.json();
+    if (data.success) {
+      alert("🗑 Entry deleted");
+      editModal.style.display = "none";
+      loadLedger();
+    } else alert("❌ " + data.error);
+  };
 
   // -------------------------------
   // ➕ Open Add Modal (Grouped)
@@ -191,20 +204,17 @@ function openEditModal(data) {
       });
       html += "</div></section>";
     }
-
     addModalBody.innerHTML = html;
   };
 
   closeAddEntryBtn.onclick = () => (addModal.style.display = "none");
-  addModal.onclick = (e) => {
-    if (e.target === addModal) addModal.style.display = "none";
-  };
+  addModal.onclick = (e) => { if (e.target === addModal) addModal.style.display = "none"; };
 
   saveAddEntryBtn.onclick = async () => {
     const payload = {};
     addModalBody.querySelectorAll("input, textarea").forEach((i) => {
       if (i.type === "checkbox") payload[i.name] = i.checked ? 1 : 0;
-      else payload[i.name] = i.value;
+      else payload[i.name] = i.value || null;
     });
 
     const res = await fetch("/api/add-ledger-item", {
@@ -221,7 +231,7 @@ function openEditModal(data) {
   };
 
   // -------------------------------
-  // Search Filter
+  // 🔍 Search Filter
   // -------------------------------
   searchInput.oninput = (e) => {
     const term = e.target.value.toLowerCase();
