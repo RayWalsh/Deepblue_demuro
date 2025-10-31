@@ -5,37 +5,34 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
 
 <section class="ledger-section">
-  <!-- ===== HEADER ===== -->
-  <div class="ledger-header">
-    <div class="header-left">
-      <h1>The Ledger</h1>
-      <p class="ledger-subtitle">
-        Manage financial transactions and ledger entries for Deep Blue.
-      </p>
-    </div>
-
-    <div class="header-right">
-      <input
-        type="text"
-        id="globalSearch"
-        class="search-bar"
-        placeholder="Search ledger..."
-        title="Filter ledger rows"
-      />
-
-      <button id="exportCSVBtn" class="header-add-btn" title="Export to CSV">
-        <i class="fas fa-file-csv"></i>
-      </button>
-
-      <button id="openSettingsBtn" class="header-add-btn" title="Settings">
-        <i class="fas fa-cog"></i>
-      </button>
-
-      <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
-        <i class="fas fa-table"></i>
-      </button>
-    </div>
+  <!-- ===== HEADER (Unified with Mailbox Manager) ===== -->
+<div class="email-rules-header">
+  <div class="header-left">
+    <h1>The Ledger</h1>
+    <p class="mailbox-subtitle">
+      Manage financial transactions and ledger entries for Deep Blue.
+    </p>
   </div>
+
+  <div class="header-right">
+    <input
+      type="text"
+      id="globalSearch"
+      class="search-bar"
+      placeholder="Search ledger..."
+      title="Filter ledger rows"
+    />
+    <button id="exportCSVBtn" class="header-add-btn" title="Export to CSV">
+      <i class="fas fa-file-csv"></i>
+    </button>
+    <button id="openSettingsBtn" class="header-add-btn" title="Settings">
+      <i class="fas fa-cog"></i>
+    </button>
+    <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
+      <i class="fas fa-table"></i>
+    </button>
+  </div>
+</div>
 
   <!-- ===== LEDGER TABLE ===== -->
   <div id="ledger-table" class="table-wrapper">
