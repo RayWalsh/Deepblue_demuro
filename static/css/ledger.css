@@ -9,126 +9,112 @@ body {
   background: linear-gradient(to bottom right, #f7f9fc 0%, #eef3f9 100%);
 }
 
-/* ===== Page Heading Bar ===== */
-.heading-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: rgba(14, 58, 109, 0.9);
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(6px);
-}
+/* ===============================
+   Layout Alignment — Match Mailbox Manager
+   =============================== */
 
-.heading-row h2 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
-  margin: 0;
-  color: #fff;
-}
-
-.heading-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: nowrap;
-}
-
-.heading-controls input[type="text"] {
-  background: rgba(255,255,255,0.9);
-  border: 1px solid rgba(0,0,0,0.15);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 14px;
-  max-width: 220px;
-}
-
-.export-button,
-.cog-button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.export-button:hover,
-.cog-button:hover {
-  color: var(--accent-color);
-}
-
-/* ===== Table Wrapper ===== */
-.table-wrapper {
-  background: white;
-  border-radius: 6px;
-  margin: 1.5rem 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  overflow: auto;
-}
-
-/* ===== Ledger Table ===== */
-table {
+.ledger-section {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 900px;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
 }
 
-thead th {
-  background-color: var(--primary-color);
-  color: white;
-  text-align: left;
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 10px;
+}
+
+@supports(padding: max(0px)) {
+  .ledger-section {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Mobile-friendly tweaks */
+@media (max-width: 768px) {
+  .ledger-section {
+    padding-top: 70px !important; /* match topbar clearance */
+  }
+}
+
+/* ===============================
+   Table Styling — Polished
+   =============================== */
+
+.case-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  font-size: 0.95rem;
+}
+
+.case-table thead th {
+  background: #0e3a6d;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   font-weight: 600;
-  padding: 10px 14px;
-  position: sticky;
-  top: 0;
+  padding: 10px 12px;
+}
+
+.case-table tbody tr:nth-child(even) {
+  background: #f7faff;
+}
+
+.case-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e0e6ef;
+}
+
+.case-table td:nth-child(6),
+.case-table td:nth-child(4),
+.case-table td:nth-child(5) {
+  text-align: right;
+}
+
+.case-table tbody tr:hover {
+  background: #eaf3ff;
+  transition: 0.2s ease;
+}
+
+/* Ref column clickable look */
+.case-table td:first-child {
+  font-weight: 600;
+  color: #0e3a6d;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
-
-thead th:hover {
-  background-color: var(--primary-light);
-}
-
-tbody td {
-  padding: 8px 14px;
-  border-bottom: 1px solid #e2e6ea;
-  white-space: nowrap;
-  text-align: left;
-}
-
-tbody tr:nth-child(even) {
-  background-color: #f8f9fb;
-}
-
-tbody tr:hover {
-  background-color: #e9f4ff;
-}
-
-.clickable-ref {
-  color: var(--primary-color);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.clickable-ref:hover {
+.case-table td:first-child:hover {
   text-decoration: underline;
 }
 
-/* ===== Sorting Icons ===== */
-thead th.sorted-asc::after {
-  content: " ↑";
-  color: var(--accent-color);
+/* Status pill badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
 }
+.status-blue { background: #3498db; }
+.status-amber { background: #f1c40f; color: #333; }
+.status-green { background: #2ecc71; }
+.status-grey { background: #95a5a6; }
 
-thead th.sorted-desc::after {
-  content: " ↓";
-  color: var(--accent-color);
-}
-
-/* ===== Column Picker Side Panel ===== */
+/* ===============================
+   Column Picker Side Panel
+   =============================== */
 #columnPickerPanel {
   position: fixed;
   top: 0;
@@ -262,16 +248,6 @@ thead th.sorted-desc::after {
   color: #fff;
 }
 
-.side-panel {
-  pointer-events: auto !important;
-}
-
-.side-panel .button-row a {
-  position: relative;
-  z-index: 10000;
-  pointer-events: auto;
-}
-
 /* ===============================
    ⚙️ Ledger Settings Modal Styles
    =============================== */
@@ -397,76 +373,3 @@ thead th.sorted-desc::after {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
-
-/* ===============================
-   Ledger Table Styling — Polished
-   =============================== */
-.ledger-section {
-  background: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.case-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #fff;
-  font-size: 0.95rem;
-}
-
-.case-table thead th {
-  background: #0e3a6d;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-weight: 600;
-  padding: 10px 12px;
-}
-
-.case-table tbody tr:nth-child(even) {
-  background: #f7faff;
-}
-
-.case-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e0e6ef;
-}
-
-.case-table td:nth-child(6),
-.case-table td:nth-child(4),
-.case-table td:nth-child(5) {
-  text-align: right;
-}
-
-.case-table tbody tr:hover {
-  background: #eaf3ff;
-  transition: 0.2s ease;
-}
-
-/* Ref column clickable look */
-.case-table td:first-child {
-  font-weight: 600;
-  color: #0e3a6d;
-  cursor: pointer;
-}
-.case-table td:first-child:hover {
-  text-decoration: underline;
-}
-
-/* Status pill badges */
-.status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #fff;
-}
-.status-blue { background: #3498db; }
-.status-amber { background: #f1c40f; color: #333; }
-.status-green { background: #2ecc71; }
-.status-grey { background: #95a5a6; }
