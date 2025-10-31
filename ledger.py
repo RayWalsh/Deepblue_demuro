@@ -1,7 +1,7 @@
 # ==============================================
 # 📘 ledger.py — Ledger Blueprint for Deep Blue Portal
 # ==============================================
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
 from sqlalchemy import text
 
 # Create the Blueprint
@@ -50,5 +50,62 @@ def get_ledger():
         except Exception as e:
             print("❌ Error fetching ledger data:", e)
             return jsonify({"error": str(e)}), 500
+
+    return inner()
+
+# -------------------------------
+# 💾 API Route — Update Ledger Item
+# PUT /api/update-ledger-item/<CaseID>
+# -------------------------------
+@ledger_bp.route('/api/update-ledger-item/<int:case_id>', methods=['PUT'])
+def update_ledger_item(case_id):
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "No data provided"}), 400
+
+            # Build dynamic SQL SET clause
+            set_clause = ", ".join([f"{key} = :{key}" for key in data.keys()])
+            sql = text(f"UPDATE dbo.Cases SET {set_clause} WHERE CaseID = :case_id")
+            data["case_id"] = case_id
+
+            with get_db_connection() as conn:
+                conn.execute(sql, data)
+                conn.commit()
+
+            print(f"✅ Updated CaseID {case_id}")
+            return jsonify({"success": True}), 200
+
+        except Exception as e:
+            print(f"❌ Error updating ledger item {case_id}:", e)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    return inner()
+
+# -------------------------------
+# 🗑 API Route — Delete Ledger Item
+# DELETE /api/delete-ledger-item/<CaseID>
+# -------------------------------
+@ledger_bp.route('/api/delete-ledger-item/<int:case_id>', methods=['DELETE'])
+def delete_ledger_item(case_id):
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        try:
+            with get_db_connection() as conn:
+                conn.execute(text("DELETE FROM dbo.Cases WHERE CaseID = :case_id"), {"case_id": case_id})
+                conn.commit()
+
+            print(f"🗑 Deleted CaseID {case_id}")
+            return jsonify({"success": True}), 200
+
+        except Exception as e:
+            print(f"❌ Error deleting ledger item {case_id}:", e)
+            return jsonify({"success": False, "error": str(e)}), 500
 
     return inner()
