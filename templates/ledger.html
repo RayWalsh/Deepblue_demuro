@@ -11,7 +11,7 @@
     </div>
 
     <div class="header-right">
-      <input id="globalSearch" type="text" class="search-bar" placeholder="Search ledger..."/>
+      <input id="globalSearch" type="text" class="search-bar" placeholder="Search ledger..." />
       <button id="exportCSVBtn" class="header-add-btn" title="Export CSV"><i class="fas fa-file-csv"></i></button>
       <button id="openAddEntryBtn" class="header-add-btn" title="Add New Entry"><i class="fas fa-plus"></i></button>
       <button id="openSettingsBtn" class="header-add-btn" title="Settings"><i class="fas fa-cog"></i></button>
@@ -22,14 +22,28 @@
   <div id="ledger-table" class="table-wrapper">
     <div class="table-scroll">
       <table id="ledgerTable" class="case-table">
-        <thead><tr><th>Ref</th><th>Ship Name</th><th>Charterer</th><th>CP Date</th><th>Claim Submitted</th><th>Amount (USD)</th><th>Status</th></tr></thead>
-        <tbody id="ledgerTableBody"><tr><td colspan="7">Loading...</td></tr></tbody>
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Ship Name</th>
+            <th>Charterer</th>
+            <th>CP Date</th>
+            <th>Claim Submitted</th>
+            <th>Amount (USD)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerTableBody">
+          <tr><td colspan="7">Loading...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
 </section>
 
-<!-- ➕ Add Entry Modal -->
+<!-- ===============================
+     ➕ Add Entry Modal (Grouped)
+     =============================== -->
 <div id="addEntryModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
@@ -39,22 +53,29 @@
         <button id="closeAddEntryBtn" class="close-btn">&times;</button>
       </div>
     </div>
-    <div id="addModalBody" class="modal-body"><p>Loading form...</p></div>
+    <div id="addModalBody" class="modal-body">
+      <p>Loading form...</p>
+    </div>
   </div>
 </div>
 
-<!-- Existing Edit Modal -->
+<!-- ===============================
+     ✏️ Edit Entry Modal (Grouped)
+     =============================== -->
 <div id="editEntryModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Edit Ledger Entry</h3>
+      <h3 id="editModalTitle">Edit Ledger Entry</h3>
       <div class="modal-actions">
         <button id="saveEntryBtn" class="header-add-btn small">💾 Save</button>
         <button id="deleteEntryBtn" class="header-add-btn small danger">🗑 Delete</button>
         <button id="closeEditEntryBtn" class="close-btn">&times;</button>
       </div>
     </div>
-    <div id="editModalBody" class="modal-body"><p>Loading entry...</p></div>
+
+    <div id="editModalBody" class="modal-body">
+      <p>Loading entry...</p>
+    </div>
   </div>
 </div>
 

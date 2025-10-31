@@ -68,20 +68,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // -------------------------------
-  // Edit Entry Modal
-  // -------------------------------
-  function openEditModal(data) {
-    currentEditItem = data;
-    editModal.style.display = "flex";
-    let html = "";
-    Object.entries(data).forEach(([key, value]) => {
-      html += `<label>${key}</label><input name="${key}" value="${value ?? ""}" />`;
+// -------------------------------
+// ✏️ Edit Entry Modal (Grouped)
+// -------------------------------
+function openEditModal(data) {
+  currentEditItem = data;
+  editModal.style.display = "flex";
+
+  let html = "";
+
+  for (const [groupName, fields] of Object.entries(fieldGroups)) {
+    html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
+    fields.forEach((col) => {
+      const type = inferInputType(col);
+      const value = data[col] ?? "";
+      const disabled = systemFields.includes(col) ? "disabled" : "";
+
+      if (type === "textarea") {
+        html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}>${value}</textarea></div>`;
+      } else if (type === "checkbox") {
+        const checked = value === 1 || value === true ? "checked" : "";
+        html += `<div><label><input type="checkbox" name="${col}" ${checked} ${disabled}/> ${col}</label></div>`;
+      } else {
+        html += `<div><label>${col}</label><input type="${type}" name="${col}" value="${value}" ${disabled}/></div>`;
+      }
     });
-    editModalBody.innerHTML = html;
+    html += "</div></section>";
   }
+
+  editModalBody.innerHTML = html;
+}
+
   closeEditEntryBtn.onclick = () => (editModal.style.display = "none");
-  editModal.onclick = (e) => { if (e.target === editModal) editModal.style.display = "none"; };
+  editModal.onclick = (e) => {
+    if (e.target === editModal) editModal.style.display = "none";
+  };
 
   saveEntryBtn.onclick = async () => {
     const payload = {};
@@ -113,22 +134,79 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // -------------------------------
-  // Add Entry Modal
+  // 🧱 Grouped Field Rendering
+  // -------------------------------
+  const fieldGroups = {
+    "Case Info": [
+      "CaseID", "DeepBlueRef", "ClientName", "VesselName", "VoyageNumber", "VoyageEndDate",
+      "CharterersName", "BrokersName", "OwnersName", "CPDate", "CPType", "CPForm"
+    ],
+    "Charterparty Details": [
+      "Layday", "Cancelling", "NoticeReceived", "NoticeDays", "InitialClaim",
+      "ContractType", "ClaimReceived"
+    ],
+    "Rates & Demurrage": [
+      "LoadRate", "DischRate", "DemurrageRate", "LoadingRate", "DischargingRate",
+      "TotalAllowedLaytime", "TotalUsedLaytime", "TotalDemurrageCost"
+    ],
+    "Claim Info": [
+      "ClaimType", "ClaimDays", "ClaimFiledAmount", "AgreedAmount", "ClaimStatus",
+      "CalculationType", "ClaimFiled", "AgreedDate", "InvoiceNumber"
+    ],
+    "Admin & Notes": [
+      "CalculatorNotes", "ClaimNotes", "InstructionReceived", "ContactName", "CreatedAt"
+    ]
+  };
+
+  const systemFields = ["CaseID", "CreatedAt"];
+
+  function inferInputType(name) {
+    const lower = name.toLowerCase();
+    if (lower.includes("date")) return "date";
+    if (lower.includes("amount") || lower.includes("rate") || lower.includes("days") || lower.includes("hours")) return "number";
+    if (lower.includes("notes") || lower.includes("instruction")) return "textarea";
+    if (lower.includes("received") && !lower.includes("date")) return "checkbox";
+    return "text";
+  }
+
+  // -------------------------------
+  // ➕ Open Add Modal (Grouped)
   // -------------------------------
   openAddBtn.onclick = () => {
     addModal.style.display = "flex";
     let html = "";
-    allColumns.forEach((col) => {
-      html += `<label>${col}</label><input name="${col}" />`;
-    });
+
+    for (const [groupName, fields] of Object.entries(fieldGroups)) {
+      html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
+      fields.forEach((col) => {
+        const type = inferInputType(col);
+        const disabled = systemFields.includes(col) ? "disabled" : "";
+        if (type === "textarea") {
+          html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}></textarea></div>`;
+        } else if (type === "checkbox") {
+          html += `<div><label><input type="checkbox" name="${col}" ${disabled}/> ${col}</label></div>`;
+        } else {
+          html += `<div><label>${col}</label><input type="${type}" name="${col}" ${disabled}/></div>`;
+        }
+      });
+      html += "</div></section>";
+    }
+
     addModalBody.innerHTML = html;
   };
+
   closeAddEntryBtn.onclick = () => (addModal.style.display = "none");
-  addModal.onclick = (e) => { if (e.target === addModal) addModal.style.display = "none"; };
+  addModal.onclick = (e) => {
+    if (e.target === addModal) addModal.style.display = "none";
+  };
 
   saveAddEntryBtn.onclick = async () => {
     const payload = {};
-    addModalBody.querySelectorAll("input").forEach((i) => (payload[i.name] = i.value));
+    addModalBody.querySelectorAll("input, textarea").forEach((i) => {
+      if (i.type === "checkbox") payload[i.name] = i.checked ? 1 : 0;
+      else payload[i.name] = i.value;
+    });
+
     const res = await fetch("/api/add-ledger-item", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
