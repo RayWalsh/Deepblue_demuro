@@ -4,36 +4,63 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
 
-<section class="ledger-section">
+<!-- Unified layout: uses both .email-rules (for full-width styling) and .ledger-section -->
+<section class="email-rules ledger-section">
   <!-- ===== HEADER (Unified with Mailbox Manager) ===== -->
-<div class="email-rules-header">
-  <div class="header-left">
-    <h1>The Ledger</h1>
-    <p class="mailbox-subtitle">
-      Manage financial transactions and ledger entries for Deep Blue.
-    </p>
+  <div class="email-rules-header">
+    <div class="header-left">
+      <h1>The Ledger</h1>
+      <p class="mailbox-subtitle">
+        Manage financial transactions and ledger entries for Deep Blue.
+      </p>
+    </div>
+
+    <div class="header-right">
+      <input
+        type="text"
+        id="globalSearch"
+        class="search-bar"
+        placeholder="Search ledger..."
+        title="Filter ledger rows"
+      />
+      <button id="exportCSVBtn" class="header-add-btn" title="Export to CSV">
+        <i class="fas fa-file-csv"></i>
+      </button>
+      <button id="openSettingsBtn" class="header-add-btn" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
+        <i class="fas fa-table"></i>
+      </button>
+    </div>
   </div>
 
-  <div class="header-right">
-    <input
-      type="text"
-      id="globalSearch"
-      class="search-bar"
-      placeholder="Search ledger..."
-      title="Filter ledger rows"
-    />
-    <button id="exportCSVBtn" class="header-add-btn" title="Export to CSV">
-      <i class="fas fa-file-csv"></i>
-    </button>
-    <button id="openSettingsBtn" class="header-add-btn" title="Settings">
-      <i class="fas fa-cog"></i>
-    </button>
-    <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
-      <i class="fas fa-table"></i>
-    </button>
-  </div>
-</div>
+  <!-- Page Description -->
+  <p>Manage financial transactions and ledger entries for Deep Blue.</p>
 
+  <!-- ===== LEDGER TABLE ===== -->
+  <div id="ledger-table" class="table-wrapper">
+    <div class="table-scroll">
+      <table id="ledgerTable" class="case-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Ship Name</th>
+            <th>Charterer</th>
+            <th>CP Date</th>
+            <th>Claim Submitted</th>
+            <th>Amount (USD)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerTableBody">
+          <tr><td colspan="7">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+</section>
   <!-- ===== LEDGER TABLE ===== -->
   <div id="ledger-table" class="table-wrapper">
     <div class="table-scroll">
