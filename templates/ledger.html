@@ -1,173 +1,62 @@
 {% extends "base.html" %}
 {% block title %}The Ledger | Deep Blue Portal{% endblock %}
-
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
 
-<!-- Unified layout: uses both .email-rules (for full-width styling) and .ledger-section -->
 <section class="email-rules ledger-section">
-  <!-- ===== HEADER (Unified with Mailbox Manager) ===== -->
   <div class="email-rules-header">
     <div class="header-left">
       <h1>The Ledger</h1>
-      <p class="mailbox-subtitle">
-        Manage financial transactions and ledger entries for Deep Blue.
-      </p>
+      <p class="mailbox-subtitle">Manage financial transactions and ledger entries for Deep Blue.</p>
     </div>
 
     <div class="header-right">
-      <input
-        type="text"
-        id="globalSearch"
-        class="search-bar"
-        placeholder="Search ledger..."
-        title="Filter ledger rows"
-      />
-      <button id="exportCSVBtn" class="header-add-btn" title="Export to CSV">
-        <i class="fas fa-file-csv"></i>
-      </button>
-      <button id="openSettingsBtn" class="header-add-btn" title="Settings">
-        <i class="fas fa-cog"></i>
-      </button>
-      <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
-        <i class="fas fa-table"></i>
-      </button>
+      <input id="globalSearch" type="text" class="search-bar" placeholder="Search ledger..."/>
+      <button id="exportCSVBtn" class="header-add-btn" title="Export CSV"><i class="fas fa-file-csv"></i></button>
+      <button id="openAddEntryBtn" class="header-add-btn" title="Add New Entry"><i class="fas fa-plus"></i></button>
+      <button id="openSettingsBtn" class="header-add-btn" title="Settings"><i class="fas fa-cog"></i></button>
+      <button id="toggleViewBtn" class="header-add-btn" title="Switch View"><i class="fas fa-table"></i></button>
     </div>
   </div>
 
-  <!-- Page Description -->
-  <p>Manage financial transactions and ledger entries for Deep Blue.</p>
-
-  <!-- ===== LEDGER TABLE ===== -->
   <div id="ledger-table" class="table-wrapper">
     <div class="table-scroll">
       <table id="ledgerTable" class="case-table">
-        <thead>
-          <tr>
-            <th>Ref</th>
-            <th>Ship Name</th>
-            <th>Charterer</th>
-            <th>CP Date</th>
-            <th>Claim Submitted</th>
-            <th>Amount (USD)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="ledgerTableBody">
-          <tr><td colspan="7">Loading...</td></tr>
-        </tbody>
+        <thead><tr><th>Ref</th><th>Ship Name</th><th>Charterer</th><th>CP Date</th><th>Claim Submitted</th><th>Amount (USD)</th><th>Status</th></tr></thead>
+        <tbody id="ledgerTableBody"><tr><td colspan="7">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
-  
 </section>
-  
 
-<!-- ===== COLUMN PICKER PANEL ===== -->
-<div id="columnPickerPanel" class="side-panel">
-  <div class="side-panel-header">
-    <button id="closeColumnPicker" class="close-panel">&times;</button>
-    <h3>Edit View Columns</h3>
-  </div>
-  <div class="side-panel-body">
-    <ul id="columnToggleList" class="column-toggle-list"></ul>
-    <div class="button-row reset-row">
-      <button id="resetColumnPrefs" class="danger-btn">Reset View</button>
-      <button id="openSettingsBtnAlt" class="secondary-btn">More Settings</button>
-    </div>
-  </div>
-  <div class="side-panel-footer">
-    <button id="applyColumnPrefs">Apply</button>
-    <button id="cancelColumnPrefs">Cancel</button>
-  </div>
-</div>
-
-<!-- ===== SETTINGS MODAL ===== -->
-<div id="settingsModal" class="modal-overlay">
+<!-- ➕ Add Entry Modal -->
+<div id="addEntryModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Ledger Settings</h3>
-      <button id="closeSettingsBtn" class="close-btn">&times;</button>
+      <h3>Add New Ledger Entry</h3>
+      <div class="modal-actions">
+        <button id="saveAddEntryBtn" class="header-add-btn small">💾 Save</button>
+        <button id="closeAddEntryBtn" class="close-btn">&times;</button>
+      </div>
     </div>
-
-    <div class="modal-tabs">
-      <button data-tab="general" class="active">General</button>
-      <button data-tab="columns">Columns</button>
-      <button data-tab="appearance">Appearance</button>
-    </div>
-
-    <div id="modalBody" class="modal-body">
-      <h4>Loading...</h4>
-    </div>
+    <div id="addModalBody" class="modal-body"><p>Loading form...</p></div>
   </div>
 </div>
 
-<!-- ===== EDIT ENTRY MODAL ===== -->
+<!-- Existing Edit Modal -->
 <div id="editEntryModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 id="editModalTitle">Edit Ledger Entry</h3>
+      <h3>Edit Ledger Entry</h3>
       <div class="modal-actions">
         <button id="saveEntryBtn" class="header-add-btn small">💾 Save</button>
         <button id="deleteEntryBtn" class="header-add-btn small danger">🗑 Delete</button>
         <button id="closeEditEntryBtn" class="close-btn">&times;</button>
       </div>
     </div>
-
-    <div id="editModalBody" class="modal-body">
-      <p>Loading entry data...</p>
-    </div>
+    <div id="editModalBody" class="modal-body"><p>Loading entry...</p></div>
   </div>
 </div>
 
-<!-- ===== JS ===== -->
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
-
-<!-- ===== INLINE STYLES ===== -->
-<style>
-.modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.header-add-btn.small {
-  padding: 5px 8px;
-  font-size: 0.85rem;
-}
-
-.header-add-btn.small.danger {
-  background: #c0392b;
-}
-
-#editEntryModal .modal-body {
-  max-height: 65vh;
-  overflow-y: auto;
-}
-
-#editEntryModal input {
-  width: 100%;
-  padding: 6px 8px;
-  margin-bottom: 0.6rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-#editEntryModal label {
-  font-weight: 600;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-  display: block;
-}
-
-#editEntryModal .modal-content {
-  width: 95%;
-  max-width: 500px;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-</style>
 {% endblock %}
