@@ -147,7 +147,7 @@ function openEditModal(data) {
     ],
     "Rates & Demurrage": [
       "LoadRate", "DischRate", "DemurrageRate", "LoadingRate", "DischargingRate",
-      "TotalAllowedLaytime", "TotalUsedLaytime", "TotalDemurrageCost"
+      "TotalAllowedLaytime", "TotalTimeUsed", "TotalDemurrageCost"
     ],
     "Claim Info": [
       "ClaimType", "ClaimDays", "ClaimFiledAmount", "AgreedAmount", "ClaimStatus",
