@@ -40,6 +40,54 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // -------------------------------
+  // ⚙️ Settings Modal Logic
+  // -------------------------------
+  const settingsModal = document.getElementById("settingsModal");
+  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+
+  if (openSettingsBtn && settingsModal) {
+    openSettingsBtn.onclick = () => {
+      settingsModal.style.display = "flex";
+      // Simple placeholder body (can later be loaded dynamically)
+      const modalBody = settingsModal.querySelector(".modal-body");
+      if (modalBody) modalBody.innerHTML = `
+        <h4>Ledger Settings</h4>
+        <p>Feature coming soon — column preferences and appearance controls.</p>
+      `;
+    };
+  }
+
+  if (closeSettingsBtn && settingsModal) {
+    closeSettingsBtn.onclick = () => (settingsModal.style.display = "none");
+  }
+
+  // Close settings modal when clicking outside content
+  settingsModal?.addEventListener("click", (e) => {
+    if (e.target === settingsModal) settingsModal.style.display = "none";
+  });
+
+  // -------------------------------
+  // 🧩 Toggle Table Width / Compact Mode
+  // -------------------------------
+  let expandedView = false;
+  if (toggleBtn) {
+    toggleBtn.onclick = () => {
+      expandedView = !expandedView;
+      const wrapper = document.querySelector(".table-wrapper");
+      if (expandedView) {
+        wrapper.style.maxWidth = "100%";
+        wrapper.style.overflowX = "auto";
+        toggleBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
+        toggleBtn.title = "Shrink View";
+      } else {
+        wrapper.style.maxWidth = "95%";
+        toggleBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+        toggleBtn.title = "Expand View";
+      }
+    };
+  }
+
+  // -------------------------------
   // Render Table
   // -------------------------------
   function renderTable(rows) {
