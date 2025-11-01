@@ -289,5 +289,58 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTable(filtered);
   };
 
+// -------------------------------
+// ⚙️ SETTINGS MODAL & TOGGLE VIEW
+// -------------------------------
+
+// SETTINGS MODAL LOGIC
+const settingsModal = document.getElementById("settingsModal");
+const openSettingsBtn2 = document.getElementById("openSettingsBtn");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+
+// Open Settings
+if (openSettingsBtn2 && settingsModal) {
+  openSettingsBtn2.addEventListener("click", () => {
+    settingsModal.style.display = "flex";
+  });
+}
+
+// Close Settings
+if (closeSettingsBtn && settingsModal) {
+  closeSettingsBtn.addEventListener("click", () => {
+    settingsModal.style.display = "none";
+  });
+}
+
+// Click outside modal to close
+if (settingsModal) {
+  settingsModal.addEventListener("click", (e) => {
+    if (e.target === settingsModal) settingsModal.style.display = "none";
+  });
+}
+
+// -------------------------------
+// 🔍 TOGGLE VIEW BUTTON
+// -------------------------------
+const toggleViewBtn = document.getElementById("toggleViewBtn");
+const tableWrapper = document.querySelector(".table-wrapper");
+
+if (toggleViewBtn && tableWrapper) {
+  let expanded = false;
+  toggleViewBtn.addEventListener("click", () => {
+    expanded = !expanded;
+    if (expanded) {
+      tableWrapper.style.maxWidth = "100%";
+      tableWrapper.style.overflowX = "auto";
+      toggleViewBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
+      toggleViewBtn.title = "Shrink View";
+    } else {
+      tableWrapper.style.maxWidth = "95%";
+      toggleViewBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+      toggleViewBtn.title = "Expand View";
+    }
+  });
+}
+
   loadLedger();
 });

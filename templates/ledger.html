@@ -78,6 +78,18 @@
     </div>
   </div>
 </div>
-
+<!-- ⚙️ Settings Modal -->
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Ledger Settings</h3>
+      <button id="closeSettingsBtn" class="close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h4>Ledger Preferences</h4>
+      <p>Here you’ll soon be able to configure field options, column visibility, and view preferences.</p>
+    </div>
+  </div>
+</div>
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
 {% endblock %}
