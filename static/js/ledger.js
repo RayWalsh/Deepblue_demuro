@@ -1,7 +1,8 @@
 // ==============================================
-// 📘 ledger.js — The Ledger + Edit Modal + Add Modal + Settings
+// 📘 ledger.js — Clean Unified Version (Nov 2025)
 // ==============================================
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("✅ Ledger.js loaded");
   const tableBody = document.getElementById("ledgerTableBody");
   const searchInput = document.getElementById("globalSearch");
   const exportBtn = document.getElementById("exportCSVBtn");
@@ -31,60 +32,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const res = await fetch("/api/ledger");
       const json = await res.json();
-      ledgerData = json.rows || [];
-      allColumns = json.columns || [];
+      if (!json.rows) throw new Error(json.error || "No rows returned");
+      ledgerData = json.rows;
+      allColumns = json.columns;
       renderTable(ledgerData);
-    } catch {
+    } catch (err) {
+      console.error("❌ Ledger fetch failed:", err);
       tableBody.innerHTML = `<tr><td colspan="7">⚠️ Error loading ledger.</td></tr>`;
     }
   }
 
   // -------------------------------
-  // ⚙️ Settings Modal Logic
+  // ⚙️ Settings Modal + Expand Button
   // -------------------------------
   const settingsModal = document.getElementById("settingsModal");
   const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+  const tableWrapper = document.querySelector(".table-wrapper");
 
-  if (openSettingsBtn && settingsModal) {
-    openSettingsBtn.onclick = () => {
+  if (openSettingsBtn) {
+    openSettingsBtn.addEventListener("click", () => {
       settingsModal.style.display = "flex";
-      // Simple placeholder body (can later be loaded dynamically)
-      const modalBody = settingsModal.querySelector(".modal-body");
-      if (modalBody) modalBody.innerHTML = `
-        <h4>Ledger Settings</h4>
-        <p>Feature coming soon — column preferences and appearance controls.</p>
-      `;
-    };
+    });
+  }
+  if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener("click", () => {
+      settingsModal.style.display = "none";
+    });
+  }
+  if (settingsModal) {
+    settingsModal.addEventListener("click", (e) => {
+      if (e.target === settingsModal) settingsModal.style.display = "none";
+    });
   }
 
-  if (closeSettingsBtn && settingsModal) {
-    closeSettingsBtn.onclick = () => (settingsModal.style.display = "none");
-  }
-
-  // Close settings modal when clicking outside content
-  settingsModal?.addEventListener("click", (e) => {
-    if (e.target === settingsModal) settingsModal.style.display = "none";
-  });
-
-  // -------------------------------
-  // 🧩 Toggle Table Width / Compact Mode
-  // -------------------------------
-  let expandedView = false;
-  if (toggleBtn) {
-    toggleBtn.onclick = () => {
-      expandedView = !expandedView;
-      const wrapper = document.querySelector(".table-wrapper");
-      if (expandedView) {
-        wrapper.style.maxWidth = "100%";
-        wrapper.style.overflowX = "auto";
+  let expanded = false;
+  if (toggleBtn && tableWrapper) {
+    toggleBtn.addEventListener("click", () => {
+      expanded = !expanded;
+      if (expanded) {
+        tableWrapper.style.maxWidth = "100%";
+        tableWrapper.style.overflowX = "auto";
         toggleBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
         toggleBtn.title = "Shrink View";
       } else {
-        wrapper.style.maxWidth = "95%";
+        tableWrapper.style.maxWidth = "95%";
         toggleBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
         toggleBtn.title = "Expand View";
       }
-    };
+    });
   }
 
   // -------------------------------
@@ -117,20 +112,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // -------------------------------
-  // 🧱 Grouped Field Rendering
+  // Field Groups + Modals
   // -------------------------------
   const fieldGroups = {
     "Case Info": [
       "CaseID", "DeepBlueRef", "ClientName", "VesselName", "VoyageNumber", "VoyageEndDate",
       "CharterersName", "BrokersName", "OwnersName", "CPDate", "CPType", "CPForm"
-    ],
-    "Charterparty Details": [
-      "Layday", "Cancelling", "NoticeReceived", "NoticeDays", "InitialClaim",
-      "ContractType", "ClaimReceived"
-    ],
-    "Rates & Demurrage": [
-      "LoadRate", "DischRate", "DemurrageRate", "LoadingRate", "DischargingRate",
-      "TotalAllowedLaytime", "TotalTimeUsed", "TotalDemurrageCost"
     ],
     "Claim Info": [
       "ClaimType", "ClaimDays", "ClaimFiledAmount", "AgreedAmount", "ClaimStatus",
@@ -143,35 +130,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const systemFields = ["CaseID", "CreatedAt"];
 
-  // -------------------------------
-  // 🧩 Smarter Type Inference
-  // -------------------------------
   function inferInputType(name) {
     const lower = name.toLowerCase();
-
-    // Date fields
-    if (lower.includes("date") || lower.endsWith("received")) return "date";
-
-    // Numeric fields
-    if (lower.includes("amount") || lower.includes("rate") || lower.includes("days") || lower.includes("hours")) return "number";
-
-    // Long text
-    if (lower.includes("notes") || lower.includes("instruction")) return "textarea";
-
-    // Explicit checkbox fields only
-    const checkboxFields = ["initialclaim", "claimreceived", "reversible"];
-    if (checkboxFields.includes(lower)) return "checkbox";
-
+    if (lower.includes("date")) return "date";
+    if (lower.includes("amount") || lower.includes("rate")) return "number";
+    if (lower.includes("notes")) return "textarea";
     return "text";
   }
 
-  // -------------------------------
-  // ✏️ Edit Entry Modal (Grouped)
-  // -------------------------------
   function openEditModal(data) {
     currentEditItem = data;
     editModal.style.display = "flex";
-
     let html = "";
     for (const [groupName, fields] of Object.entries(fieldGroups)) {
       html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
@@ -179,12 +148,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const type = inferInputType(col);
         const value = data[col] ?? "";
         const disabled = systemFields.includes(col) ? "disabled" : "";
-
         if (type === "textarea") {
-          html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}>${value}</textarea></div>`;
-        } else if (type === "checkbox") {
-          const checked = value === 1 || value === true ? "checked" : "";
-          html += `<div><label><input type="checkbox" name="${col}" ${checked} ${disabled}/> ${col}</label></div>`;
+          html += `<div><label>${col}</label><textarea name="${col}" ${disabled}>${value}</textarea></div>`;
         } else {
           html += `<div><label>${col}</label><input type="${type}" name="${col}" value="${value}" ${disabled}/></div>`;
         }
@@ -199,16 +164,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   saveEntryBtn.onclick = async () => {
     const payload = {};
-    editModalBody.querySelectorAll("input, textarea").forEach((i) => {
-      if (i.type === "checkbox") payload[i.name] = i.checked ? 1 : 0;
-      else payload[i.name] = i.value || null;
-    });
-
+    editModalBody.querySelectorAll("input, textarea").forEach((i) => (payload[i.name] = i.value));
     const caseId = currentEditItem.CaseID;
     const res = await fetch(`/api/update-ledger-item/${caseId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.success) {
@@ -218,37 +178,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else alert("❌ " + data.error);
   };
 
-  deleteEntryBtn.onclick = async () => {
-    const caseId = currentEditItem.CaseID;
-    if (!confirm("Delete this entry?")) return;
-    const res = await fetch(`/api/delete-ledger-item/${caseId}`, { method: "DELETE" });
-    const data = await res.json();
-    if (data.success) {
-      alert("🗑 Entry deleted");
-      editModal.style.display = "none";
-      loadLedger();
-    } else alert("❌ " + data.error);
-  };
-
   // -------------------------------
-  // ➕ Open Add Modal (Grouped)
+  // Add Modal (simplified)
   // -------------------------------
   openAddBtn.onclick = () => {
     addModal.style.display = "flex";
     let html = "";
-
     for (const [groupName, fields] of Object.entries(fieldGroups)) {
       html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
       fields.forEach((col) => {
         const type = inferInputType(col);
         const disabled = systemFields.includes(col) ? "disabled" : "";
-        if (type === "textarea") {
-          html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}></textarea></div>`;
-        } else if (type === "checkbox") {
-          html += `<div><label><input type="checkbox" name="${col}" ${disabled}/> ${col}</label></div>`;
-        } else {
-          html += `<div><label>${col}</label><input type="${type}" name="${col}" ${disabled}/></div>`;
-        }
+        html += `<div><label>${col}</label><input type="${type}" name="${col}" ${disabled}/></div>`;
       });
       html += "</div></section>";
     }
@@ -260,15 +201,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   saveAddEntryBtn.onclick = async () => {
     const payload = {};
-    addModalBody.querySelectorAll("input, textarea").forEach((i) => {
-      if (i.type === "checkbox") payload[i.name] = i.checked ? 1 : 0;
-      else payload[i.name] = i.value || null;
-    });
-
+    addModalBody.querySelectorAll("input, textarea").forEach((i) => (payload[i.name] = i.value));
     const res = await fetch("/api/add-ledger-item", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.success) {
@@ -279,7 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // -------------------------------
-  // 🔍 Search Filter
+  // Search
   // -------------------------------
   searchInput.oninput = (e) => {
     const term = e.target.value.toLowerCase();
@@ -289,58 +225,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTable(filtered);
   };
 
-// -------------------------------
-// ⚙️ SETTINGS MODAL & TOGGLE VIEW
-// -------------------------------
-
-// SETTINGS MODAL LOGIC
-const settingsModal = document.getElementById("settingsModal");
-const openSettingsBtn2 = document.getElementById("openSettingsBtn");
-const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-
-// Open Settings
-if (openSettingsBtn2 && settingsModal) {
-  openSettingsBtn2.addEventListener("click", () => {
-    settingsModal.style.display = "flex";
-  });
-}
-
-// Close Settings
-if (closeSettingsBtn && settingsModal) {
-  closeSettingsBtn.addEventListener("click", () => {
-    settingsModal.style.display = "none";
-  });
-}
-
-// Click outside modal to close
-if (settingsModal) {
-  settingsModal.addEventListener("click", (e) => {
-    if (e.target === settingsModal) settingsModal.style.display = "none";
-  });
-}
-
-// -------------------------------
-// 🔍 TOGGLE VIEW BUTTON
-// -------------------------------
-const toggleViewBtn = document.getElementById("toggleViewBtn");
-const tableWrapper = document.querySelector(".table-wrapper");
-
-if (toggleViewBtn && tableWrapper) {
-  let expanded = false;
-  toggleViewBtn.addEventListener("click", () => {
-    expanded = !expanded;
-    if (expanded) {
-      tableWrapper.style.maxWidth = "100%";
-      tableWrapper.style.overflowX = "auto";
-      toggleViewBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
-      toggleViewBtn.title = "Shrink View";
-    } else {
-      tableWrapper.style.maxWidth = "95%";
-      toggleViewBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
-      toggleViewBtn.title = "Expand View";
-    }
-  });
-}
-
+  // Load on start
   loadLedger();
 });
