@@ -47,12 +47,11 @@ def get_ledger():
     return inner()
 
 # -------------------------------
-# 💾 API Route — Update Ledger Item
+# 💾 API Route — Update Ledger Item (ISO-only)
 # -------------------------------
 @ledger_bp.route('/api/update-ledger-item/<int:case_id>', methods=['PUT'])
 def update_ledger_item(case_id):
     from app import get_db_connection, login_required
-    from dateutil import parser
 
     @login_required
     def inner():
@@ -61,28 +60,20 @@ def update_ledger_item(case_id):
             if not data:
                 return jsonify({"error": "No data provided"}), 400
 
-            # 🧹 Clean up numeric, empty, and date values
+            # 🧹 Clean up empty strings and numeric text
             for k, v in list(data.items()):
                 if isinstance(v, str):
                     v_strip = v.strip()
                     if v_strip == "":
                         data[k] = None
                     else:
-                        # 🕓 Try parsing likely date/time fields
-                        if "date" in k.lower() or "time" in k.lower() or "created" in k.lower():
-                            try:
-                                parsed = parser.parse(v_strip)
-                                data[k] = parsed.strftime("%Y-%m-%d %H:%M:%S")
-                                continue
-                            except Exception:
-                                pass  # not a valid date string
-                        # detect numeric
+                        # detect numeric strings like "12", "12.5"
                         num_check = v_strip.replace(".", "", 1)
                         if num_check.isdigit():
                             try:
                                 data[k] = float(v_strip) if "." in v_strip else int(v_strip)
                             except ValueError:
-                                pass
+                                pass  # leave as string
 
             # 🔒 Exclude identity & protected fields
             protected_fields = ["CaseID", "DeepBlueRef"]
@@ -132,12 +123,11 @@ def delete_ledger_item(case_id):
     return inner()
 
 # -------------------------------
-# ➕ API Route — Add New Ledger Item
+# ➕ API Route — Add New Ledger Item (ISO-only)
 # -------------------------------
 @ledger_bp.route('/api/add-ledger-item', methods=['POST'])
 def add_ledger_item():
     from app import get_db_connection, login_required
-    from dateutil import parser
 
     @login_required
     def inner():
@@ -146,34 +136,28 @@ def add_ledger_item():
             if not data:
                 return jsonify({"error": "No data provided"}), 400
 
-            # 🔒 Remove protected/identity fields before insert
+            # 🔒 Remove protected/identity fields
             for field in ["CaseID"]:
                 data.pop(field, None)
 
-            # 🧹 Clean up numeric, empty, and date values
+            # 🧹 Clean up empty strings and numeric text
             for k, v in list(data.items()):
                 if isinstance(v, str):
                     v_strip = v.strip()
                     if v_strip == "":
                         data[k] = None
                     else:
-                        # 🕓 Try parsing likely date/time fields
-                        if "date" in k.lower() or "time" in k.lower() or "created" in k.lower():
-                            try:
-                                parsed = parser.parse(v_strip)
-                                data[k] = parsed.strftime("%Y-%m-%d %H:%M:%S")
-                                continue
-                            except Exception:
-                                pass
-                        # detect numeric
+                        # detect numeric strings
                         num_check = v_strip.replace(".", "", 1)
                         if num_check.isdigit():
                             try:
                                 data[k] = float(v_strip) if "." in v_strip else int(v_strip)
                             except ValueError:
-                                pass
+                                pass  # leave as string
 
-            # Build INSERT dynamically from provided keys
+            # ✅ Expect all date/time strings already in ISO ("YYYY-MM-DD HH:MM:SS")
+            # SQL Server DATETIME2 can handle that directly.
+
             columns = ", ".join(data.keys())
             values = ", ".join([f":{k}" for k in data.keys()])
             sql = text(f"INSERT INTO dbo.Cases ({columns}) VALUES ({values})")

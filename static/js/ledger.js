@@ -58,6 +58,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   ];
 
   // --------------------------------------------------
+  // 🕓 DATE UTILITIES — ISO ENFORCEMENT & DISPLAY
+  // --------------------------------------------------
+  /**
+   * Converts a date string or input value into an SQL-safe ISO string.
+   * Returns null if invalid or empty.
+   * Output example: "2025-04-29 15:45:26"
+   */
+  function toISO(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d)) return null;
+    return d.toISOString().slice(0, 19).replace("T", " ");
+  }
+
+  /**
+   * Converts an ISO string (YYYY-MM-DD HH:MM:SS) to user-friendly display.
+   * Output example: "29 Apr 2025"
+   */
+  function displayDate(isoString) {
+    if (!isoString) return "—";
+    const d = new Date(isoString);
+    if (isNaN(d)) return "—";
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  // --------------------------------------------------
   // 📡 LOAD LEDGER
   // --------------------------------------------------
   async function loadLedger() {
@@ -105,10 +135,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         Ref: ref,
         "Ship Name": row.VesselName || "—",
         Charterer: row.ClientName || "—",
-        "CP Date": row.CPDate ? new Date(row.CPDate).toLocaleDateString("en-GB") : "—",
-        "Claim Submitted": row.ClaimSubmittedDate
-          ? new Date(row.ClaimSubmittedDate).toLocaleDateString("en-GB")
-          : "—",
+       "CP Date": displayDate(row.CPDate),
+        "Claim Submitted": displayDate(row.ClaimSubmittedDate),
         "Amount (USD)": row.ClaimFiledAmount ?? "—",
         Status: row.ClaimStatus || "—",
       };
@@ -460,9 +488,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   saveEntryBtn.onclick = async () => {
     const payload = {};
-    editModalBody.querySelectorAll("input, textarea").forEach((i) => {
-      payload[i.name] = i.value;
-    });
+editModalBody.querySelectorAll("input, textarea").forEach((i) => {
+  let val = i.value.trim();
+  if (i.type === "date" || i.name.toLowerCase().includes("date")) {
+    payload[i.name] = toISO(val);
+  } else {
+    payload[i.name] = val || null;
+  }
+});
 
     const caseId = currentEditItem.CaseID;
     try {
@@ -531,9 +564,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   saveAddEntryBtn.onclick = async () => {
     const payload = {};
-    addModalBody.querySelectorAll("input, textarea").forEach((i) => {
-      payload[i.name] = i.value || null;
-    });
+addModalBody.querySelectorAll("input, textarea").forEach((i) => {
+  let val = i.value.trim();
+  if (i.type === "date" || i.name.toLowerCase().includes("date")) {
+    payload[i.name] = toISO(val);
+  } else {
+    payload[i.name] = val || null;
+  }
+});
 
     try {
       const res = await fetch("/api/add-ledger-item", {
@@ -582,10 +620,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         Ref: row.DeepBlueRef || "",
         "Ship Name": row.VesselName || "",
         Charterer: row.ClientName || "",
-        "CP Date": row.CPDate ? new Date(row.CPDate).toLocaleDateString("en-GB") : "",
-        "Claim Submitted": row.ClaimSubmittedDate
-          ? new Date(row.ClaimSubmittedDate).toLocaleDateString("en-GB")
-          : "",
+        "CP Date": displayDate(row.CPDate),
+        "Claim Submitted": displayDate(row.ClaimSubmittedDate),
         "Amount (USD)": row.ClaimFiledAmount ?? "",
         Status: row.ClaimStatus || "",
       };
