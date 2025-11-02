@@ -3,6 +3,7 @@
 # ==============================================
 from flask import Blueprint, render_template, jsonify, request
 from sqlalchemy import text
+from sqlalchemy import inspect
 
 # Create the Blueprint
 ledger_bp = Blueprint('ledger_bp', __name__)
@@ -127,6 +128,121 @@ def add_ledger_item():
 
         except Exception as e:
             print("❌ Error adding ledger item:", e)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    return inner()
+
+# ==============================================
+# ⚙️ ADVANCED SETTINGS API — Column Management
+# ==============================================
+from sqlalchemy import inspect
+
+# -------------------------------
+# 📋 List SQL Columns
+# -------------------------------
+@ledger_bp.route("/api/columns", methods=["GET"])
+def get_columns():
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        try:
+            with get_db_connection() as conn:
+                inspector = inspect(conn)
+                columns = []
+                for col in inspector.get_columns("Cases", schema="dbo"):
+                    columns.append({
+                        "name": col["name"],
+                        "type": str(col["type"])
+                    })
+            return jsonify({"columns": columns}), 200
+        except Exception as e:
+            print("❌ Error fetching columns:", e)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    return inner()
+
+
+# -------------------------------
+# ➕ Add New Column
+# -------------------------------
+@ledger_bp.route("/api/add-column", methods=["POST"])
+def add_column():
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        try:
+            data = request.get_json()
+            col_name = data.get("name")
+            col_type = data.get("type", "NVARCHAR(255)")
+
+            if not col_name:
+                return jsonify({"success": False, "error": "Column name required"}), 400
+
+            # ⚠️ Protect key columns
+            if col_name in ["CaseID", "DeepBlueRef"]:
+                return jsonify({"success": False, "error": "Protected column cannot be added"}), 400
+
+            sql = text(f"ALTER TABLE dbo.Cases ADD [{col_name}] {col_type}")
+            with get_db_connection() as conn:
+                conn.execute(sql)
+                conn.commit()
+
+            print(f"✅ Added column {col_name} ({col_type})")
+            return jsonify({"success": True}), 200
+
+        except Exception as e:
+            print("❌ Error adding column:", e)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    return inner()
+
+
+# -------------------------------
+# 🗑 Delete Column
+# -------------------------------
+@ledger_bp.route("/api/delete-column/<string:col_name>", methods=["DELETE"])
+def delete_column(col_name):
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        try:
+            if col_name in ["CaseID", "DeepBlueRef"]:
+                return jsonify({"success": False, "error": "Protected column cannot be deleted"}), 400
+
+            sql = text(f"ALTER TABLE dbo.Cases DROP COLUMN [{col_name}]")
+            with get_db_connection() as conn:
+                conn.execute(sql)
+                conn.commit()
+
+            print(f"🗑 Deleted column {col_name}")
+            return jsonify({"success": True}), 200
+
+        except Exception as e:
+            print("❌ Error deleting column:", e)
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    return inner()
+
+
+# -------------------------------
+# 🔄 Reset Columns (optional)
+# -------------------------------
+@ledger_bp.route("/api/reset-columns", methods=["POST"])
+def reset_columns():
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        try:
+            # Example: You could rebuild missing columns to your default schema here.
+            # For now, this just confirms the route works.
+            print("🔄 Reset columns called (placeholder)")
+            return jsonify({"success": True, "message": "Reset executed"}), 200
+
+        except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
     return inner()
