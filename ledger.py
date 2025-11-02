@@ -52,6 +52,7 @@ def get_ledger():
 @ledger_bp.route('/api/update-ledger-item/<int:case_id>', methods=['PUT'])
 def update_ledger_item(case_id):
     from app import get_db_connection, login_required
+    from dateutil import parser
 
     @login_required
     def inner():
@@ -60,20 +61,28 @@ def update_ledger_item(case_id):
             if not data:
                 return jsonify({"error": "No data provided"}), 400
 
-            # 🧹 Clean up numeric and empty values
+            # 🧹 Clean up numeric, empty, and date values
             for k, v in list(data.items()):
                 if isinstance(v, str):
                     v_strip = v.strip()
                     if v_strip == "":
-                        data[k] = None  # empty string → NULL
+                        data[k] = None
                     else:
-                        # detect numeric strings like "0", "0.00", "12.5"
+                        # 🕓 Try parsing likely date/time fields
+                        if "date" in k.lower() or "time" in k.lower() or "created" in k.lower():
+                            try:
+                                parsed = parser.parse(v_strip)
+                                data[k] = parsed.strftime("%Y-%m-%d %H:%M:%S")
+                                continue
+                            except Exception:
+                                pass  # not a valid date string
+                        # detect numeric
                         num_check = v_strip.replace(".", "", 1)
                         if num_check.isdigit():
                             try:
                                 data[k] = float(v_strip) if "." in v_strip else int(v_strip)
                             except ValueError:
-                                pass  # leave unchanged if it fails
+                                pass
 
             # 🔒 Exclude identity & protected fields
             protected_fields = ["CaseID", "DeepBlueRef"]
@@ -128,6 +137,7 @@ def delete_ledger_item(case_id):
 @ledger_bp.route('/api/add-ledger-item', methods=['POST'])
 def add_ledger_item():
     from app import get_db_connection, login_required
+    from dateutil import parser
 
     @login_required
     def inner():
@@ -140,19 +150,28 @@ def add_ledger_item():
             for field in ["CaseID"]:
                 data.pop(field, None)
 
-            # 🧹 Clean up numeric and empty values
+            # 🧹 Clean up numeric, empty, and date values
             for k, v in list(data.items()):
                 if isinstance(v, str):
                     v_strip = v.strip()
                     if v_strip == "":
-                        data[k] = None  # empty string → NULL
+                        data[k] = None
                     else:
+                        # 🕓 Try parsing likely date/time fields
+                        if "date" in k.lower() or "time" in k.lower() or "created" in k.lower():
+                            try:
+                                parsed = parser.parse(v_strip)
+                                data[k] = parsed.strftime("%Y-%m-%d %H:%M:%S")
+                                continue
+                            except Exception:
+                                pass
+                        # detect numeric
                         num_check = v_strip.replace(".", "", 1)
                         if num_check.isdigit():
                             try:
                                 data[k] = float(v_strip) if "." in v_strip else int(v_strip)
                             except ValueError:
-                                pass  # leave as string if it fails
+                                pass
 
             # Build INSERT dynamically from provided keys
             columns = ", ".join(data.keys())
