@@ -38,7 +38,10 @@ def get_ledger():
                 columns = result.keys()
                 rows = [dict(zip(columns, row)) for row in result.fetchall()]
 
-            return jsonify({"columns": list(columns), "rows": rows}), 200
+            return jsonify({
+                "columns": [{"name": c} for c in columns],
+                "rows": rows
+            }), 200
 
         except Exception as e:
             print("❌ Error fetching ledger data:", e)
