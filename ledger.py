@@ -60,7 +60,13 @@ def update_ledger_item(case_id):
             if not data:
                 return jsonify({"error": "No data provided"}), 400
 
-            set_clause = ", ".join([f"{key} = :{key}" for key in data.keys()])
+            # 🔒 Exclude identity & protected fields
+            protected_fields = ["CaseID", "DeepBlueRef"]
+            set_clause = ", ".join([f"{key} = :{key}" for key in data.keys() if key not in protected_fields])
+
+            if not set_clause:
+                return jsonify({"error": "No valid fields to update"}), 400
+
             sql = text(f"UPDATE dbo.Cases SET {set_clause} WHERE CaseID = :case_id")
             data["case_id"] = case_id
 
@@ -113,6 +119,10 @@ def add_ledger_item():
             data = request.get_json()
             if not data:
                 return jsonify({"error": "No data provided"}), 400
+
+            # 🔒 Remove protected/identity fields before insert
+            for field in ["CaseID"]:
+                data.pop(field, None)
 
             # Build INSERT dynamically from provided keys
             columns = ", ".join(data.keys())
