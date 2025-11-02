@@ -534,3 +534,11 @@ body {
   transform: scale(1.04);
   cursor: default;
 }
+
+/* Prevent column wrapping in ledger table */
+.case-table td,
+.case-table th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -111,7 +111,10 @@ async function loadLedger() {
     if (!json.rows) throw new Error(json.error || "No rows returned");
 
     ledgerData = json.rows;
-    allColumns = json.columns || [];
+    // ✅ Works whether /api/ledger returns strings OR objects
+    allColumns = (json.columns || []).map(c =>
+      typeof c === "string" ? c : c.name
+    ).filter(Boolean);
 
     console.log("🧩 API columns raw:", allColumns);
     console.log("🧩 First column entry type:", typeof allColumns[0]);
@@ -121,25 +124,24 @@ async function loadLedger() {
     // 🧭 DETERMINE VISIBLE COLUMNS
     // --------------------------------------------------
     if (isDesktop()) {
-      // 💻 Desktop: show all SQL columns by default
-      visibleColumns = allColumns.map(c => (typeof c === "string" ? c : c.name));
-    } else {
-      // 📱 Mobile: stored subset or default fallback
-      const stored = localStorage.getItem("ledger_visible_columns");
-      if (stored) {
-        visibleColumns = JSON.parse(stored);
-      } else {
-        visibleColumns = [
-          "DeepBlueRef",
-          "VesselName",
-          "ClientName",
-          "CPDate",
-          "ClaimSubmittedDate",
-          "ClaimFiledAmount",
-          "ClaimStatus",
-        ];
-      }
-    }
+  // 💻 Desktop: show all columns by default (except CaseID)
+  visibleColumns = allColumns.filter(c => c !== "CaseID");
+} else {
+  const stored = localStorage.getItem("ledger_visible_columns");
+  if (stored) {
+    visibleColumns = JSON.parse(stored);
+  } else {
+    visibleColumns = [
+      "DeepBlueRef",
+      "VesselName",
+      "ClientName",
+      "CPDate",
+      "ClaimSubmittedDate",
+      "ClaimFiledAmount",
+      "ClaimStatus"
+    ];
+  }
+}
 
     renderTable(ledgerData);
   } catch (err) {
@@ -157,28 +159,31 @@ function renderTable(rows) {
 
   // Build table headers dynamically using visibleColumns + labels
   headRow.innerHTML = visibleColumns
+    .filter((col) => col !== "CaseID")  // 👈 hide CaseID column
     .map((col) => `<th>${labelFor(col)}</th>`)
     .join("");
 
   tableBody.innerHTML = "";
 
   rows.forEach((row) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = visibleColumns
-      .map((col) => {
-        let val = row[col];
+  const tr = document.createElement("tr");
+  tr.innerHTML = visibleColumns
+    .filter((col) => col !== "CaseID") // still hide CaseID
+    .map((col) => {
+      let val = row[col];
 
-        // Format dates nicely
-        if (col.toLowerCase().includes("date")) val = displayDate(val);
+      if (col.toLowerCase().includes("date")) val = displayDate(val);
+      if (typeof val === "number") val = val.toLocaleString();
 
-        // Format numeric / money values cleanly
-        if (typeof val === "number") val = val.toLocaleString();
-
-        return `<td>${val ?? "—"}</td>`;
-      })
-      .join("");
-    tableBody.appendChild(tr);
-  });
+      if (col === "DeepBlueRef") {
+        const safe = (val ?? "—");
+        return `<td class="ref-cell" data-ref="${safe}">${safe}</td>`;
+      }
+      return `<td>${val ?? "—"}</td>`;
+    })
+    .join("");
+  tableBody.appendChild(tr);
+});
 
   // Make "Ref" column (DeepBlueRef) clickable for editing
   const refIndex = visibleColumns.indexOf("DeepBlueRef");
@@ -195,6 +200,8 @@ function renderTable(rows) {
       });
   }
 }
+
+
 
 // --------------------------------------------------
 // 🧠 FRIENDLY SQL TYPE LABELS
