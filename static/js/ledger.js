@@ -123,25 +123,8 @@ async function loadLedger() {
     // --------------------------------------------------
     // 🧭 DETERMINE VISIBLE COLUMNS
     // --------------------------------------------------
-    if (isDesktop()) {
-  // 💻 Desktop: show all columns by default (except CaseID)
-  visibleColumns = allColumns.filter(c => c !== "CaseID");
-} else {
-  const stored = localStorage.getItem("ledger_visible_columns");
-  if (stored) {
-    visibleColumns = JSON.parse(stored);
-  } else {
-    visibleColumns = [
-      "DeepBlueRef",
-      "VesselName",
-      "ClientName",
-      "CPDate",
-      "ClaimSubmittedDate",
-      "ClaimFiledAmount",
-      "ClaimStatus"
-    ];
-  }
-}
+    // 💻📱 Show all columns on all devices (except CaseID)
+visibleColumns = allColumns.filter(c => c !== "CaseID");
 
     renderTable(ledgerData);
   } catch (err) {
