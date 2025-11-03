@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Reference Data | Deep Blue Portal{% endblock %}
+
+{% block content %}
+<section class="reference-dashboard">
+  <div class="reference-header">
+    <h1>📚 Reference Data</h1>
+    <p class="subtext">Centralised management of all ships, charterers, clients, and ports used across the Deep Blue platform.</p>
+  </div>
+
+  <!-- Card Grid -->
+  <div class="reference-card-grid">
+    <!-- Ships -->
+    <div class="reference-card">
+      <div class="card-icon">⚓</div>
+      <div class="card-content">
+        <h2>Ships</h2>
+        <p>Manage all vessels referenced in cases and calculations.</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn-view" onclick="openReference('vessels')">View List</button>
+        <button class="btn-add" onclick="openAddModal('vessel')">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Charterers -->
+    <div class="reference-card">
+      <div class="card-icon">🧾</div>
+      <div class="card-content">
+        <h2>Charterers</h2>
+        <p>Maintain charterer details for quick access in the Ledger and Calculator.</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn-view" onclick="openReference('charterers')">View List</button>
+        <button class="btn-add" onclick="openAddModal('charterer')">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Clients -->
+    <div class="reference-card">
+      <div class="card-icon">🧍</div>
+      <div class="card-content">
+        <h2>Clients</h2>
+        <p>View and edit client organisations and contacts.</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn-view" onclick="openReference('clients')">View List</button>
+        <button class="btn-add" onclick="openAddModal('client')">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Ports -->
+    <div class="reference-card">
+      <div class="card-icon">🏗️</div>
+      <div class="card-content">
+        <h2>Ports</h2>
+        <p>Reference ports and terminals with local notes and time zones.</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn-view" onclick="openReference('ports')">View List</button>
+        <button class="btn-add" onclick="openAddModal('port')">+ Add</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Page-specific script -->
+<script src="{{ url_for('static', filename='js/reference.js') }}"></script>
+{% endblock %}
