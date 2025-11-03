@@ -9,7 +9,7 @@ from passlib.hash import pbkdf2_sha256
 app = Flask(__name__)
 app.secret_key = 'super-secret-key'  # TODO: Move to .env for production
 
-# 🔧 Add this line to allow session cookies over HTTP (for Codespaces)
+# 🔧 Allow session cookies over HTTP (for Codespaces)
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
@@ -30,8 +30,15 @@ app.register_blueprint(ledger_bp)
 # ----------------------------------------------------
 from settings_bp import settings_bp
 app.register_blueprint(settings_bp)
+
 # ----------------------------------------------------
-# 
+# 🔗 Blueprint: Reference Data
+# ----------------------------------------------------
+from reference_routes import reference_bp
+app.register_blueprint(reference_bp)
+
+# ----------------------------------------------------
+# 🧪 Debug Session Route
 # ----------------------------------------------------
 @app.route('/debug_session')
 def debug_session():
@@ -115,11 +122,6 @@ def root():
 @login_required
 def home():
     return render_template('index.html')
-
-#@app.route('/email_rules')
-#@login_required
-#def email_rules():
-#    return render_template('email_rules.html')
 
 @app.route('/logout')
 @login_required
