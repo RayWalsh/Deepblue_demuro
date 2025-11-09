@@ -328,6 +328,118 @@
   display: flex;
 }
 
+/* ==============================
+   Email Rules – Expandable Cards
+   ============================== */
+
+.email-rules .card {
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+/* Expanded state (adds shadow + lift) */
+.email-rules .card.expanded {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Expanded content container */
+.email-rules .expanded-content {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  border-top: 1px solid var(--border-color);
+  margin-top: 0.4rem;
+  background: #fafbfc;
+  border-radius: 0 0 8px 8px;
+  padding: 0 0.8rem;
+}
+
+/* When expanded, smoothly reveal */
+.email-rules .card.expanded .expanded-content {
+  max-height: 400px; /* enough space for attachments/emails */
+  opacity: 1;
+  padding: 0.8rem;
+}
+
+/* Stats row with icons and counts */
+.email-rules .stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.email-rules .icon-btn {
+  position: relative;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.email-rules .icon-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Small circular count badge */
+.email-rules .count-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 50%;
+  padding: 2px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* Tab content placeholder */
+.email-rules .tab-content {
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: #444;
+  border: 1px solid var(--border-color);
+}
+
+.email-rules .placeholder {
+  color: #888;
+  font-style: italic;
+}
+
+/* Mobile – make expanded area compact */
+@media (max-width: 600px) {
+  .email-rules .expanded-content {
+    padding: 0.6rem;
+  }
+
+  .email-rules .stats-row {
+    gap: 1rem;
+    justify-content: space-around;
+  }
+
+  .email-rules .count-badge {
+    top: -4px;
+    right: -6px;
+    font-size: 0.6rem;
+  }
+}
+
 /* ===================================
    Header Add Button — Outlook Style
    =================================== */

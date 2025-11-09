@@ -53,18 +53,6 @@ form?.addEventListener("submit", async (e) => {
   }
 });
 
-// ============== Prefill Modal from Card ==============
-document.querySelectorAll(".edit-category").forEach((link) => {
-  link.addEventListener("click", (e) => {
-    e.preventDefault();
-    modal.style.display = "block";
-    document.querySelector("input[name='reference']").value = link.dataset.ref || "";
-    document.querySelector("input[name='ship']").value = link.dataset.ship || "";
-    document.querySelector("input[name='cpdate']").value = link.dataset.cpdate || "";
-    document.querySelector("select[name='color']").value = link.dataset.color || "preset0";
-  });
-});
-
 // ============== ✏️ Edit Tag from Kebab Menu ==============
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".edit-tag-btn");
@@ -100,9 +88,10 @@ window.addEventListener("pageshow", () => {
   if (modal) modal.style.display = "none";
 });
 
+// ============== Save Changes ==============
 document.getElementById("saveChangesBtn")?.addEventListener("click", async () => {
   const data = Object.fromEntries(new FormData(form).entries());
-  const catId = form.dataset.catid; // set when pre-filling modal
+  const catId = form.dataset.catid;
   if (!catId) {
     alert("⚠️ This category hasn’t been created yet. Use Create Category first.");
     return;
@@ -119,6 +108,42 @@ document.getElementById("saveChangesBtn")?.addEventListener("click", async () =>
     window.location.reload();
   } else {
     alert("⚠️ Failed to update category.");
+  }
+});
+
+// ============== Expand / Collapse Cards ==============
+document.addEventListener("click", (e) => {
+  const title = e.target.closest(".card-title");
+  if (!title) return;
+
+  e.preventDefault();
+  const card = title.closest(".card");
+
+  // Toggle expanded state
+  card.classList.toggle("expanded");
+
+  // Close any open kebab menu if present
+  card.querySelectorAll(".kebab-menu").forEach((m) => (m.style.display = "none"));
+
+  // Create expanded content dynamically (if not already)
+  let expandArea = card.querySelector(".expanded-content");
+  if (!expandArea) {
+    expandArea = document.createElement("div");
+    expandArea.className = "expanded-content";
+    expandArea.innerHTML = `
+      <div class="stats-row">
+        <button class="icon-btn" title="View Emails">
+          📧<span class="count-badge">12</span>
+        </button>
+        <button class="icon-btn" title="View Attachments">
+          📎<span class="count-badge">7</span>
+        </button>
+      </div>
+      <div class="tab-content">
+        <p class="placeholder">Select an icon above to view emails or attachments for this tag.</p>
+      </div>
+    `;
+    card.appendChild(expandArea);
   }
 });
 
@@ -158,10 +183,10 @@ if (searchInput) {
   });
 }
 
-// ============== SSE “Run Rule” Overlay (Fixed Binding) ==============
+// ============== SSE “Run Rule” Overlay ==============
 document.addEventListener("submit", (e) => {
   const f = e.target.closest("form[action^='/email/run_rule/']");
-  if (!f) return; // ignore other forms
+  if (!f) return;
   e.preventDefault();
 
   const overlay = document.getElementById("progressOverlay");
@@ -175,12 +200,10 @@ document.addEventListener("submit", (e) => {
   barEl.style.backgroundColor = "var(--accent-color)";
   closeBtn.style.display = "none";
 
-  // Extract category name + days
   const url = new URL(f.action, window.location.origin);
   const rawName = decodeURIComponent(url.pathname.split("/email/run_rule/")[1]);
   const days = f.querySelector("input[name='days']")?.value || 90;
 
-  // Start EventSource stream
   const es = new EventSource(`/email/run_rule/${encodeURIComponent(rawName)}?days=${days}`);
   let steps = 0;
 
@@ -229,19 +252,16 @@ document.addEventListener("click", (e) => {
   const trigger = e.target.closest(".submenu-trigger");
   const submenu = e.target.closest(".submenu");
 
-  // Close other open submenus first
   document.querySelectorAll(".submenu.open").forEach((s) => {
     if (s !== submenu) s.classList.remove("open");
   });
 
-  // Toggle submenu
   if (trigger && submenu) {
     submenu.classList.toggle("open");
     e.stopPropagation();
     return;
   }
 
-  // Close when clicking outside
   if (!e.target.closest(".submenu")) {
     document.querySelectorAll(".submenu.open").forEach((s) => s.classList.remove("open"));
   }
