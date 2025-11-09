@@ -67,6 +67,8 @@
           <div class="kebab-wrap">
             <button class="kebab-btn" aria-haspopup="true" aria-expanded="false" title="More actions">⋯</button>
             <div class="kebab-menu">
+              
+              <!-- Run Rule Submenu -->
               <div class="submenu">
                 <button class="menu-row submenu-trigger">▶ Run Rule ▸</button>
                 <div class="submenu-panel">
@@ -79,10 +81,21 @@
                 </div>
               </div>
 
+              <!-- ✏️ Edit Tag Option -->
+              <button type="button" class="menu-row edit-tag-btn"
+                      data-ref="{{ ref }}"
+                      data-ship="{{ ship }}"
+                      data-cpdate="{{ cpdate }}"
+                      data-color="{{ cat.color }}">
+                ✏️ Edit Tag
+              </button>
+
+              <!-- ⚙ Create Rule Option -->
               <form action="/email/create_rule/{{ cat.displayName }}" method="get">
                 <button type="submit" class="menu-row">⚙ Create Rule</button>
               </form>
 
+              <!-- 🗑 Delete Option -->
               <form action="/email/delete/{{ cat.id }}" method="get" onsubmit="return confirm('Delete this category and its rule?');">
                 <button type="submit" class="menu-row">🗑 Delete</button>
               </form>

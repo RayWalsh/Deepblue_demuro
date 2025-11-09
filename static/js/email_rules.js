@@ -65,6 +65,22 @@ document.querySelectorAll(".edit-category").forEach((link) => {
   });
 });
 
+// ============== ✏️ Edit Tag from Kebab Menu ==============
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".edit-tag-btn");
+  if (!btn) return;
+
+  // Open modal prefilled
+  modal.style.display = "block";
+  document.querySelector("input[name='reference']").value = btn.dataset.ref || "";
+  document.querySelector("input[name='ship']").value = btn.dataset.ship || "";
+  document.querySelector("input[name='cpdate']").value = btn.dataset.cpdate || "";
+  document.querySelector("select[name='color']").value = btn.dataset.color || "preset0";
+
+  // Close kebab after clicking
+  document.querySelectorAll(".card.is-open").forEach((c) => c.classList.remove("is-open"));
+});
+
 // ============== Create Rule Button ==============
 document.getElementById("createRuleBtn")?.addEventListener("click", () => {
   const ref = document.querySelector("input[name='reference']").value.trim();
