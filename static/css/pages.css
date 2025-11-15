@@ -681,3 +681,202 @@
   }
 }
 
+/* ==============================
+   Email Rules – Tab Toggle Styling
+   ============================== */
+.email-rules .tab-btn.active {
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.email-rules .list-view {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.email-rules .list-view li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.email-rules .list-view li:last-child {
+  border-bottom: none;
+}
+
+/* Spinner / loading state */
+.email-rules .tab-content.loading {
+  position: relative;
+  min-height: 40px;
+}
+
+.email-rules .tab-content.loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(15, 76, 129, 0.2);
+  border-top-color: var(--accent-color);
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* List + item layout */
+.email-rules .list-view {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.email-rules .list-item {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.85rem;
+}
+
+.email-rules .list-item:last-child {
+  border-bottom: none;
+}
+
+.email-rules .item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.email-rules .item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.email-rules .item-icon {
+  flex-shrink: 0;
+}
+
+.email-rules .item-subject {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.email-rules .item-meta {
+  color: #666;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* Per-item kebab */
+.email-rules .item-kebab-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.email-rules .item-kebab-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #888;
+  padding: 2px 4px;
+}
+
+.email-rules .item-kebab-btn:hover {
+  color: var(--primary-light);
+}
+
+.email-rules .item-kebab-menu {
+  position: absolute;
+  right: 0;
+  top: 1.4rem;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  display: none;
+  min-width: 140px;
+  z-index: 40;
+}
+
+.email-rules .list-item.menu-open .item-kebab-menu {
+  display: block;
+}
+
+.email-rules .item-menu-row {
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.email-rules .item-menu-row:hover {
+  background: #f1f5f9;
+}
+
+/* Load more button */
+.email-rules .load-more-row {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.email-rules .load-more-btn {
+  border: 1px solid var(--border-color);
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.email-rules .load-more-btn:hover {
+  background: var(--bg-color);
+}
+
+/* ============================================================
+   FIX: Make expanded email/attachment lists scrollable
+   ============================================================ */
+
+/* Expanded region becomes its own scroll container */
+.email-rules .expanded-content {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-right: 6px !important;
+}
+
+/* When expanded, allow internal scroll — not clipping */
+.email-rules .card.expanded {
+  overflow: visible !important;
+}
+
+/* Ensure the main page does NOT steal scroll gestures */
+.email-rules .tab-content {
+  overflow-y: visible;
+  overflow-x: hidden;
+}
+
+/* Prevent Safari bounce from collapsing the card */
+.email-rules .expanded-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.email-rules .expanded-content::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+}

@@ -391,3 +391,168 @@ def run_rule(category_name):
         yield "data: DONE\n\n"
 
     return Response(generate(), mimetype="text/event-stream")
+
+# ============================================================
+# 📊 API: CATEGORY SUMMARY (EMAIL + ATTACHMENT COUNTS)
+# ============================================================
+@email_rules_bp.route("/api/summary")
+def api_summary():
+    """Return number of emails + attachments for a category."""
+    category = request.args.get("category", "").strip()
+    if not category:
+        return {"email_count": 0, "attachment_count": 0}
+
+    token = get_graph_token()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Count emails with this category
+    mail_url = (
+        f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/messages"
+        f"?$filter=categories/any(c:c eq '{category}')"
+        f"&$select=id"
+        f"&$top=999"
+    )
+    mail_resp = requests.get(mail_url, headers=headers)
+    email_items = mail_resp.json().get("value", [])
+    email_count = len(email_items)
+
+    # Count attachments
+    attachment_count = 0
+    for msg in email_items:
+        mid = msg["id"]
+        att_url = f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/messages/{mid}/attachments?$select=id"
+        a = requests.get(att_url, headers=headers)
+        attachments = a.json().get("value", [])
+        attachment_count += len(attachments)
+
+    return {
+        "email_count": email_count,
+        "attachment_count": attachment_count,
+    }
+
+
+# ============================================================
+# 📧 API: EMAIL LIST FOR CATEGORY (with pagination)
+# ============================================================
+@email_rules_bp.route("/api/emails")
+def api_emails():
+    """Return list of emails tagged with a category (paginated)."""
+    category = request.args.get("category", "").strip()
+    page = int(request.args.get("page", 1))
+    page_size = 20
+    skip = (page - 1) * page_size
+
+    token = get_graph_token()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    url = (
+        f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/messages"
+        f"?$filter=categories/any(c:c eq '{category}')"
+        f"&$select=id,subject,from,receivedDateTime,webLink"
+        f"&$orderby=receivedDateTime desc"
+        f"&$top={page_size}&$skip={skip}"
+    )
+
+    resp = requests.get(url, headers=headers)
+    if resp.status_code != 200:
+        print("Graph error:", resp.text)
+        return {"items": [], "next_page": None}
+
+    items_raw = resp.json().get("value", [])
+    items = []
+
+    for msg in items_raw:
+        sender = (
+            msg.get("from", {})
+              .get("emailAddress", {})
+              .get("name", "")
+        )
+        items.append({
+            "subject": msg.get("subject", "(no subject)"),
+            "from": sender,
+            "received": msg.get("receivedDateTime", ""),
+            "web_link": msg.get("webLink", "#")
+        })
+
+    # Check if more pages exist
+    next_page = page + 1 if len(items_raw) == page_size else None
+
+    return {
+        "items": items,
+        "next_page": next_page
+    }
+
+
+# ============================================================
+# 📎 API: ATTACHMENTS FOR CATEGORY (paginated)
+# ============================================================
+@email_rules_bp.route("/api/attachments")
+def api_attachments():
+    """Return all attachments belonging to emails with a category."""
+    category = request.args.get("category", "").strip()
+    page = int(request.args.get("page", 1))
+    page_size = 20
+    skip = (page - 1) * page_size
+
+    token = get_graph_token()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Fetch ALL emails tagged with this category (paged)
+    mail_items = []
+    base_url = (
+        f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/messages"
+        f"?$filter=categories/any(c:c eq '{category}')"
+        f"&$select=id,from,webLink"
+        f"&$orderby=receivedDateTime desc"
+        f"&$top=50"
+    )
+    next_link = base_url
+
+    while next_link:
+        resp = requests.get(next_link, headers=headers)
+        if resp.status_code != 200:
+            print("Graph error:", resp.text)
+            break
+
+        data = resp.json()
+        mail_items.extend(data.get("value", []))
+        next_link = data.get("@odata.nextLink")
+
+    attachments = []
+
+    for msg in mail_items:
+        sender = (
+            msg.get("from", {})
+               .get("emailAddress", {})
+               .get("address", "")
+        )
+        mid = msg["id"]
+        att_url = f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/messages/{mid}/attachments?$select=name,size,contentType,id"
+        att_resp = requests.get(att_url, headers=headers)
+
+        # Safe: skip on error
+        if att_resp.status_code != 200:
+            print(f"[WARN] Failed to fetch attachments for message {mid}: {att_resp.text}")
+            continue
+
+        for a in att_resp.json().get("value", []):
+            # Only treat file attachments, ignore "itemAttachment"
+            if "@odata.type" in a and "fileAttachment" not in a["@odata.type"]:
+                continue
+
+            attachments.append({
+                "file_name": a.get("name", "Attachment"),
+                "size_human": f"{round(a.get('size', 0)/1024,1)} KB",
+                "from": sender,
+                "web_link": msg.get("webLink", "#"),
+                "download_url": f"https://graph.microsoft.com/v1.0/users/{MAILBOX}/messages/{mid}/attachments/{a['id']}/$value"
+            })
+
+    # Paginate attachments
+    paged = attachments[skip : skip + page_size]
+    next_page = page + 1 if len(attachments) > skip + page_size else None
+
+    return {
+        "items": paged,
+        "next_page": next_page
+    }
