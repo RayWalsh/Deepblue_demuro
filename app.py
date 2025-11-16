@@ -247,6 +247,387 @@ def forgot_password():
         return render_template('login.html', error="Failed to reset password.", db_status="")
 
 # ----------------------------------------------------
+# 📚 Counterparties (Global Company List)
+# ----------------------------------------------------
+
+@app.route('/counterparties')
+@login_required
+def counterparties_page():
+    """Display list of all counterparties."""
+    try:
+        with get_db_connection() as conn:
+            result = conn.execute(text("""
+                SELECT 
+                    CounterpartyID,
+                    CompanyNumber,
+                    ShortName,
+                    FullName,
+                    Address,
+                    Country,
+                    TaxNumber,
+                    CreditDays,
+                    RebillRate,
+                    DemRate1,
+                    DemStep1,
+                    DemRate2,
+                    DemStep2,
+                    AccountingContact,
+                    AccountingEmail,
+                    AccountingPhone,
+                    OperationsContact,
+                    OperationsEmail,
+                    OperationsPhone,
+                    OtherContact,
+                    OtherEmail,
+                    OtherPhone,
+                    BillingEmail,
+                    IsCharterer,
+                    IsClient,
+                    IsOwner,
+                    IsReceiver,
+                    IsShipper,
+                    IsOperator,
+                    IsAgent,
+                    IsSurveyor,
+                    IsBroker,
+                    IsBunkerSupplier,
+                    IsPortAuthority,
+                    Blacklisted,
+                    Sanctioned,
+                    RiskNotes,
+                    Notes
+                FROM dbo.Counterparties
+                WHERE IsActive = 1
+                ORDER BY ShortName;
+            """))
+
+            raw_rows = result.fetchall()
+            rows = [dict(r._mapping) for r in raw_rows]
+
+            # ⭐ Fix Decimal → JSON issue
+            from decimal import Decimal
+            import json, html
+
+            for r in rows:
+                for key, value in r.items():
+                    if isinstance(value, Decimal):
+                        r[key] = float(value)
+
+                r["json"] = html.escape(json.dumps(r))
+
+    except Exception as e:
+        print("Counterparties fetch error:", e)
+        rows = []
+
+    return render_template('counterparties.html', counterparties=rows)
+
+
+@app.route('/counterparties/add', methods=['POST'])
+@login_required
+def add_counterparty():
+    """Insert a new counterparty into SQL with an auto-generated short unique code."""
+    import random
+    import string
+
+    # ---------------------------------------------
+    # HELPERS
+    # ---------------------------------------------
+
+    # Short random 6-char code (A-Z + digits)
+    def generate_short_code(length=6):
+        return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+    # Clean text fields
+    def clean(value):
+        if not value:
+            return None
+        v = value.strip()
+        return v if v not in ("", "None") else None
+
+    # Convert numeric fields safely
+    def num(v):
+        if v is None or v == "":
+            return None
+        try:
+            return float(v)
+        except ValueError:
+            return None
+
+    # Checkbox → BIT
+    def bit(name):
+        return 1 if request.form.get(name) else 0
+
+    # ---------------------------------------------
+    # Generate system identifier
+    # ---------------------------------------------
+    company_number = generate_short_code()
+
+    # ---------------------------------------------
+    # Build parameters
+    # ---------------------------------------------
+    params = {
+        "CompanyNumber": company_number,
+
+        # Identity
+        "ShortName": clean(request.form.get("ShortName")),
+        "FullName": clean(request.form.get("FullName")),
+        "Address": clean(request.form.get("Address")),
+        "Country": clean(request.form.get("Country")),
+        "TaxNumber": clean(request.form.get("TaxNumber")),
+
+        # Commercial
+        "CreditDays": num(request.form.get("CreditDays")),
+        "RebillRate": num(request.form.get("RebillRate")),
+
+        "DemRate1": num(request.form.get("DemRate1")),
+        "DemStep1": num(request.form.get("DemStep1")),
+        "DemRate2": num(request.form.get("DemRate2")),
+        "DemStep2": num(request.form.get("DemStep2")),
+
+        # Contacts
+        "AccountingContact": clean(request.form.get("AccountingContact")),
+        "AccountingEmail": clean(request.form.get("AccountingEmail")),
+        "AccountingPhone": clean(request.form.get("AccountingPhone")),
+
+        "OperationsContact": clean(request.form.get("OperationsContact")),
+        "OperationsEmail": clean(request.form.get("OperationsEmail")),
+        "OperationsPhone": clean(request.form.get("OperationsPhone")),
+
+        "OtherContact": clean(request.form.get("OtherContact")),
+        "OtherEmail": clean(request.form.get("OtherEmail")),
+        "OtherPhone": clean(request.form.get("OtherPhone")),
+
+        "BillingEmail": clean(request.form.get("BillingEmail")),
+
+        # Roles (BIT fields)
+        "IsCharterer": bit("IsCharterer"),
+        "IsClient": bit("IsClient"),
+        "IsOwner": bit("IsOwner"),
+        "IsReceiver": bit("IsReceiver"),
+        "IsShipper": bit("IsShipper"),
+        "IsOperator": bit("IsOperator"),
+        "IsAgent": bit("IsAgent"),
+        "IsSurveyor": bit("IsSurveyor"),
+        "IsBroker": bit("IsBroker"),
+        "IsBunkerSupplier": bit("IsBunkerSupplier"),
+        "IsPortAuthority": bit("IsPortAuthority"),
+
+        # Risk flags
+        "Blacklisted": bit("Blacklisted"),
+        "Sanctioned": bit("Sanctioned"),
+        "RiskNotes": clean(request.form.get("RiskNotes")),
+
+        # General notes
+        "Notes": clean(request.form.get("Notes")),
+
+        # Audit
+        "UpdatedBy": session.get("username"),
+    }
+
+    # ---------------------------------------------
+    # SQL Insert
+    # ---------------------------------------------
+    sql = text("""
+        INSERT INTO dbo.Counterparties (
+            CompanyNumber,
+            ShortName, FullName, Address, Country, TaxNumber,
+            CreditDays, RebillRate,
+            DemRate1, DemStep1, DemRate2, DemStep2,
+            AccountingContact, AccountingEmail, AccountingPhone,
+            OperationsContact, OperationsEmail, OperationsPhone,
+            OtherContact, OtherEmail, OtherPhone,
+            BillingEmail,
+            IsCharterer, IsClient, IsOwner, IsReceiver, IsShipper, IsOperator,
+            IsAgent, IsSurveyor, IsBroker, IsBunkerSupplier, IsPortAuthority,
+            Blacklisted, Sanctioned, RiskNotes,
+            Notes,
+            UpdatedBy
+        )
+        VALUES (
+            :CompanyNumber,
+            :ShortName, :FullName, :Address, :Country, :TaxNumber,
+            :CreditDays, :RebillRate,
+            :DemRate1, :DemStep1, :DemRate2, :DemStep2,
+            :AccountingContact, :AccountingEmail, :AccountingPhone,
+            :OperationsContact, :OperationsEmail, :OperationsPhone,
+            :OtherContact, :OtherEmail, :OtherPhone,
+            :BillingEmail,
+            :IsCharterer, :IsClient, :IsOwner, :IsReceiver, :IsShipper, :IsOperator,
+            :IsAgent, :IsSurveyor, :IsBroker, :IsBunkerSupplier, :IsPortAuthority,
+            :Blacklisted, :Sanctioned, :RiskNotes,
+            :Notes,
+            :UpdatedBy
+        )
+    """)
+
+    # ---------------------------------------------
+    # Execute Insert
+    # ---------------------------------------------
+    try:
+        with get_db_connection() as conn:
+            conn.execute(sql, params)
+            conn.commit()
+            print(f"✅ Counterparty added: {company_number}")
+    except Exception as e:
+        print("❌ Add counterparty error:", e)
+
+    return redirect(url_for('counterparties_page'))
+
+@app.route('/counterparties/update/<int:cp_id>', methods=['POST'])
+@login_required
+def update_counterparty(cp_id):
+    """Update an existing counterparty in SQL."""
+
+    # ---------------------------------------------
+    # HELPERS (same as add route)
+    # ---------------------------------------------
+    def clean(value):
+        if not value:
+            return None
+        v = value.strip()
+        return v if v not in ("", "None") else None
+
+    def num(v):
+        if v is None or v == "":
+            return None
+        try:
+            return float(v)
+        except ValueError:
+            return None
+
+    def bit(name):
+        return 1 if request.form.get(name) else 0
+
+    # ---------------------------------------------
+    # Build parameters
+    # ---------------------------------------------
+    params = {
+        "CounterpartyID": cp_id,
+
+        # Identity
+        "ShortName": clean(request.form.get("ShortName")),
+        "FullName": clean(request.form.get("FullName")),
+        "Address": clean(request.form.get("Address")),
+        "Country": clean(request.form.get("Country")),
+        "TaxNumber": clean(request.form.get("TaxNumber")),
+
+        # Commercial
+        "CreditDays": num(request.form.get("CreditDays")),
+        "RebillRate": num(request.form.get("RebillRate")),
+
+        "DemRate1": num(request.form.get("DemRate1")),
+        "DemStep1": num(request.form.get("DemStep1")),
+        "DemRate2": num(request.form.get("DemRate2")),
+        "DemStep2": num(request.form.get("DemStep2")),
+
+        # Contacts
+        "AccountingContact": clean(request.form.get("AccountingContact")),
+        "AccountingEmail": clean(request.form.get("AccountingEmail")),
+        "AccountingPhone": clean(request.form.get("AccountingPhone")),
+
+        "OperationsContact": clean(request.form.get("OperationsContact")),
+        "OperationsEmail": clean(request.form.get("OperationsEmail")),
+        "OperationsPhone": clean(request.form.get("OperationsPhone")),
+
+        "OtherContact": clean(request.form.get("OtherContact")),
+        "OtherEmail": clean(request.form.get("OtherEmail")),
+        "OtherPhone": clean(request.form.get("OtherPhone")),
+
+        "BillingEmail": clean(request.form.get("BillingEmail")),
+
+        # Roles
+        "IsCharterer": bit("IsCharterer"),
+        "IsClient": bit("IsClient"),
+        "IsOwner": bit("IsOwner"),
+        "IsReceiver": bit("IsReceiver"),
+        "IsShipper": bit("IsShipper"),
+        "IsOperator": bit("IsOperator"),
+        "IsAgent": bit("IsAgent"),
+        "IsSurveyor": bit("IsSurveyor"),
+        "IsBroker": bit("IsBroker"),
+        "IsBunkerSupplier": bit("IsBunkerSupplier"),
+        "IsPortAuthority": bit("IsPortAuthority"),
+
+        # Risk flags
+        "Blacklisted": bit("Blacklisted"),
+        "Sanctioned": bit("Sanctioned"),
+        "RiskNotes": clean(request.form.get("RiskNotes")),
+
+        # Notes
+        "Notes": clean(request.form.get("Notes")),
+
+        # Audit
+        "UpdatedBy": session.get("username"),
+    }
+
+    # ---------------------------------------------
+    # SQL UPDATE
+    # ---------------------------------------------
+    sql = text("""
+        UPDATE dbo.Counterparties
+        SET
+            ShortName = :ShortName,
+            FullName = :FullName,
+            Address = :Address,
+            Country = :Country,
+            TaxNumber = :TaxNumber,
+
+            CreditDays = :CreditDays,
+            RebillRate = :RebillRate,
+            DemRate1 = :DemRate1,
+            DemStep1 = :DemStep1,
+            DemRate2 = :DemRate2,
+            DemStep2 = :DemStep2,
+
+            AccountingContact = :AccountingContact,
+            AccountingEmail = :AccountingEmail,
+            AccountingPhone = :AccountingPhone,
+
+            OperationsContact = :OperationsContact,
+            OperationsEmail = :OperationsEmail,
+            OperationsPhone = :OperationsPhone,
+
+            OtherContact = :OtherContact,
+            OtherEmail = :OtherEmail,
+            OtherPhone = :OtherPhone,
+
+            BillingEmail = :BillingEmail,
+
+            IsCharterer = :IsCharterer,
+            IsClient = :IsClient,
+            IsOwner = :IsOwner,
+            IsReceiver = :IsReceiver,
+            IsShipper = :IsShipper,
+            IsOperator = :IsOperator,
+            IsAgent = :IsAgent,
+            IsSurveyor = :IsSurveyor,
+            IsBroker = :IsBroker,
+            IsBunkerSupplier = :IsBunkerSupplier,
+            IsPortAuthority = :IsPortAuthority,
+
+            Blacklisted = :Blacklisted,
+            Sanctioned = :Sanctioned,
+            RiskNotes = :RiskNotes,
+
+            Notes = :Notes,
+            UpdatedBy = :UpdatedBy
+        WHERE CounterpartyID = :CounterpartyID
+    """)
+
+    # ---------------------------------------------
+    # Execute update
+    # ---------------------------------------------
+    try:
+        with get_db_connection() as conn:
+            conn.execute(sql, params)
+            conn.commit()
+            print(f"🔄 Updated Counterparty {cp_id}")
+    except Exception as e:
+        print("❌ Update counterparty error:", e)
+
+    return redirect(url_for('counterparties_page'))
+
+# ----------------------------------------------------
 # 🩺 Health Check
 # ----------------------------------------------------
 @app.route('/healthz')

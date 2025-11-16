@@ -5,11 +5,25 @@
 <section class="reference-dashboard">
   <div class="reference-header">
     <h1>📚 Reference Data</h1>
-    <p class="subtext">Centralised management of all ships, charterers, clients, and ports used across the Deep Blue platform.</p>
+    <p class="subtext">Centralised management of all ships, charterers, clients, ports, and counterparties used across the Deep Blue platform.</p>
   </div>
 
   <!-- Card Grid -->
   <div class="reference-card-grid">
+
+    <!-- Counterparties (NEW) -->
+    <div class="reference-card">
+      <div class="card-icon">🏢</div>
+      <div class="card-content">
+        <h2>Counterparties</h2>
+        <p>Global directory of all companies you deal with: charterers, clients, shippers, receivers, and more.</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn-view" onclick="window.location.href='/counterparties'">View List</button>
+        <button class="btn-add" onclick="window.location.href='/counterparties#add'">+ Add</button>
+      </div>
+    </div>
+
     <!-- Ships -->
     <div class="reference-card">
       <div class="card-icon">⚓</div>
@@ -61,6 +75,7 @@
         <button class="btn-add" onclick="openAddModal('port')">+ Add</button>
       </div>
     </div>
+
   </div>
 </section>
 

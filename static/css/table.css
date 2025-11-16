@@ -1,0 +1,122 @@
+/* ============================================
+   GLOBAL TABLE STYLING — invoice / papaya style
+   ============================================ */
+
+/* Wrapper ensures horizontal scroll on mobile */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 10px;
+}
+
+.table-scroll {
+  min-width: 100%;
+}
+
+/* ============================================
+   BASE TABLE
+   ============================================ */
+
+.invoice-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: 0.2s ease-in-out;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.invoice-table thead {
+  background: #f5f8ff;
+}
+
+.invoice-table thead th {
+  padding: 14px 18px;
+  text-align: left;
+  font-weight: 600;
+  color: #2a3a52;
+  font-size: 13px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e3e7f1;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* ============================================
+   BODY
+   ============================================ */
+
+.invoice-table tbody tr {
+  background: #fff;
+  border-bottom: 1px solid #eef1f7;
+  transition: background 0.2s ease;
+}
+
+.invoice-table tbody tr:nth-child(even) {
+  background: #fafcff;
+}
+
+.invoice-table tbody tr:hover {
+  background: #eef5ff;
+}
+
+.invoice-table td {
+  padding: 12px 18px;
+  color: #334;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* ============================================
+   OPTIONAL — FIRST COLUMN NARROW (edit button)
+   ============================================ */
+
+.invoice-table td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* ============================================
+   BUTTONS inside table
+   ============================================ */
+
+.secondary-btn {
+  background: #eef3f9;
+  border: 1px solid #d3dbe7;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #234;
+  transition: 0.15s ease;
+}
+
+.secondary-btn:hover {
+  background: #e5ecf5;
+}
+
+/* ============================================
+   MOBILE FIXES
+   ============================================ */
+
+@media (max-width: 768px) {
+  .invoice-table td,
+  .invoice-table th {
+    padding: 12px 10px;
+  }
+
+  .invoice-table td:first-child {
+    padding-left: 14px;
+  }
+}

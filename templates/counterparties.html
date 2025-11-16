@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Counterparties | Deep Blue Portal{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/counterparties.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+
+<section class="counterparties-page">
+
+  <!-- ===========================
+       HEADER (Ledger-Style)
+  ============================ -->
+<div class="email-rules-header">
+    
+    <div class="header-left">
+      <h1>Counterparties</h1>
+      <p class="mailbox-subtitle">Global directory of companies & commercial partners.</p>
+    </div>
+
+    <div class="header-right">
+      <input id="cpSearch" type="text" class="search-bar" placeholder="Search counterparties..." />
+
+      <button id="exportCPCSV" class="header-add-btn" title="Export CSV">
+        <i class="fas fa-file-csv"></i>
+      </button>
+
+      <button class="header-add-btn" title="Add Counterparty" onclick="openAddCounterparty()">
+        <i class="fas fa-plus"></i>
+      </button>
+
+      <button id="openCPSettingsBtn" class="header-add-btn" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+    </div>
+
+</div>
+
+  <!-- ===========================
+       TABLE (Invoice-like)
+  ============================ -->
+  <div class="table-wrapper">
+    <div class="table-scroll">
+
+      <table id="cpTable" class="invoice-table">
+        <thead>
+          <tr>
+            <th>Edit</th>
+            <th>Short Name</th>
+            <th>Full Name</th>
+            <th>Country</th>
+            <th>Roles</th>
+            <th>Credit Days</th>
+            <th>Dem Rate 1</th>
+            <th>Step 1</th>
+            <th>Dem Rate 2</th>
+            <th>Step 2</th>
+            <th>Accounts Email</th>
+            <th>Ops Email</th>
+          </tr>
+        </thead>
+
+        <tbody id="cpTableBody">
+          {% for c in counterparties %}
+          <tr>
+            <td>
+              <button class="secondary-btn" onclick="openEditCounterparty(`{{ c.json|safe }}`)">Edit</button>
+            </td>
+
+            <td>{{ c.ShortName }}</td>
+            <td>{{ c.FullName or '' }}</td>
+            <td>{{ c.Country or '' }}</td>
+
+            <td>
+              {% set roles=[] %}
+              {% if c.IsCharterer %}{% set _=roles.append('Charterer') %}{% endif %}
+              {% if c.IsClient %}{% set _=roles.append('Client') %}{% endif %}
+              {% if c.IsOwner %}{% set _=roles.append('Owner') %}{% endif %}
+              {% if c.IsReceiver %}{% set _=roles.append('Receiver') %}{% endif %}
+              {% if c.IsShipper %}{% set _=roles.append('Shipper') %}{% endif %}
+              {% if c.IsOperator %}{% set _=roles.append('Operator') %}{% endif %}
+              {% if c.IsAgent %}{% set _=roles.append('Agent') %}{% endif %}
+              {% if c.IsSurveyor %}{% set _=roles.append('Surveyor') %}{% endif %}
+              {% if c.IsBroker %}{% set _=roles.append('Broker') %}{% endif %}
+              {% if c.IsBunkerSupplier %}{% set _=roles.append('Bunker Supplier') %}{% endif %}
+              {% if c.IsPortAuthority %}{% set _=roles.append('Port Authority') %}{% endif %}
+              {{ roles|join(', ') }}
+            </td>
+
+            <td>{{ c.CreditDays or '' }}</td>
+            <td>{{ c.DemRate1 or '' }}</td>
+            <td>{{ c.DemStep1 or '' }}</td>
+            <td>{{ c.DemRate2 or '' }}</td>
+            <td>{{ c.DemStep2 or '' }}</td>
+            <td>{{ c.AccountingEmail or '' }}</td>
+            <td>{{ c.OperationsEmail or '' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ===========================
+       MODAL INCLUDE
+  ============================ -->
+  {% include 'modals/counterparty_modal.html' %}
+
+</section>
+
+<script>
+  const search = document.getElementById("cpSearch");
+  const tableBody = document.getElementById("cpTableBody");
+  const exportBtn = document.getElementById("exportCPCSV");
+
+  search.addEventListener("input", () => {
+    const term = search.value.toLowerCase();
+    [...tableBody.querySelectorAll("tr")].forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(term)
+        ? ""
+        : "none";
+    });
+  });
+
+  exportBtn.addEventListener("click", () => {
+    let csv = [];
+    document.querySelectorAll("#cpTable tr").forEach(row => {
+      const cols = [...row.children].map(c => `"${c.innerText.replace(/"/g,'""')}"`);
+      csv.push(cols.join(","));
+    });
+    const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "counterparties.csv";
+    a.click();
+  });
+
+  function openAddCounterparty() {
+    document.getElementById('cpForm').reset();
+    document.getElementById('CounterpartyID').value="";
+    document.getElementById('cpModalTitle').innerText="Add Counterparty";
+    document.getElementById('cpForm').action="{{ url_for('add_counterparty') }}";
+    document.getElementById('cpModal').classList.add('open');
+  }
+
+  function openEditCounterparty(jsonString) {
+    const decoded=jsonString.replace(/&quot;/g,'"');
+    const cp=JSON.parse(decoded);
+
+    document.getElementById('cpModalTitle').innerText="Edit Counterparty";
+    document.getElementById('cpForm').action="/counterparties/update/"+cp.CounterpartyID;
+
+    for(const key in cp){
+      const el=document.getElementById(key);
+      if(!el) continue;
+      if(el.type==="checkbox"){ el.checked=!!cp[key]; }
+      else{ el.value=cp[key]??""; }
+    }
+    document.getElementById('cpModal').classList.add('open');
+  }
+
+  function closeCounterpartyModal(){
+    document.getElementById('cpModal').classList.remove('open');
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,201 @@
+<!-- Counterparty Add/Edit Modal -->
+<div id="cpModal" class="modal">
+  <div class="modal-content large-modal dbs-modal">
+
+    <span class="close" onclick="closeCounterpartyModal()">&times;</span>
+    <h3 id="cpModalTitle" class="modal-title">Add Counterparty</h3>
+
+    <!-- Risk Banner -->
+    <div id="modalAlertBanner" class="modal-alert-banner">
+      ⚠ High-Risk Entity — Check compliance before proceeding.
+    </div>
+
+    <form id="cpForm" method="post" action="{{ url_for('add_counterparty') }}" class="full-form">
+
+      <input type="hidden" name="CounterpartyID" id="CounterpartyID">
+
+      <!-- ==========================
+           IDENTITY
+      =========================== -->
+      <h4 class="section-title">Identity</h4>
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label>Short Name *</label>
+          <input type="text" name="ShortName" id="ShortName" required>
+        </div>
+
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" name="FullName" id="FullName">
+        </div>
+
+        <div class="form-field wide">
+          <label>Address</label>
+          <textarea name="Address" id="Address"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label>Country</label>
+          <input type="text" name="Country" id="Country">
+        </div>
+
+        <div class="form-field">
+          <label>Tax Number</label>
+          <input type="text" name="TaxNumber" id="TaxNumber">
+        </div>
+
+      </div>
+
+      <!-- ==========================
+           COMMERCIAL
+      =========================== -->
+      <h4 class="section-title">Commercial & Credit</h4>
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label>Credit Days</label>
+          <input type="number" name="CreditDays" id="CreditDays">
+        </div>
+
+        <div class="form-field">
+          <label>Rebill Rate</label>
+          <input type="number" step="0.001" name="RebillRate" id="RebillRate">
+        </div>
+
+        <div class="form-field">
+          <label>Demurrage Rate 1</label>
+          <input type="number" step="0.001" name="DemRate1" id="DemRate1">
+        </div>
+
+        <div class="form-field">
+          <label>Step 1</label>
+          <input type="number" step="0.01" name="DemStep1" id="DemStep1">
+        </div>
+
+        <div class="form-field">
+          <label>Demurrage Rate 2</label>
+          <input type="number" step="0.001" name="DemRate2" id="DemRate2">
+        </div>
+
+        <div class="form-field">
+          <label>Step 2</label>
+          <input type="number" step="0.01" name="DemStep2" id="DemStep2">
+        </div>
+
+      </div>
+
+      <!-- ==========================
+           CONTACTS
+      =========================== -->
+      <h4 class="section-title">Contacts</h4>
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label>Accounting Contact</label>
+          <input type="text" name="AccountingContact" id="AccountingContact">
+        </div>
+
+        <div class="form-field">
+          <label>Accounting Email</label>
+          <input type="email" name="AccountingEmail" id="AccountingEmail">
+        </div>
+
+        <div class="form-field">
+          <label>Accounting Phone</label>
+          <input type="text" name="AccountingPhone" id="AccountingPhone">
+        </div>
+
+        <div class="form-field">
+          <label>Operations Contact</label>
+          <input type="text" name="OperationsContact" id="OperationsContact">
+        </div>
+
+        <div class="form-field">
+          <label>Operations Email</label>
+          <input type="email" name="OperationsEmail" id="OperationsEmail">
+        </div>
+
+        <div class="form-field">
+          <label>Operations Phone</label>
+          <input type="text" name="OperationsPhone" id="OperationsPhone">
+        </div>
+
+        <div class="form-field">
+          <label>Other Contact</label>
+          <input type="text" name="OtherContact" id="OtherContact">
+        </div>
+
+        <div class="form-field">
+          <label>Other Email</label>
+          <input type="email" name="OtherEmail" id="OtherEmail">
+        </div>
+
+        <div class="form-field">
+          <label>Other Phone</label>
+          <input type="text" name="OtherPhone" id="OtherPhone">
+        </div>
+
+        <div class="form-field wide">
+          <label>Billing Email</label>
+          <input type="email" name="BillingEmail" id="BillingEmail">
+        </div>
+
+      </div>
+
+      <!-- ==========================
+           ROLES
+      =========================== -->
+      <h4 class="section-title">Roles</h4>
+      <div class="roles-flex">
+        {% for name,label in [
+          ('IsCharterer','Charterer'),
+          ('IsClient','Client'),
+          ('IsOwner','Owner'),
+          ('IsReceiver','Receiver'),
+          ('IsShipper','Shipper'),
+          ('IsOperator','Operator'),
+          ('IsAgent','Agent'),
+          ('IsSurveyor','Surveyor'),
+          ('IsBroker','Broker'),
+          ('IsBunkerSupplier','Bunker Supplier'),
+          ('IsPortAuthority','Port Authority'),
+        ] %}
+        <label class="role-pill">
+          <input type="checkbox" name="{{name}}" id="{{name}}"> {{label}}
+        </label>
+        {% endfor %}
+      </div>
+
+      <!-- ==========================
+           RISK FLAGS
+      =========================== -->
+      <h4 class="section-title">Other Information</h4>
+      <div class="alert-flex">
+        <label class="alert-pill"><input type="checkbox" name="Blacklisted" id="Blacklisted"> Blacklisted</label>
+        <label class="alert-pill"><input type="checkbox" name="Sanctioned" id="Sanctioned"> Sanctioned</label>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field wide" id="reasonBox" style="display:none;">
+          <label>Compliance Notes (Reason)</label>
+          <textarea name="RiskNotes" id="RiskNotes"></textarea>
+        </div>
+
+        <div class="form-field wide">
+          <label>Notes</label>
+          <textarea name="Notes" id="Notes"></textarea>
+        </div>
+      </div>
+
+      <!-- ==========================
+           BUTTONS
+      =========================== -->
+      <div class="form-actions">
+        <button type="submit">Save</button>
+        <button type="button" class="secondary-btn" onclick="closeCounterpartyModal()">Cancel</button>
+      </div>
+
+    </form>
+  </div>
+</div>
