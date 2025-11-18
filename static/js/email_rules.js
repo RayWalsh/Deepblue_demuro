@@ -1,8 +1,10 @@
 /* ============================================================
    Email Rules Manager Logic (Luberef / Outlook Tagging)
-   ============================================================ */
+============================================================ */
 
-// ============== Modal Logic ==============
+/* ============================
+   Modal Logic
+============================ */
 const modal = document.getElementById("categoryModal");
 const openBtn = document.getElementById("openModal");
 const closeBtn = document.getElementById("closeModal");
@@ -13,12 +15,17 @@ openBtn?.addEventListener("click", () => {
 });
 
 closeBtn?.addEventListener("click", () => (modal.style.display = "none"));
+
 window.addEventListener("click", (e) => {
   if (e.target === modal) modal.style.display = "none";
 });
 
-// ============== Create Category (AJAX) ==============
+
+/* ============================
+   Create Category (AJAX)
+============================ */
 const form = document.getElementById("createCategoryForm");
+
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -38,22 +45,26 @@ form?.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(data),
     });
+
     if (res.ok) {
-      alert("✅ Category created successfully! You can now click 'Create Rule'.");
+      alert("✅ Category created successfully!");
       window.location.reload();
     } else {
-      alert("⚠️ Failed to create category. Please check input or server logs.");
+      alert("⚠️ Failed to create category.");
     }
   } catch (err) {
     console.error(err);
-    alert("⚠️ Network or server error occurred.");
+    alert("⚠️ Network or server error.");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Create Category";
   }
 });
 
-// ============== ✏️ Edit Tag from Kebab Menu ==============
+
+/* ============================
+   Edit Tag (from kebab)
+============================ */
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".edit-tag-btn");
   if (!btn) return;
@@ -67,14 +78,17 @@ document.addEventListener("click", (e) => {
   document.querySelectorAll(".card.is-open").forEach((c) => c.classList.remove("is-open"));
 });
 
-// ============== Create Rule Button ==============
+
+/* ============================
+   Create Rule Button
+============================ */
 document.getElementById("createRuleBtn")?.addEventListener("click", () => {
   const ref = document.querySelector("input[name='reference']").value.trim();
   const ship = document.querySelector("input[name='ship']").value.trim();
   const cpdate = document.querySelector("input[name='cpdate']").value.trim();
 
   if (!ref || !ship || !cpdate) {
-    alert("⚠️ Please fill in Reference, Ship, and CP Date before creating a rule.");
+    alert("⚠️ Please fill in Reference, Ship, and CP Date.");
     return;
   }
 
@@ -82,16 +96,21 @@ document.getElementById("createRuleBtn")?.addEventListener("click", () => {
   window.location.href = `/email/create_rule/${encodeURIComponent(name)}`;
 });
 
+
 window.addEventListener("pageshow", () => {
   if (modal) modal.style.display = "none";
 });
 
-// ============== Save Changes ==============
+
+/* ============================
+   Save Changes
+============================ */
 document.getElementById("saveChangesBtn")?.addEventListener("click", async () => {
   const data = Object.fromEntries(new FormData(form).entries());
   const catId = form.dataset.catid;
+
   if (!catId) {
-    alert("⚠️ This category hasn’t been created yet. Use Create Category first.");
+    alert("⚠️ This category hasn’t been created yet.");
     return;
   }
 
@@ -102,18 +121,17 @@ document.getElementById("saveChangesBtn")?.addEventListener("click", async () =>
   });
 
   if (res.ok) {
-    alert("✅ Category updated. Please re-run the rule to tag older emails.");
+    alert("✅ Category updated.");
     window.location.reload();
   } else {
-    alert("⚠️ Failed to update category.");
+    alert("⚠️ Failed to update.");
   }
 });
 
 
-/* ============================================================
+/* ============================
    Helpers
-   ============================================================ */
-
+============================ */
 function getCategoryNameFromCard(card) {
   const titleEl = card.querySelector(".card-title");
   return titleEl ? titleEl.textContent.trim() : "";
@@ -121,47 +139,62 @@ function getCategoryNameFromCard(card) {
 
 function setLoading(tabContent, isLoading) {
   if (!tabContent) return;
-  if (isLoading) {
-    tabContent.classList.add("loading");
-  } else {
-    tabContent.classList.remove("loading");
-  }
+  if (isLoading) tabContent.classList.add("loading");
+  else tabContent.classList.remove("loading");
 }
 
 function escapeHtml(str) {
   if (!str) return "";
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
 }
 
 
 /* ============================================================
-   EXPAND / COLLAPSE CARDS + INITIAL LOAD
-   ============================================================ */
+   Item kebab menu handling (capture phase)
+============================================================ */
+document.addEventListener("click", (e) => {
+  const kebabBtn = e.target.closest(".item-kebab-btn");
+  const item = e.target.closest(".list-item");
 
+  if (!kebabBtn || !item) return;
+
+  const alreadyOpen = item.classList.contains("menu-open");
+
+  document.querySelectorAll(".list-item.menu-open")
+          .forEach((li) => li.classList.remove("menu-open"));
+
+  if (!alreadyOpen) item.classList.add("menu-open");
+
+  e.stopPropagation();
+}, true);
+
+
+/* ============================================================
+   EXPAND / COLLAPSE — title only (with toggle!)
+============================================================ */
 document.addEventListener("click", (e) => {
   const title = e.target.closest(".card-title");
   if (!title) return;
 
   e.preventDefault();
+
   const card = title.closest(".card");
-  const categoryName = getCategoryNameFromCard(card);
-  if (!categoryName) return;
+  const currentlyExpanded = card.classList.contains("expanded");
 
-  // Toggle expanded state
-  const isNowExpanded = !card.classList.contains("expanded");
-  card.classList.toggle("expanded");
+  // collapse if already open
+  if (currentlyExpanded) {
+    card.classList.remove("expanded");
+    return;
+  }
 
-  // Close any open kebab menu
-  card.querySelectorAll(".kebab-menu").forEach((m) => (m.style.display = "none"));
+  // collapse all others, open this one
+  document.querySelectorAll(".card.expanded").forEach((c) => c.classList.remove("expanded"));
+  card.classList.add("expanded");
 
-  // If collapsed, nothing more to do
-  if (!isNowExpanded) return;
-
-  // Create expanded content if missing
+  // ensure expanded content area exists
   let expandArea = card.querySelector(".expanded-content");
   if (!expandArea) {
     expandArea = document.createElement("div");
@@ -169,184 +202,135 @@ document.addEventListener("click", (e) => {
 
     expandArea.innerHTML = `
       <div class="stats-row">
-        <button class="icon-btn tab-btn active" data-tab="emails" title="View Emails">
-          📧<span class="count-badge" data-count-type="emails">–</span>
+        <button class="icon-btn tab-btn active" data-tab="emails">
+          📧 <span class="count-badge" data-count-type="emails">–</span>
         </button>
-        <button class="icon-btn tab-btn" data-tab="attachments" title="View Attachments">
-          📎<span class="count-badge" data-count-type="attachments">–</span>
+        <button class="icon-btn tab-btn" data-tab="attachments">
+          📎 <span class="count-badge" data-count-type="attachments">–</span>
         </button>
       </div>
-
       <div class="tab-content">
-        <p class="placeholder">Loading emails for this tag...</p>
+        <p class="placeholder">Loading emails…</p>
       </div>
     `;
-
     card.appendChild(expandArea);
   }
 
-  const tabContent = card.querySelector(".tab-content");
-
-  // Load counts + first page of emails
+  const categoryName = getCategoryNameFromCard(card);
   loadCategorySummary(card, categoryName);
   loadTabData(card, "emails", 1, false);
 });
 
 
 /* ============================================================
-   LOAD SUMMARY (COUNTS)
-   ============================================================ */
-
+   LOAD SUMMARY
+============================================================ */
 async function loadCategorySummary(card, categoryName) {
   try {
-    const res = await fetch(
-      `/email/api/summary?category=${encodeURIComponent(categoryName)}`
-    );
+    const res = await fetch(`/email/api/summary?category=${encodeURIComponent(categoryName)}`);
     if (!res.ok) return;
 
-    const data = await res.json(); // { email_count, attachment_count }
-    const emailBadge = card.querySelector(".count-badge[data-count-type='emails']");
-    const attBadge = card.querySelector(".count-badge[data-count-type='attachments']");
-
-    if (emailBadge) emailBadge.textContent = data.email_count ?? "0";
-    if (attBadge) attBadge.textContent = data.attachment_count ?? "0";
+    const data = await res.json();
+    card.querySelector(".count-badge[data-count-type='emails']").textContent =
+      data.email_count ?? "0";
+    card.querySelector(".count-badge[data-count-type='attachments']").textContent =
+      data.attachment_count ?? "0";
   } catch (err) {
-    console.error("Error loading summary:", err);
+    console.error("Summary error:", err);
   }
 }
 
 
 /* ============================================================
-   LOAD TAB DATA (EMAILS / ATTACHMENTS) + PAGINATION
-   ============================================================ */
-
+   LOAD TAB DATA
+============================================================ */
 async function loadTabData(card, type, page = 1, append = false) {
   const tabContent = card.querySelector(".tab-content");
   const categoryName = getCategoryNameFromCard(card);
+
   if (!tabContent || !categoryName) return;
 
   setLoading(tabContent, true);
-
-  // Remove old "Load more" if reloading from page 1
-  if (!append) {
-    tabContent.innerHTML = "";
-  } else {
-    const oldMore = tabContent.querySelector(".load-more-row");
-    if (oldMore) oldMore.remove();
-  }
+  if (!append) tabContent.innerHTML = "";
 
   try {
-    const res = await fetch(
-      `/email/api/${type}?category=${encodeURIComponent(categoryName)}&page=${page}`
-    );
+    const res = await fetch(`/email/api/${type}?category=${encodeURIComponent(categoryName)}&page=${page}`);
     if (!res.ok) {
-      if (!append) {
-        tabContent.innerHTML = `<p class="placeholder">No ${type} found for this tag.</p>`;
-      }
+      if (!append)
+        tabContent.innerHTML = `<p class="placeholder">No ${type} found.</p>`;
       return;
     }
 
     const data = await res.json();
     const items = data.items || [];
-    const nextPage = data.next_page; // null or number
+    const nextPage = data.next_page;
 
     let list = tabContent.querySelector(".list-view");
     if (!list || !append) {
       list = document.createElement("ul");
       list.className = "list-view";
-      if (!append) tabContent.innerHTML = "";
       tabContent.appendChild(list);
     }
 
     if (!items.length && !append) {
-      list.innerHTML = `<li class="placeholder">No ${type} found for this tag.</li>`;
+      list.innerHTML = `<li class="placeholder">No ${type} found.</li>`;
     } else {
       items.forEach((item) => {
         const li = document.createElement("li");
-        li.className =
-          type === "emails" ? "list-item email-item" : "list-item attachment-item";
+        li.className = `list-item ${type === "emails" ? "email-item" : "attachment-item"}`;
 
         if (type === "emails") {
-          const subject = escapeHtml(item.subject || "(no subject)");
-          const from = escapeHtml(item.from || "");
-          const received = escapeHtml(item.received || "");
-          const webLink = item.web_link || item.outlook_web_link || "#";
-
           li.innerHTML = `
             <div class="item-main">
               <div class="item-title-row">
                 <span class="item-icon">📨</span>
-                <span class="item-subject">${subject}</span>
+                <span class="item-subject">${escapeHtml(item.subject || "(no subject)")}</span>
               </div>
-              <div class="item-meta">
-                ${from ? from + " · " : ""}${received}
-              </div>
+              <div class="item-meta">${escapeHtml(item.from || "")} · ${escapeHtml(item.received || "")}</div>
             </div>
             <div class="item-kebab-wrap">
-              <button class="item-kebab-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
+              <button class="item-kebab-btn">⋯</button>
               <div class="item-kebab-menu">
-                <button class="item-menu-row open-outlook-btn"
-                        data-link="${escapeHtml(webLink)}">
+                <button class="item-menu-row open-outlook-btn" data-link="${escapeHtml(item.web_link || "#")}">
                   Open in Outlook
                 </button>
               </div>
-            </div>
-          `;
+            </div>`;
         } else {
-          const fileName = escapeHtml(item.file_name || "Attachment");
-          const size = escapeHtml(item.size_human || "");
-          const fromEmail = escapeHtml(item.from || "");
-          const webLink = item.web_link || item.outlook_web_link || "#";
-          const downloadUrl = item.download_url || webLink;
-
           li.innerHTML = `
             <div class="item-main">
               <div class="item-title-row">
                 <span class="item-icon">📎</span>
-                <span class="item-subject">${fileName}</span>
+                <span class="item-subject">${escapeHtml(item.file_name || "Attachment")}</span>
               </div>
-              <div class="item-meta">
-                ${size ? size + " · " : ""}${fromEmail}
-              </div>
+              <div class="item-meta">${escapeHtml(item.size_human || "")} · ${escapeHtml(item.from || "")}</div>
             </div>
             <div class="item-kebab-wrap">
-              <button class="item-kebab-btn" aria-haspopup="true" aria-expanded="false">⋯</button>
+              <button class="item-kebab-btn">⋯</button>
               <div class="item-kebab-menu">
-                <button class="item-menu-row download-attachment-btn"
-                        data-download="${escapeHtml(downloadUrl)}">
+                <button class="item-menu-row download-attachment-btn" data-download="${escapeHtml(item.download_url || "")}">
                   Download
                 </button>
-                <button class="item-menu-row open-outlook-btn"
-                        data-link="${escapeHtml(webLink)}">
+                <button class="item-menu-row open-outlook-btn" data-link="${escapeHtml(item.web_link || "#")}">
                   Open in Outlook
                 </button>
               </div>
-            </div>
-          `;
+            </div>`;
         }
 
         list.appendChild(li);
       });
     }
 
-    // Add "Load more" if there is another page
     if (nextPage) {
-      const moreRow = document.createElement("div");
-      moreRow.className = "load-more-row";
-      moreRow.innerHTML = `
-        <button class="load-more-btn"
-                data-next-page="${nextPage}"
-                data-tab-type="${type}">
-          Load more ${type === "emails" ? "emails" : "attachments"}
-        </button>
-      `;
-      tabContent.appendChild(moreRow);
+      const more = document.createElement("div");
+      more.className = "load-more-row";
+      more.innerHTML = `<button class="load-more-btn" data-next-page="${nextPage}" data-tab-type="${type}">Load more ${type}</button>`;
+      tabContent.appendChild(more);
     }
   } catch (err) {
-    console.error(`Error loading ${type}:`, err);
-    if (!append) {
-      tabContent.innerHTML = `<p class="placeholder">Error loading ${type}. Please try again.</p>`;
-    }
+    console.error("Tab load error:", err);
+    tabContent.innerHTML = `<p class="placeholder">Error loading ${type}.</p>`;
   } finally {
     setLoading(tabContent, false);
   }
@@ -354,106 +338,69 @@ async function loadTabData(card, type, page = 1, append = false) {
 
 
 /* ============================================================
-   TAB SWITCHING (Emails / Attachments)
-   ============================================================ */
-
+   TAB SWITCHING
+============================================================ */
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".tab-btn");
   if (!btn) return;
 
   const card = btn.closest(".card");
-  const tabContent = card.querySelector(".tab-content");
-  const allBtns = card.querySelectorAll(".tab-btn");
-  const tab = btn.dataset.tab;
 
-  allBtns.forEach((b) => b.classList.remove("active"));
+  card.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
 
-  // Reset content + load from page 1
-  tabContent.innerHTML = `<p class="placeholder">Loading ${tab}...</p>`;
-  loadTabData(card, tab, 1, false);
+  const type = btn.dataset.tab;
+  const tabContent = card.querySelector(".tab-content");
+
+  tabContent.innerHTML = `<p class="placeholder">Loading ${type}...</p>`;
+  loadTabData(card, type, 1, false);
 });
 
 
 /* ============================================================
-   "Load more" Pagination
-   ============================================================ */
+   LOAD MORE
+============================================================ */
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".load-more-btn");
   if (!btn) return;
 
   const card = btn.closest(".card");
   const type = btn.dataset.tabType;
-  const nextPage = parseInt(btn.dataset.nextPage || "2", 10);
+  const nextPage = parseInt(btn.dataset.nextPage, 10);
 
   loadTabData(card, type, nextPage, true);
 });
 
 
 /* ============================================================
-   Item kebab menus + actions (Open in Outlook / Download)
-   ============================================================ */
-
+   Per-item actions
+============================================================ */
 document.addEventListener("click", (e) => {
-  // Toggle per-item kebab
-  const kebabBtn = e.target.closest(".item-kebab-btn");
-  const item = e.target.closest(".list-item");
-
-  if (kebabBtn && item) {
-    const wasOpen = item.classList.contains("menu-open");
-    document
-      .querySelectorAll(".list-item.menu-open")
-      .forEach((li) => li.classList.remove("menu-open"));
-    if (!wasOpen) item.classList.add("menu-open");
-    e.stopPropagation();
-    return;
-  }
-
-  // Open in Outlook
   const openBtn = e.target.closest(".open-outlook-btn");
   if (openBtn) {
-    const link = openBtn.dataset.link;
-    if (link && link !== "#") {
-      window.open(link, "_blank");
-    } else {
-      alert("No Outlook link available for this item.");
-    }
+    window.open(openBtn.dataset.link, "_blank");
     return;
   }
 
-  // Download attachment
   const dlBtn = e.target.closest(".download-attachment-btn");
   if (dlBtn) {
-    const url = dlBtn.dataset.download;
-    if (url && url !== "#") {
-      window.open(url, "_blank");
-    } else {
-      alert("No download URL available for this attachment.");
-    }
+    window.open(dlBtn.dataset.download, "_blank");
     return;
-  }
-
-  // Clicking anywhere else closes open item menus
-  if (!e.target.closest(".item-kebab-wrap")) {
-    document
-      .querySelectorAll(".list-item.menu-open")
-      .forEach((li) => li.classList.remove("menu-open"));
   }
 });
 
 
-
 /* ============================================================
-   Kebab Menu (Top-level card 3-dot)
-   ============================================================ */
+   Header kebab
+============================================================ */
 document.addEventListener("click", (e) => {
-  const kebabBtn = e.target.closest(".kebab-btn");
+  const btn = e.target.closest(".kebab-btn");
   const card = e.target.closest(".card");
 
-  if (kebabBtn && card) {
-    const wasOpen = card.classList.contains("is-open");
+  if (btn && card) {
+    const alreadyOpen = card.classList.contains("is-open");
     document.querySelectorAll(".card.is-open").forEach((c) => c.classList.remove("is-open"));
-    if (!wasOpen) card.classList.add("is-open");
+    if (!alreadyOpen) card.classList.add("is-open");
     e.stopPropagation();
     return;
   }
@@ -463,38 +410,43 @@ document.addEventListener("click", (e) => {
   }
 });
 
+
+/* ============================================================
+   ESC closes menus
+============================================================ */
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     document.querySelectorAll(".card.is-open").forEach((c) => c.classList.remove("is-open"));
-    document
-      .querySelectorAll(".list-item.menu-open")
-      .forEach((li) => li.classList.remove("menu-open"));
+    document.querySelectorAll(".list-item.menu-open").forEach((li) => li.classList.remove("menu-open"));
   }
 });
 
 
 /* ============================================================
    Search
-   ============================================================ */
+============================================================ */
 const searchInput = document.getElementById("searchInput");
+
 if (searchInput) {
   const cards = Array.from(document.querySelectorAll(".card"));
+
   searchInput.addEventListener("input", () => {
     const q = searchInput.value.trim().toLowerCase();
     cards.forEach((card) => {
-      const hay = card.getAttribute("data-search") || card.textContent.toLowerCase();
-      card.style.display = hay.includes(q) ? "" : "none";
+      const text = card.getAttribute("data-search") || card.textContent.toLowerCase();
+      card.style.display = text.includes(q) ? "" : "none";
     });
   });
 }
 
 
 /* ============================================================
-   SSE Progress Overlay
-   ============================================================ */
+   SSE RUN RULE (progress overlay)
+============================================================ */
 document.addEventListener("submit", (e) => {
   const f = e.target.closest("form[action^='/email/run_rule/']");
   if (!f) return;
+
   e.preventDefault();
 
   const overlay = document.getElementById("progressOverlay");
@@ -505,43 +457,43 @@ document.addEventListener("submit", (e) => {
   overlay.style.display = "flex";
   logEl.innerHTML = "";
   barEl.style.width = "0%";
-  barEl.style.backgroundColor = "var(--accent-color)";
-  closeBtn.style.display = "none";
 
   const url = new URL(f.action, window.location.origin);
   const rawName = decodeURIComponent(url.pathname.split("/email/run_rule/")[1]);
   const days = f.querySelector("input[name='days']")?.value || 90;
 
   const es = new EventSource(`/email/run_rule/${encodeURIComponent(rawName)}?days=${days}`);
+
   let steps = 0;
 
-  const add = (t, cls = "info") => {
-    const d = document.createElement("div");
-    d.className = `log-line ${cls}`;
-    d.textContent = t;
-    logEl.appendChild(d);
+  const add = (text, cls = "info") => {
+    const div = document.createElement("div");
+    div.className = `log-line ${cls}`;
+    div.textContent = text;
+    logEl.appendChild(div);
     logEl.scrollTop = logEl.scrollHeight;
   };
 
   es.onmessage = (ev) => {
-    const msg = ev.data;
-    if (msg === "DONE") {
+    if (ev.data === "DONE") {
       barEl.style.width = "100%";
-      barEl.style.backgroundColor = "#10b981";
       add("✅ Rule run complete.", "done");
       closeBtn.style.display = "inline-block";
       es.close();
       return;
     }
 
-    if (msg.includes("Skipping")) add(msg, "skipped");
-    else if (msg.includes("⚠️")) add(msg, "warning");
-    else if (msg.includes("Tagged")) {
-      add(msg, "tagged");
+    if (ev.data.includes("Tagged")) {
       steps++;
       barEl.style.width = Math.min(100, steps * 5) + "%";
-    } else if (msg.includes("✅")) add(msg, "success");
-    else add(msg, "info");
+      add(ev.data, "tagged");
+    } else if (ev.data.includes("Skipping")) {
+      add(ev.data, "skipped");
+    } else if (ev.data.includes("⚠️")) {
+      add(ev.data, "warning");
+    } else {
+      add(ev.data, "info");
+    }
   };
 
   es.onerror = () => {
@@ -550,15 +502,13 @@ document.addEventListener("submit", (e) => {
     es.close();
   };
 
-  closeBtn.onclick = () => {
-    overlay.style.display = "none";
-  };
+  closeBtn.onclick = () => (overlay.style.display = "none");
 });
 
 
 /* ============================================================
-   Submenu Tap Support (Run Rule ▸)
-   ============================================================ */
+   Submenu (Run Rule →)
+============================================================ */
 document.addEventListener("click", (e) => {
   const trigger = e.target.closest(".submenu-trigger");
   const submenu = e.target.closest(".submenu");
@@ -577,3 +527,14 @@ document.addEventListener("click", (e) => {
     document.querySelectorAll(".submenu.open").forEach((s) => s.classList.remove("open"));
   }
 });
+
+
+/* ============================================================
+   HARD FIX: Prevent card expansion on kebab taps
+============================================================ */
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".item-kebab-btn") || e.target.closest(".item-kebab-menu")) {
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+  }
+}, true);
