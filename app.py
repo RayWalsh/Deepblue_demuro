@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, session, j
 from functools import wraps
 from sqlalchemy import create_engine, text
 from passlib.hash import pbkdf2_sha256
+from utils import get_db_connection, login_required
 
 # ----------------------------------------------------
 # ⚙️ Flask App Setup
@@ -24,6 +25,10 @@ app.register_blueprint(email_rules_bp, url_prefix="/email")
 # ----------------------------------------------------
 from ledger import ledger_bp
 app.register_blueprint(ledger_bp)
+
+# 🔗 Blueprint: Case Details
+from case import case_bp
+app.register_blueprint(case_bp)
 
 # ----------------------------------------------------
 # 🔗 Blueprint: Ledger Settings
@@ -639,7 +644,6 @@ def healthz():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-# ----------------------------------------------------
 # 🚀 Run
 # ----------------------------------------------------
 if __name__ == '__main__':

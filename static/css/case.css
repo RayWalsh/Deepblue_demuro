@@ -1,0 +1,499 @@
+/* =============================
+   CASE DETAILS PAGE — FINAL TWEAKED STYLING
+============================= */
+
+/* Ensure layout has no side constraints */
+body.case-details .layout {
+  max-width: none;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+/* Make wrapper full-width */
+body.case-details .main-wrapper {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+/* Align content left and widen */
+body.case-details .main-content {
+  max-width: 1300px;
+  margin-left: 60px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* =============================
+   Page Title Area
+============================= */
+.page-title-bar {
+  margin: 20px 0 12px 60px; /* aligned with card */
+  padding: 0;
+  text-align: left;
+}
+
+.case-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0e3a6d;
+  margin: 6px 0 10px 0;
+}
+
+.client-chip {
+  background: #002f4b;
+  color: #fff;
+  padding: 6px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+/* =============================
+   Card Container
+============================= */
+.case-detail-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  padding: 24px 32px;
+  margin: 0 0 40px 60px; /* aligned with title */
+  max-width: 1300px;
+  width: calc(100% - 80px); /* prevent overflow */
+  font-size: 14px;
+}
+
+/* =============================
+   Header + Pills
+============================= */
+.case-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  background: #eef3f9;
+  color: #0e3a6d;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pill.blue {
+  background: #e7effa;
+  color: #164b80;
+}
+
+/* =============================
+   Buttons
+============================= */
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-actions button {
+  background: #0e3a6d;
+  color: #fff;
+  padding: 7px 14px;
+  font-size: 13px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.header-actions button:hover {
+  background: #164b80;
+}
+
+/* =============================
+   Tabs
+============================= */
+.tab-menu {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #d4dde8;
+}
+
+.tab-menu .tab {
+  padding: 9px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f2f6fa;
+  color: #0e3a6d;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-menu .tab.active {
+  background: white;
+  border-color: #d4dde8;
+  border-bottom: 1px solid white;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.tab-menu .tab i {
+  color: #0e3a6d !important;
+  margin-right: 6px;
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+/* =============================
+   Form Grid
+============================= */
+.case-details-view h3 {
+  margin-top: 30px;
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0e3a6d;
+  border-bottom: 1px solid #d4dde8;
+  padding-bottom: 2px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  color: #333;
+}
+
+.form-field div {
+  background: #f7f9fc;
+  border: 1px solid #dce3ec;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #222;
+  line-height: 1.3;
+}
+
+.form-field.wide {
+  grid-column: span 2;
+}
+
+/* =============================
+   Responsive Tweaks
+============================= */
+@media (max-width: 600px) {
+  .case-title {
+    font-size: 20px;
+  }
+
+  .case-detail-container {
+    padding: 20px;
+    border-radius: 0;
+    box-shadow: none;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .form-field.wide {
+    grid-column: span 1;
+  }
+
+  .page-title-bar {
+    margin-left: 16px;
+  }
+}
+
+/* =============================
+   Layout Tweaks for Left Padding
+============================= */
+
+/* Remove excessive left padding in layout */
+body.case-details .layout {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Narrow wrapper and container padding */
+body.case-details .main-wrapper {
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+body.case-details .main-content {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Page Title Bar - align left and reduce top spacing */
+.page-title-bar {
+  margin: 10px 0 0 20px;
+  padding: 0;
+  max-width: none;
+  text-align: left;
+}
+
+/* Case Card Container - align to sidebar */
+.case-detail-container {
+  margin: 20px 0 40px 20px;
+  max-width: calc(100% - 40px); /* Leaves 20px on each side */
+}
+
+/* =============================
+   Align Header + Buttons
+============================= */
+.page-title-bar.with-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1300px;
+  margin: 16px auto 6px auto;
+  padding: 0 20px;
+  flex-wrap: wrap;
+}
+
+.page-title-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-title-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.page-title-actions button {
+  background: #0e3a6d;
+  color: white;
+  padding: 7px 14px;
+  font-size: 13px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.page-title-actions button:hover {
+  background: #164b80;
+}
+
+.page-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1300px;
+  margin: 20px auto 12px auto;
+  padding: 0 20px;
+  gap: 20px;
+}
+
+.title-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.title-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.case-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0e3a6d;
+  margin: 6px 0 0 0;
+}
+
+.client-chip {
+  background: #002f4b;
+  color: #fff;
+  padding: 6px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.page-title-bar.with-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1300px;
+  margin: 16px auto 6px auto;
+  padding: 0 20px;
+  flex-wrap: wrap;
+}
+
+.page-title-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-title-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.case-header {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 24px 20px 0;
+  gap: 1rem;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto; /* centers the container */
+  box-sizing: border-box;
+}
+
+/* Left side naturally aligns to the left in flex */
+.header-left {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* Right side aligns right by default using auto margin */
+.header-right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.case-header .header-left h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0e3a6d;
+  margin: 0 0 6px;
+}
+
+.case-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.case-pills .info-pill {
+  background: #eef3f9;
+  color: #0e3a6d;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  border: 1px solid #d0dce8;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header-btn {
+  background: #0e3a6d;
+  color: white;
+  font-weight: 600;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-btn:hover {
+  background: #164b80;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.header-btn {
+  background: #0e3a6d;
+  color: white;
+  font-weight: 600;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.header-btn:hover {
+  background: #164b80;
+}
+
+.header-btn i {
+  font-size: 15px;
+}
+
+/* Icon-only buttons */
+.header-right .header-btn[title] {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.header-right .header-btn[title] span {
+  display: none;
+}
+
+/* Phone Responsive adjustments */
+
+@media (max-width: 600px) {
+  .case-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

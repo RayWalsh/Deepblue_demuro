@@ -160,7 +160,8 @@ function renderTable(rows) {
 
       if (col === "DeepBlueRef") {
         const safe = (val ?? "—");
-        return `<td class="ref-cell" data-ref="${safe}">${safe}</td>`;
+        const id = row.CaseID;
+        return `<td class="ref-cell"><a href="/case/${id}" class="case-link">${safe}</a></td>`;
       }
       return `<td>${val ?? "—"}</td>`;
     })

@@ -1,0 +1,105 @@
+  {% extends "base.html" %}
+  {% block title %}Case Details{% endblock %}
+  {% block body_class %}case-details{% endblock %}
+
+  {% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/case.css') }}">
+  {% endblock %}
+
+  {% block content %}
+
+  <!-- OUTSIDE THE CARD -->
+  <div class="case-header">
+    <div class="header-left">
+      <h2>{{ case.DeepBlueRef }} — {{ case.VesselName }}</h2>
+      <div class="case-pills">
+        <span class="info-pill">Voyage: {{ case.VoyageNumber }}</span>
+        <span class="info-pill">CP Date: {{ case.CPDate }}</span>
+        <span class="info-pill">Charterer: {{ case.Charterer }}</span>
+      </div>
+    </div>
+
+  <div class="header-right">
+    <a href="{{ url_for('ledger_bp.get_ledger') }}" class="header-btn">
+    <i class="fas fa-arrow-left"></i> <span>Back to Ledger</span>
+  </a>
+    <a href="#" class="header-btn" title="Edit">
+      <i class="fas fa-pen"></i>
+    </a>
+    <a href="#" class="header-btn" title="Export">
+      <i class="fas fa-file-export"></i>
+    </a>
+  </div>
+
+  <div class="case-detail-container">
+    <section class="case-details-view">
+
+      <h3>General Info</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Client Name</label><div>{{ case.ClientName }}</div></div>
+        <div class="form-field"><label>Vessel Name</label><div>{{ case.VesselName }}</div></div>
+        <div class="form-field"><label>Voyage Number</label><div>{{ case.VoyageNumber }}</div></div>
+        <div class="form-field"><label>Voyage End Date</label><div>{{ case.VoyageEndDate }}</div></div>
+      </div>
+
+      <h3>Charterparty Details</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>CP Type</label><div>{{ case.CPType }}</div></div>
+        <div class="form-field"><label>CP Form</label><div>{{ case.CPForm }}</div></div>
+        <div class="form-field"><label>Laydays</label><div>{{ case.Laydays }}</div></div>
+        <div class="form-field"><label>Cancelling</label><div>{{ case.Cancelling }}</div></div>
+        <div class="form-field"><label>Contract Type</label><div>{{ case.ContractType }}</div></div>
+      </div>
+
+      <h3>Parties Involved</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Owners Name</label><div>{{ case.OwnersName }}</div></div>
+        <div class="form-field"><label>Brokers Name</label><div>{{ case.BrokersName }}</div></div>
+        <div class="form-field"><label>Charterers Name</label><div>{{ case.Charterer }}</div></div>
+        <div class="form-field"><label>Contact Name</label><div>{{ case.ContactName }}</div></div>
+      </div>
+
+      <h3>Laytime & Rates</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Loading Rate</label><div>{{ case.LoadingRate }}</div></div>
+        <div class="form-field"><label>Discharging Rate</label><div>{{ case.DischargingRate }}</div></div>
+        <div class="form-field"><label>Demurrage Rate</label><div>{{ case.DemurrageRate }}</div></div>
+        <div class="form-field"><label>Lumpsum Hours</label><div>{{ case.LumpsumHours }}</div></div>
+        <div class="form-field"><label>Reversible</label><div>{{ case.Reversible }}</div></div>
+        <div class="form-field"><label>Calculation Type</label><div>{{ case.CalculationType }}</div></div>
+      </div>
+
+      <h3>Claim Info</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Initial Claim</label><div>{{ case.InitialClaim }}</div></div>
+        <div class="form-field"><label>Claim Filed Amount</label><div>{{ case.ClaimFiledAmount }}</div></div>
+        <div class="form-field"><label>Claim Status</label><div>{{ case.ClaimStatus }}</div></div>
+        <div class="form-field"><label>Notice Received</label><div>{{ case.NoticeReceived }}</div></div>
+        <div class="form-field"><label>Claim Received</label><div>{{ case.ClaimReceived }}</div></div>
+        <div class="form-field"><label>Claim Days</label><div>{{ case.ClaimDays }}</div></div>
+      </div>
+
+      <h3>Calculated Totals</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Total Allowed</label><div>{{ case.TotalAllowed }}</div></div>
+        <div class="form-field"><label>Total Used</label><div>{{ case.TotalUsed }}</div></div>
+        <div class="form-field"><label>On Demurrage</label><div>{{ case.OnDemurrage }}</div></div>
+        <div class="form-field"><label>Total Cost</label><div>{{ case.TotalCost }}</div></div>
+        <div class="form-field"><label>Agreed Amount</label><div>{{ case.AgreedAmount }}</div></div>
+        <div class="form-field"><label>Agreed Date</label><div>{{ case.AgreedDate }}</div></div>
+      </div>
+
+      <h3>Meta & Internal</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>Created At</label><div>{{ case.CreatedAt }}</div></div>
+        <div class="form-field"><label>Paid Date</label><div>{{ case.PaidDate }}</div></div>
+        <div class="form-field"><label>Invoice Number</label><div>{{ case.InvoiceNumber }}</div></div>
+        <div class="form-field wide"><label>Notes</label><div>{{ case.Notes }}</div></div>
+      </div>
+
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/case.js') }}"></script>
+  {% endblock %}
