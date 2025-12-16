@@ -1,105 +1,104 @@
-  {% extends "base.html" %}
-  {% block title %}Case Details{% endblock %}
-  {% block body_class %}case-details{% endblock %}
+{% extends "base.html" %}
+{% block title %}Case Details{% endblock %}
+{% block body_class %}case-details{% endblock %}
 
-  {% block head %}
-    {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/case.css') }}">
-  {% endblock %}
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/case.css') }}">
+{% endblock %}
 
-  {% block content %}
-
-  <!-- OUTSIDE THE CARD -->
-  <div class="case-header">
-    <div class="header-left">
-      <h2>{{ case.DeepBlueRef }} — {{ case.VesselName }}</h2>
-      <div class="case-pills">
-        <span class="info-pill">Voyage: {{ case.VoyageNumber }}</span>
-        <span class="info-pill">CP Date: {{ case.CPDate }}</span>
-        <span class="info-pill">Charterer: {{ case.Charterer }}</span>
-      </div>
+{% block content %}
+<div class="case-header">
+  <div class="header-left">
+    <h2>{{ case.DeepBlueRef }} — {{ case.VesselName }}</h2>
+    <div class="case-pills">
+      <span class="info-pill">Voyage: {{ case.VoyageNumber }}</span>
+      <span class="info-pill">CP Date: {{ case.CPDate }}</span>
+      <span class="info-pill">Charterer: {{ case.Charterer }}</span>
     </div>
+  </div>
 
   <div class="header-right">
-    <a href="{{ url_for('ledger_bp.get_ledger') }}" class="header-btn">
-    <i class="fas fa-arrow-left"></i> <span>Back to Ledger</span>
-  </a>
-    <a href="#" class="header-btn" title="Edit">
+    <a href="{{ url_for('ledger_bp.ledger_page') }}" class="header-btn">
+      <i class="fas fa-arrow-left"></i> <span>Back to Ledger</span>
+    </a>
+    <button class="header-btn" id="editBtn" title="Edit">
       <i class="fas fa-pen"></i>
-    </a>
-    <a href="#" class="header-btn" title="Export">
+    </button>
+    <button class="header-btn" title="Export">
       <i class="fas fa-file-export"></i>
-    </a>
+    </button>
   </div>
+</div>
 
-  <div class="case-detail-container">
-    <section class="case-details-view">
+<div class="case-detail-container" data-case-id="{{ case.CaseID }}">
+  <section class="case-details-view">
 
-      <h3>General Info</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>Client Name</label><div>{{ case.ClientName }}</div></div>
-        <div class="form-field"><label>Vessel Name</label><div>{{ case.VesselName }}</div></div>
-        <div class="form-field"><label>Voyage Number</label><div>{{ case.VoyageNumber }}</div></div>
-        <div class="form-field"><label>Voyage End Date</label><div>{{ case.VoyageEndDate }}</div></div>
-      </div>
+    <h3>General Info</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Client Name</label><input id="ClientName" value="{{ case.ClientName }}" disabled></div>
+      <div class="form-field"><label>Vessel Name</label><input id="VesselName" value="{{ case.VesselName }}" disabled></div>
+      <div class="form-field"><label>Voyage Number</label><input id="VoyageNumber" value="{{ case.VoyageNumber }}" disabled></div>
+      <div class="form-field"><label>Voyage End Date</label><input id="VoyageEndDate" value="{{ case.VoyageEndDate }}" disabled></div>
+    </div>
 
-      <h3>Charterparty Details</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>CP Type</label><div>{{ case.CPType }}</div></div>
-        <div class="form-field"><label>CP Form</label><div>{{ case.CPForm }}</div></div>
-        <div class="form-field"><label>Laydays</label><div>{{ case.Laydays }}</div></div>
-        <div class="form-field"><label>Cancelling</label><div>{{ case.Cancelling }}</div></div>
-        <div class="form-field"><label>Contract Type</label><div>{{ case.ContractType }}</div></div>
-      </div>
+    <h3>Charterparty Details</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>CP Type</label><input id="CPType" value="{{ case.CPType }}" disabled></div>
+      <div class="form-field"><label>CP Form</label><input id="CPForm" value="{{ case.CPForm }}" disabled></div>
+      <div class="form-field"><label>Laydays</label><input id="Laydays" value="{{ case.Laydays }}" disabled></div>
+      <div class="form-field"><label>Cancelling</label><input id="Cancelling" value="{{ case.Cancelling }}" disabled></div>
+      <div class="form-field"><label>Contract Type</label><input id="ContractType" value="{{ case.ContractType }}" disabled></div>
+    </div>
 
-      <h3>Parties Involved</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>Owners Name</label><div>{{ case.OwnersName }}</div></div>
-        <div class="form-field"><label>Brokers Name</label><div>{{ case.BrokersName }}</div></div>
-        <div class="form-field"><label>Charterers Name</label><div>{{ case.Charterer }}</div></div>
-        <div class="form-field"><label>Contact Name</label><div>{{ case.ContactName }}</div></div>
-      </div>
+    <h3>Parties Involved</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Owners Name</label><input id="OwnersName" value="{{ case.OwnersName }}" disabled></div>
+      <div class="form-field"><label>Brokers Name</label><input id="BrokersName" value="{{ case.BrokersName }}" disabled></div>
+      <div class="form-field"><label>Charterers Name</label><input id="Charterer" value="{{ case.Charterer }}" disabled></div>
+      <div class="form-field"><label>Contact Name</label><input id="ContactName" value="{{ case.ContactName }}" disabled></div>
+    </div>
 
-      <h3>Laytime & Rates</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>Loading Rate</label><div>{{ case.LoadingRate }}</div></div>
-        <div class="form-field"><label>Discharging Rate</label><div>{{ case.DischargingRate }}</div></div>
-        <div class="form-field"><label>Demurrage Rate</label><div>{{ case.DemurrageRate }}</div></div>
-        <div class="form-field"><label>Lumpsum Hours</label><div>{{ case.LumpsumHours }}</div></div>
-        <div class="form-field"><label>Reversible</label><div>{{ case.Reversible }}</div></div>
-        <div class="form-field"><label>Calculation Type</label><div>{{ case.CalculationType }}</div></div>
-      </div>
+    <h3>Laytime & Rates</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Loading Rate</label><input id="LoadingRate" value="{{ case.LoadingRate }}" disabled></div>
+      <div class="form-field"><label>Discharging Rate</label><input id="DischargingRate" value="{{ case.DischargingRate }}" disabled></div>
+      <div class="form-field"><label>Demurrage Rate</label><input id="DemurrageRate" value="{{ case.DemurrageRate }}" disabled></div>
+      <div class="form-field"><label>Lumpsum Hours</label><input id="LumpsumHours" value="{{ case.LumpsumHours }}" disabled></div>
+      <div class="form-field"><label>Reversible</label><input id="Reversible" value="{{ case.Reversible }}" disabled></div>
+      <div class="form-field"><label>Calculation Type</label><input id="CalculationType" value="{{ case.CalculationType }}" disabled></div>
+    </div>
 
-      <h3>Claim Info</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>Initial Claim</label><div>{{ case.InitialClaim }}</div></div>
-        <div class="form-field"><label>Claim Filed Amount</label><div>{{ case.ClaimFiledAmount }}</div></div>
-        <div class="form-field"><label>Claim Status</label><div>{{ case.ClaimStatus }}</div></div>
-        <div class="form-field"><label>Notice Received</label><div>{{ case.NoticeReceived }}</div></div>
-        <div class="form-field"><label>Claim Received</label><div>{{ case.ClaimReceived }}</div></div>
-        <div class="form-field"><label>Claim Days</label><div>{{ case.ClaimDays }}</div></div>
-      </div>
+    <h3>Claim Info</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Initial Claim</label><input id="InitialClaim" value="{{ case.InitialClaim }}" disabled></div>
+      <div class="form-field"><label>Claim Filed Amount</label><input id="ClaimFiledAmount" value="{{ case.ClaimFiledAmount }}" disabled></div>
+      <div class="form-field"><label>Claim Status</label><input id="ClaimStatus" value="{{ case.ClaimStatus }}" disabled></div>
+      <div class="form-field"><label>Notice Received</label><input id="NoticeReceived" value="{{ case.NoticeReceived }}" disabled></div>
+      <div class="form-field"><label>Claim Received</label><input id="ClaimReceived" value="{{ case.ClaimReceived }}" disabled></div>
+      <div class="form-field"><label>Claim Days</label><input id="ClaimDays" value="{{ case.ClaimDays }}" disabled></div>
+    </div>
 
-      <h3>Calculated Totals</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>Total Allowed</label><div>{{ case.TotalAllowed }}</div></div>
-        <div class="form-field"><label>Total Used</label><div>{{ case.TotalUsed }}</div></div>
-        <div class="form-field"><label>On Demurrage</label><div>{{ case.OnDemurrage }}</div></div>
-        <div class="form-field"><label>Total Cost</label><div>{{ case.TotalCost }}</div></div>
-        <div class="form-field"><label>Agreed Amount</label><div>{{ case.AgreedAmount }}</div></div>
-        <div class="form-field"><label>Agreed Date</label><div>{{ case.AgreedDate }}</div></div>
-      </div>
+    <h3>Calculated Totals</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Total Allowed</label><input id="TotalAllowed" value="{{ case.TotalAllowed }}" disabled></div>
+      <div class="form-field"><label>Total Used</label><input id="TotalUsed" value="{{ case.TotalUsed }}" disabled></div>
+      <div class="form-field"><label>On Demurrage</label><input id="OnDemurrage" value="{{ case.OnDemurrage }}" disabled></div>
+      <div class="form-field"><label>Total Cost</label><input id="TotalCost" value="{{ case.TotalCost }}" disabled></div>
+      <div class="form-field"><label>Agreed Amount</label><input id="AgreedAmount" value="{{ case.AgreedAmount }}" disabled></div>
+      <div class="form-field"><label>Agreed Date</label><input id="AgreedDate" value="{{ case.AgreedDate }}" disabled></div>
+    </div>
 
-      <h3>Meta & Internal</h3>
-      <div class="form-grid">
-        <div class="form-field"><label>Created At</label><div>{{ case.CreatedAt }}</div></div>
-        <div class="form-field"><label>Paid Date</label><div>{{ case.PaidDate }}</div></div>
-        <div class="form-field"><label>Invoice Number</label><div>{{ case.InvoiceNumber }}</div></div>
-        <div class="form-field wide"><label>Notes</label><div>{{ case.Notes }}</div></div>
-      </div>
+    <h3>Meta & Internal</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Created At</label><input id="CreatedAt" value="{{ case.CreatedAt }}" disabled></div>
+      <div class="form-field"><label>Paid Date</label><input id="PaidDate" value="{{ case.PaidDate }}" disabled></div>
+      <div class="form-field"><label>Invoice Number</label><input id="InvoiceNumber" value="{{ case.InvoiceNumber }}" disabled></div>
+      <div class="form-field wide"><label>Notes</label><textarea id="Notes" disabled>{{ case.Notes }}</textarea></div>
+    </div>
 
-    </section>
-  </div>
+  </section>
+</div>
 
-  <script src="{{ url_for('static', filename='js/case.js') }}"></script>
-  {% endblock %}
+<script src="{{ url_for('static', filename='js/case.js') }}"></script>
+{% endblock %}
