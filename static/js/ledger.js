@@ -150,22 +150,29 @@ function renderTable(rows) {
 
   rows.forEach((row) => {
   const tr = document.createElement("tr");
-  tr.innerHTML = visibleColumns
-    .filter((col) => col !== "CaseID") // still hide CaseID
-    .map((col) => {
-      let val = row[col];
 
+  visibleColumns
+    .filter((col) => col !== "CaseID")
+    .forEach((col) => {
+      const td = document.createElement("td");
+
+      let val = row[col];
       if (col.toLowerCase().includes("date")) val = displayDate(val);
       if (typeof val === "number") val = val.toLocaleString();
+      td.textContent = val ?? "—";
 
+      // 🔑 PRIMARY CLICK TARGET — REF COLUMN
       if (col === "DeepBlueRef") {
-        const safe = (val ?? "—");
-        const id = row.CaseID;
-        return `<td class="ref-cell"><a href="/case/${id}" class="case-link">${safe}</a></td>`;
+        td.classList.add("row-action");        // ✅ CSS now applies
+        td.title = "Click to edit case";
+        td.addEventListener("click", () => {
+  window.location.href = `/case/${row.CaseID}`;
+});
       }
-      return `<td>${val ?? "—"}</td>`;
-    })
-    .join("");
+
+      tr.appendChild(td);
+    });
+
   tableBody.appendChild(tr);
 });
 
@@ -185,7 +192,69 @@ function renderTable(rows) {
   }
 }
 
+let activeSortColumn = null;
+let activeHeaderEl = null;
+let menuOpen = false;
 
+const columnMenu = document.getElementById("columnMenu");
+
+// Open menu on header click
+document.addEventListener("click", (e) => {
+  const th = e.target.closest("th");
+
+  // Clicked outside table headers → close
+  if (!th || !th.closest(".data-table")) {
+    columnMenu.style.display = "none";
+    menuOpen = false;
+    activeHeaderEl = null;
+    return;
+  }
+
+  const index = [...th.parentNode.children].indexOf(th);
+  const column = visibleColumns[index];
+
+  // 🔁 Toggle if same header clicked again
+  if (menuOpen && activeHeaderEl === th) {
+    columnMenu.style.display = "none";
+    menuOpen = false;
+    activeHeaderEl = null;
+    return;
+  }
+
+  // Open menu for this header
+  activeSortColumn = column;
+  activeHeaderEl = th;
+  menuOpen = true;
+
+  const rect = th.getBoundingClientRect();
+  columnMenu.style.left = rect.right - 140 + "px";
+  columnMenu.style.top = rect.bottom + "px";
+  columnMenu.style.display = "flex";
+});
+
+// Handle menu clicks
+columnMenu.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || !activeSortColumn) return;
+
+  const dir = btn.dataset.sort;
+
+  ledgerData.sort((a, b) => {
+    const va = a[activeSortColumn] ?? "";
+    const vb = b[activeSortColumn] ?? "";
+
+    if (typeof va === "number" && typeof vb === "number") {
+      return dir === "asc" ? va - vb : vb - va;
+    }
+
+    return dir === "asc"
+      ? String(va).localeCompare(String(vb))
+      : String(vb).localeCompare(String(va));
+  });
+
+  renderTable(ledgerData);
+  columnMenu.style.display = "none";
+});
 
 // --------------------------------------------------
 // 🧠 FRIENDLY SQL TYPE LABELS

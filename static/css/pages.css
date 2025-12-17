@@ -883,3 +883,11 @@
   position: relative;
   z-index: 1;
 }
+
+/* ==============================
+   Dense data pages (Ledger-style)
+   ============================== */
+
+.main-content.dense-page {
+  padding: 0;
+}

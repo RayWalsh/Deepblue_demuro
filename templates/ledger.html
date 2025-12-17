@@ -1,40 +1,64 @@
 {% extends "base.html" %}
 {% block title %}The Ledger | Deep Blue Portal{% endblock %}
+
 {% block content %}
+
+<!-- ✅ GLOBAL TABLE STYLES -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+
+<!-- ✅ LEDGER-SPECIFIC STYLES -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
 
 <section class="email-rules ledger-section">
   <div class="email-rules-header">
     <div class="header-left">
       <h1>The Ledger</h1>
-      <p class="mailbox-subtitle">Manage financial transactions and ledger entries for Deep Blue.</p>
+      <p class="mailbox-subtitle">
+        Manage financial transactions and ledger entries for Deep Blue.
+      </p>
     </div>
 
     <div class="header-right">
-      <input id="globalSearch" type="text" class="search-bar" placeholder="Search ledger..." />
-      <button id="exportCSVBtn" class="header-add-btn" title="Export CSV"><i class="fas fa-file-csv"></i></button>
-      <button id="openAddEntryBtn" class="header-add-btn" title="Add New Entry"><i class="fas fa-plus"></i></button>
-      <button id="openSettingsBtn" class="header-add-btn" title="Settings"><i class="fas fa-cog"></i></button>
-      <button id="toggleViewBtn" class="header-add-btn" title="Switch View"><i class="fas fa-table"></i></button>
+      <input
+        id="globalSearch"
+        type="text"
+        class="search-bar"
+        placeholder="Search ledger..."
+      />
+
+      <button id="exportCSVBtn" class="header-add-btn" title="Export CSV">
+        <i class="fas fa-file-csv"></i>
+      </button>
+
+      <button id="openAddEntryBtn" class="header-add-btn" title="Add New Entry">
+        <i class="fas fa-plus"></i>
+      </button>
+
+      <button id="openSettingsBtn" class="header-add-btn" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+
+      <button id="toggleViewBtn" class="header-add-btn" title="Switch View">
+        <i class="fas fa-table"></i>
+      </button>
     </div>
   </div>
 
+  <!-- ===========================
+       📊 Ledger Table
+  ============================ -->
   <div id="ledger-table" class="table-wrapper">
     <div class="table-scroll">
-      <table id="ledgerTable" class="case-table">
+      <table id="ledgerTable" class="data-table">
         <thead>
-          <tr>
-            <th>Ref</th>
-            <th>Ship Name</th>
-            <th>Charterer</th>
-            <th>CP Date</th>
-            <th>Claim Submitted</th>
-            <th>Amount (USD)</th>
-            <th>Status</th>
-          </tr>
+          <!-- ⚠️ Headers are built dynamically by ledger.js -->
+          <tr></tr>
         </thead>
+
         <tbody id="ledgerTableBody">
-          <tr><td colspan="7">Loading...</td></tr>
+          <tr>
+            <td colspan="100%">Loading…</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -42,7 +66,7 @@
 </section>
 
 <!-- ===============================
-     ➕ Add Entry Modal (Grouped)
+     ➕ Add Entry Modal
      =============================== -->
 <div id="addEntryModal" class="modal-overlay">
   <div class="modal-content">
@@ -53,6 +77,7 @@
         <button id="closeAddEntryBtn" class="close-btn">&times;</button>
       </div>
     </div>
+
     <div id="addModalBody" class="modal-body">
       <p>Loading form...</p>
     </div>
@@ -60,7 +85,7 @@
 </div>
 
 <!-- ===============================
-     ✏️ Edit Entry Modal (Grouped)
+     ✏️ Edit Entry Modal
      =============================== -->
 <div id="editEntryModal" class="modal-overlay">
   <div class="modal-content">
@@ -78,18 +103,35 @@
     </div>
   </div>
 </div>
-<!-- ⚙️ Settings Modal -->
+
+<!-- ===============================
+     ⚙️ Settings Modal
+     =============================== -->
 <div id="settingsModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Ledger Settings</h3>
       <button id="closeSettingsBtn" class="close-btn">&times;</button>
     </div>
+
     <div class="modal-body">
       <h4>Ledger Preferences</h4>
-      <p>Here you’ll soon be able to configure field options, column visibility, and view preferences.</p>
+      <p>
+        Here you’ll soon be able to configure field options,
+        column visibility, and view preferences.
+      </p>
     </div>
   </div>
 </div>
+
+<!-- ===============================
+     📊 Column Header Menu (Sort)
+     =============================== -->
+<div id="columnMenu" class="column-menu">
+  <button data-sort="asc">Sort A → Z</button>
+  <button data-sort="desc">Sort Z → A</button>
+</div>
+
+
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
 {% endblock %}
