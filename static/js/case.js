@@ -1,10 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  // ==============================
+  // 🔗 Core DOM references
+  // ==============================
   const formInputs = document.querySelectorAll("input, textarea");
   const editBtn = document.getElementById("editBtn");
   const saveNotice = document.getElementById("saveNotification");
   const caseContainer = document.querySelector(".case-detail-container");
   const caseId = caseContainer?.dataset.caseId;
+  const backBtn = document.getElementById("backToLedger");
 
   let hasUnsavedChanges = false;
   let isSaving = false;
@@ -12,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const originalData = {};
 
   // ==============================
-  // 🔔 Save state helper
+  // 🔔 Save notification helper
   // ==============================
   function showSaveState(type, text, autoHide = true) {
     saveNotice.className = `save-notification ${type}`;
@@ -52,8 +56,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         input.classList.remove("dirty");
         hasUnsavedChanges = [...formInputs].some(i => i.classList.contains("dirty"));
+
         if (!hasUnsavedChanges) {
-          showSaveState("success", "All changes saved");
+          showSaveState("info", "No unsaved changes", false);
         }
       }
     });
@@ -72,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==============================
   // ⬅️ Back navigation protection
   // ==============================
-  document.querySelector(".header-btn[href]")?.addEventListener("click", (e) => {
+  backBtn?.addEventListener("click", (e) => {
     if (hasUnsavedChanges && !confirm("You have unsaved changes. Leave without saving?")) {
       e.preventDefault();
     }
@@ -83,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==============================
   editBtn?.addEventListener("click", () => {
     const isEditing = editBtn.classList.toggle("editing");
-
     document.body.classList.toggle("editing", isEditing);
 
     formInputs.forEach(input => {
@@ -117,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (Object.keys(changedData).length === 0) {
-        showSaveState("success", "No changes to save");
+        showSaveState("info", "No changes to save");
         return;
       }
 
@@ -152,5 +156,31 @@ document.addEventListener("DOMContentLoaded", () => {
           isSaving = false;
         });
     }
+  });
+
+  // ==============================
+  // 🎯 Field type icons (dates & money)
+  // ==============================
+  const FIELD_TYPE_ICONS = {
+    date: "fa-regular fa-calendar",
+    money: "fa-solid fa-sterling-sign"
+  };
+
+  document.querySelectorAll(".form-field").forEach(field => {
+    const input = field.querySelector("[data-field-type]");
+    const label = field.querySelector("label");
+
+    if (!input || !label) return;
+
+    const type = input.dataset.fieldType;
+    const iconClass = FIELD_TYPE_ICONS[type];
+    if (!iconClass) return;
+
+    const icon = document.createElement("i");
+    icon.className = `label-icon ${iconClass}`;
+    icon.setAttribute("aria-hidden", "true");
+
+    label.appendChild(icon);
+    field.classList.add("has-label-icon");
   });
 });
