@@ -1,44 +1,113 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  const formInputs = document.querySelectorAll("input, textarea");
+  const editBtn = document.getElementById("editBtn");
+  const saveNotice = document.getElementById("saveNotification");
+  const caseContainer = document.querySelector(".case-detail-container");
+  const caseId = caseContainer?.dataset.caseId;
+
+  let hasUnsavedChanges = false;
+  let isSaving = false;
+
+  const originalData = {};
+
+  // ==============================
+  // 🔔 Save state helper
+  // ==============================
+  function showSaveState(type, text, autoHide = true) {
+    saveNotice.className = `save-notification ${type}`;
+    saveNotice.textContent = text;
+    saveNotice.classList.remove("hidden");
+
+    if (autoHide && type === "success") {
+      setTimeout(() => {
+        saveNotice.classList.add("hidden");
+      }, 2500);
+    }
+  }
+
   // ==============================
   // 📌 Capture original values
   // ==============================
-  const formInputs = document.querySelectorAll("input, textarea");
-  const originalData = {};
-
   formInputs.forEach(input => {
-    originalData[input.id] = input.value;
+    if (input.id) {
+      originalData[input.id] = input.value ?? "";
+    }
   });
 
   // ==============================
-  // ✏️ Edit & Save Toggle
+  // 🟡 Dirty detection
   // ==============================
-  const editBtn = document.getElementById("editBtn");
+  formInputs.forEach(input => {
+    if (!input.id || input.dataset.readonly === "true") return;
 
+    input.addEventListener("input", () => {
+      const originalValue = originalData[input.id] ?? "";
+      const currentValue = input.value ?? "";
+
+      if (currentValue !== originalValue) {
+        input.classList.add("dirty");
+        hasUnsavedChanges = true;
+        showSaveState("info", "Unsaved changes", false);
+      } else {
+        input.classList.remove("dirty");
+        hasUnsavedChanges = [...formInputs].some(i => i.classList.contains("dirty"));
+        if (!hasUnsavedChanges) {
+          showSaveState("success", "All changes saved");
+        }
+      }
+    });
+  });
+
+  // ==============================
+  // ⚠️ Browser unload protection
+  // ==============================
+  window.addEventListener("beforeunload", (e) => {
+    if (hasUnsavedChanges) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+
+  // ==============================
+  // ⬅️ Back navigation protection
+  // ==============================
+  document.querySelector(".header-btn[href]")?.addEventListener("click", (e) => {
+    if (hasUnsavedChanges && !confirm("You have unsaved changes. Leave without saving?")) {
+      e.preventDefault();
+    }
+  });
+
+  // ==============================
+  // ✏️ Edit / Save toggle
+  // ==============================
   editBtn?.addEventListener("click", () => {
     const isEditing = editBtn.classList.toggle("editing");
 
-    // Enable / disable inputs
+    document.body.classList.toggle("editing", isEditing);
+
     formInputs.forEach(input => {
+      if (input.dataset.readonly === "true") return;
       input.disabled = !isEditing;
     });
 
-    // Toggle icon
     const icon = editBtn.querySelector("i");
     if (icon) {
       icon.classList.toggle("fa-pen", !isEditing);
       icon.classList.toggle("fa-save", isEditing);
     }
 
-    console.log(isEditing ? "✏️ Editing enabled" : "💾 Saving changes");
-
     // ==============================
     // 💾 SAVE MODE
     // ==============================
     if (!isEditing) {
+      if (isSaving) return;
+
       const changedData = {};
 
       formInputs.forEach(input => {
+        if (!input.id || input.dataset.readonly === "true") return;
+
         const originalValue = originalData[input.id] ?? "";
         const currentValue = input.value ?? "";
 
@@ -47,46 +116,40 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Nothing changed → do nothing
       if (Object.keys(changedData).length === 0) {
-        console.log("ℹ️ No changes detected");
+        showSaveState("success", "No changes to save");
         return;
       }
 
-      const caseContainer = document.querySelector(".case-detail-container");
-      const caseId = caseContainer?.dataset.caseId;
-
-      if (!caseId) {
-        console.error("❌ No CaseID found");
-        return;
-      }
-
-      console.log("🔄 Sending changed fields:", changedData);
+      isSaving = true;
+      showSaveState("info", "Saving…", false);
 
       fetch(`/update-case/${caseId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(changedData)
       })
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            console.log("✅ Case updated");
-
-            // Update originalData snapshot
             Object.keys(changedData).forEach(key => {
               originalData[key] = changedData[key];
+              document.getElementById(key)?.classList.remove("dirty");
             });
+
+            hasUnsavedChanges = false;
+            showSaveState("success", "All changes saved");
           } else {
-            console.error("❌ Save failed:", data);
+            showSaveState("error", "Save failed", false);
             alert("Save failed");
           }
         })
-        .catch(err => {
-          console.error("❌ Network error:", err);
+        .catch(() => {
+          showSaveState("error", "Network error", false);
           alert("Network error saving case");
+        })
+        .finally(() => {
+          isSaving = false;
         });
     }
   });
