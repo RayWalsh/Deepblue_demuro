@@ -34,9 +34,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ⚙️ STATE
 // --------------------------------------------------
 let ledgerData = [];
+let originalLedgerData = [];
 let allColumns = [];
 let currentEditItem = null;
 let expanded = false;
+
+let sortState = {
+  column: null,
+  direction: null // "asc" | "desc"
+};
 
 const PROTECTED_FIELDS = ["CaseID", "DeepBlueRef"];
 
@@ -111,6 +117,7 @@ async function loadLedger() {
     if (!json.rows) throw new Error(json.error || "No rows returned");
 
     ledgerData = json.rows;
+    originalLedgerData = [...json.rows]; // 👈 ADD THIS LINE
     // ✅ Works whether /api/ledger returns strings OR objects
     allColumns = (json.columns || []).map(c =>
       typeof c === "string" ? c : c.name
@@ -235,22 +242,44 @@ document.addEventListener("click", (e) => {
 // Handle menu clicks
 columnMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
-  if (!btn || !activeSortColumn) return;
+  if (!btn || !btn.dataset.sort || !activeSortColumn) return;
 
   const dir = btn.dataset.sort;
 
-  ledgerData.sort((a, b) => {
-    const va = a[activeSortColumn] ?? "";
-    const vb = b[activeSortColumn] ?? "";
+  // 🔁 Toggle OFF if same sort clicked again
+  if (
+    sortState.column === activeSortColumn &&
+    sortState.direction === dir
+  ) {
+    sortState.column = null;
+    sortState.direction = null;
+    ledgerData = [...originalLedgerData]; // ✅ RESTORE ORIGINAL ORDER
+  } else {
+    sortState.column = activeSortColumn;
+    sortState.direction = dir;
 
-    if (typeof va === "number" && typeof vb === "number") {
-      return dir === "asc" ? va - vb : vb - va;
-    }
+    ledgerData.sort((a, b) => {
+      const va = a[activeSortColumn] ?? "";
+      const vb = b[activeSortColumn] ?? "";
 
-    return dir === "asc"
-      ? String(va).localeCompare(String(vb))
-      : String(vb).localeCompare(String(va));
-  });
+      if (typeof va === "number" && typeof vb === "number") {
+        return dir === "asc" ? va - vb : vb - va;
+      }
+
+      return dir === "asc"
+        ? String(va).localeCompare(String(vb))
+        : String(vb).localeCompare(String(va));
+    });
+  }
+
+  // ✅ Tick handling
+  columnMenu.querySelectorAll("button").forEach((b) =>
+    b.classList.remove("active")
+  );
+
+  if (sortState.column === activeSortColumn) {
+    btn.classList.add("active");
+  }
 
   renderTable(ledgerData);
   columnMenu.style.display = "none";

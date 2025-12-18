@@ -115,6 +115,26 @@
   white-space: nowrap;
 }
 
+/* Column menu tick styling */
+.column-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* key line */
+  gap: 12px;
+}
+
+/* Hidden by default */
+.column-menu .tick {
+  visibility: hidden;
+  font-size: 12px;
+  flex-shrink: 0; /* prevents layout wobble */
+}
+
+/* Shown when active */
+.column-menu button.active .tick {
+  visibility: visible;
+}
+
 .column-menu button:hover {
   background: #eef5ff;
 }
