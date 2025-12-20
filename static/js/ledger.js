@@ -38,6 +38,7 @@ let originalLedgerData = [];
 let allColumns = [];
 let currentEditItem = null;
 let expanded = false;
+let filteredLedgerData = [];
 
 let sortState = {
   column: null,
@@ -116,7 +117,9 @@ async function loadLedger() {
     const json = await res.json();
     if (!json.rows) throw new Error(json.error || "No rows returned");
 
-    ledgerData = json.rows;
+    originalLedgerData = [...json.rows];
+    filteredLedgerData = [...json.rows];
+    ledgerData = [...json.rows];
     originalLedgerData = [...json.rows]; // 👈 ADD THIS LINE
     // ✅ Works whether /api/ledger returns strings OR objects
     allColumns = (json.columns || []).map(c =>
@@ -253,7 +256,7 @@ columnMenu.addEventListener("click", (e) => {
   ) {
     sortState.column = null;
     sortState.direction = null;
-    ledgerData = [...originalLedgerData]; // ✅ RESTORE ORIGINAL ORDER
+    ledgerData = [...filteredLedgerData]; // ✅ RESTORE ORIGINAL ORDER
   } else {
     sortState.column = activeSortColumn;
     sortState.direction = dir;
@@ -757,12 +760,15 @@ addModalBody.querySelectorAll("input, textarea").forEach((i) => {
   // 🔍 SEARCH FILTER
   // --------------------------------------------------
   searchInput.oninput = (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = ledgerData.filter((r) =>
-      Object.values(r).join(" ").toLowerCase().includes(term)
-    );
-    renderTable(filtered);
-  };
+  const term = e.target.value.toLowerCase();
+
+  filteredLedgerData = originalLedgerData.filter((r) =>
+    Object.values(r).join(" ").toLowerCase().includes(term)
+  );
+
+  ledgerData = [...filteredLedgerData];
+  renderTable(ledgerData);
+};
 
   // --------------------------------------------------
   // 📄 CSV EXPORT
