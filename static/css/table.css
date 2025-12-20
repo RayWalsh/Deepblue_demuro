@@ -80,13 +80,31 @@
   transform: translateY(-50%);
   font-size: 11px;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
   color: rgba(255, 255, 255, 0.85);
 }
 
 /* Show chevron on hover */
 .data-table thead th:hover::after {
   opacity: 1;
+}
+
+/* ============================================
+   ACTIVE SORT INDICATOR (STATIC ARROW)
+   ============================================ */
+
+.data-table thead th.sorted::after {
+  opacity: 1;
+}
+
+/* A → Z  = arrow DOWN */
+.data-table thead th.sorted-asc::after {
+  transform: translateY(-50%);
+}
+
+/* Z → A  = arrow UP */
+.data-table thead th.sorted-desc::after {
+  transform: translateY(-50%) rotate(180deg);
 }
 
 /* ============================================

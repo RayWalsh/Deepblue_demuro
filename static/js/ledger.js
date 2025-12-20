@@ -38,7 +38,6 @@ let originalLedgerData = [];
 let allColumns = [];
 let currentEditItem = null;
 let expanded = false;
-let filteredLedgerData = [];
 
 let sortState = {
   column: null,
@@ -118,9 +117,7 @@ async function loadLedger() {
     if (!json.rows) throw new Error(json.error || "No rows returned");
 
     originalLedgerData = [...json.rows];
-    filteredLedgerData = [...json.rows];
     ledgerData = [...json.rows];
-    originalLedgerData = [...json.rows]; // 👈 ADD THIS LINE
     // ✅ Works whether /api/ledger returns strings OR objects
     allColumns = (json.columns || []).map(c =>
       typeof c === "string" ? c : c.name
@@ -152,9 +149,20 @@ function renderTable(rows) {
 
   // Build table headers dynamically using visibleColumns + labels
   headRow.innerHTML = visibleColumns
-    .filter((col) => col !== "CaseID")  // 👈 hide CaseID column
-    .map((col) => `<th>${labelFor(col)}</th>`)
-    .join("");
+  .filter(col => col !== "CaseID")
+  .map(col => {
+    let cls = "";
+
+    if (sortState.column === col) {
+      cls =
+        sortState.direction === "asc"
+          ? "sorted sorted-asc"
+          : "sorted sorted-desc";
+    }
+
+    return `<th class="${cls}" data-col="${col}">${labelFor(col)}</th>`;
+  })
+  .join("");
 
   tableBody.innerHTML = "";
 
@@ -251,13 +259,23 @@ columnMenu.addEventListener("click", (e) => {
 
   // 🔁 Toggle OFF if same sort clicked again
   if (
-    sortState.column === activeSortColumn &&
-    sortState.direction === dir
-  ) {
-    sortState.column = null;
-    sortState.direction = null;
-    ledgerData = [...filteredLedgerData]; // ✅ RESTORE ORIGINAL ORDER
-  } else {
+  sortState.column === activeSortColumn &&
+  sortState.direction === dir
+) {
+  sortState.column = null;
+  sortState.direction = null;
+
+  ledgerData = [...originalLedgerData]; // 🔑 restore original order
+
+  // Clear ticks
+  columnMenu.querySelectorAll("button").forEach(b =>
+    b.classList.remove("active")
+  );
+
+  renderTable(ledgerData);
+  columnMenu.style.display = "none";
+  return; // ⛔ STOP — do NOT re-sort
+} else {
     sortState.column = activeSortColumn;
     sortState.direction = dir;
 
@@ -756,19 +774,51 @@ addModalBody.querySelectorAll("input, textarea").forEach((i) => {
     }
   };
 
-  // --------------------------------------------------
-  // 🔍 SEARCH FILTER
-  // --------------------------------------------------
-  searchInput.oninput = (e) => {
-  const term = e.target.value.toLowerCase();
+// --------------------------------------------------
+// 🔍 SEARCH FILTER (AND + quoted phrases)
+// --------------------------------------------------
+searchInput.oninput = (e) => {
+  const words = e.target.value.toLowerCase().split(/\s+/).filter(Boolean);
 
-  filteredLedgerData = originalLedgerData.filter((r) =>
-    Object.values(r).join(" ").toLowerCase().includes(term)
-  );
+  if (!words.length) {
+    renderTable(originalLedgerData);
+    return;
+  }
 
-  ledgerData = [...filteredLedgerData];
-  renderTable(ledgerData);
+  const filtered = originalLedgerData.filter(row => {
+    const haystack = Object.entries(row)
+      .map(([key, value]) => {
+        if (!value) return "";
+
+        if (key.toLowerCase().includes("date")) {
+          const d = new Date(value);
+          if (isNaN(d)) return String(value);
+
+          const monthShort = d.toLocaleString("en-GB", { month: "short" }).toLowerCase();
+          const monthLong  = d.toLocaleString("en-GB", { month: "long" }).toLowerCase();
+          const display    = displayDate(value).toLowerCase();
+
+          return `${value} ${display} ${monthShort} ${monthLong}`;
+        }
+
+        return String(value);
+      })
+      .join(" ")
+      .toLowerCase();
+
+    return words.every(w => haystack.includes(w));
+  });
+
+  renderTable(filtered);
+
+  const params = new URLSearchParams(window.location.search);
+  e.target.value.trim()
+    ? params.set("search", e.target.value.trim())
+    : params.delete("search");
+
+  history.replaceState(null, "", "?" + params.toString());
 };
+
 
   // --------------------------------------------------
   // 📄 CSV EXPORT
@@ -834,8 +884,21 @@ settingsModal?.addEventListener("click", (e) => {
   if (e.target === settingsModal) settingsModal.style.display = "none";
 });
 
-  // --------------------------------------------------
-  // 🚀 INIT
-  // --------------------------------------------------
-  loadLedger();
+// --------------------------------------------------
+// 🔁 RESTORE SEARCH FROM URL
+// --------------------------------------------------
+function restoreSearchFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const search = params.get("search");
+
+  if (search) {
+    searchInput.value = search;
+    searchInput.dispatchEvent(new Event("input"));
+  }
+}
+
+// --------------------------------------------------
+// 🚀 INIT
+// --------------------------------------------------
+loadLedger().then(restoreSearchFromURL);
 });
