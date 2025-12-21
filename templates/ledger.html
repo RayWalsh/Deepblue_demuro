@@ -124,6 +124,57 @@
   </div>
 </div>
 
+<!-- =========================================
+     Edit Column Side Modal (Shell Only)
+========================================= -->
+<div id="editColumnModal" class="side-modal">
+  <!-- Header -->
+  <div class="side-modal-header">
+    <h3>Edit column</h3>
+    <button id="closeEditColumnModal" class="close-btn">&times;</button>
+  </div>
+
+  <!-- Body -->
+  <div class="side-modal-body">
+    <div class="form-group">
+      <label for="editColumnName">Name</label>
+      <input
+        id="editColumnName"
+        type="text"
+        value=""
+        disabled
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="editColumnDescription">Description</label>
+      <textarea
+        id="editColumnDescription"
+        rows="3"
+        placeholder="Add a description for this column"
+        disabled
+      ></textarea>
+    </div>
+
+    <p class="muted">
+      Column settings and validation options will appear here.
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div class="side-modal-footer">
+    <button class="secondary-btn" id="cancelEditColumn">
+      Cancel
+    </button>
+    <button class="danger-btn" disabled>
+      Delete
+    </button>
+    <button class="header-add-btn small" disabled>
+      Save
+    </button>
+  </div>
+</div>
+
 <!-- ===============================
      📊 Column Header Menu (Sort)
      =============================== -->

@@ -30,6 +30,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tableWrapper = document.querySelector(".table-wrapper");
   const tableScroll = document.querySelector(".table-scroll");
 
+  const editColumnModal = document.getElementById("editColumnModal");
+  const closeEditColumnModal = document.getElementById("closeEditColumnModal");
+  const cancelEditColumn = document.getElementById("cancelEditColumn");
+
 // --------------------------------------------------
 // ⚙️ STATE
 // --------------------------------------------------
@@ -253,7 +257,24 @@ document.addEventListener("click", (e) => {
 // Handle menu clicks
 columnMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
-  if (!btn || !btn.dataset.sort || !activeSortColumn) return;
+  if (!btn) return;
+
+  // 🧱 EDIT COLUMN → open side modal
+  if (btn.id === "editColumnBtn") {
+  // Prefill column name (read-only for now)
+  const nameInput = document.getElementById("editColumnName");
+  if (nameInput && activeSortColumn) {
+    nameInput.value = labelFor(activeSortColumn);
+  }
+
+  editColumnModal.classList.add("open");
+  columnMenu.style.display = "none";
+  menuOpen = false;
+  return;
+  } 
+
+  // ⬇️ existing sort logic continues
+  if (!btn.dataset.sort || !activeSortColumn) return;
 
   const dir = btn.dataset.sort;
 
@@ -773,6 +794,21 @@ addModalBody.querySelectorAll("input, textarea").forEach((i) => {
       alert("❌ " + e.message);
     }
   };
+
+// --------------------------------------------------
+// 🧱 EDIT COLUMN SIDE MODAL — OPEN / CLOSE
+// --------------------------------------------------
+if (closeEditColumnModal) {
+  closeEditColumnModal.onclick = () => {
+    editColumnModal.classList.remove("open");
+  };
+}
+
+if (cancelEditColumn) {
+  cancelEditColumn.onclick = () => {
+    editColumnModal.classList.remove("open");
+  };
+}
 
 // --------------------------------------------------
 // 🔍 SEARCH FILTER (AND + quoted phrases)

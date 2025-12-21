@@ -690,3 +690,82 @@ body {
     width: 100%;
   }
 }
+
+/* =========================================
+   Side Modal (SharePoint-style)
+========================================= */
+
+.side-modal {
+  position: fixed;
+  top: 0;
+  right: -420px; /* hidden */
+  width: 420px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -6px 0 16px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  transition: right 0.25s ease;
+  z-index: 2000;
+}
+
+/* Active */
+.side-modal.open {
+  right: 0;
+}
+
+.side-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.side-modal-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.side-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.muted {
+  color: #666;
+  font-size: 14px;
+}
+
+.side-modal .form-group {
+  margin-bottom: 16px;
+}
+
+.side-modal label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  color: #0e3a6d;
+}
+
+.side-modal input,
+.side-modal textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #cdd9e8;
+  font-size: 0.9rem;
+  background: #f5f7fa;
+}
