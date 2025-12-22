@@ -12,7 +12,7 @@ app.secret_key = 'super-secret-key'  # TODO: Move to .env for production
 
 # 🔧 Allow session cookies over HTTP (for Codespaces)
 app.config['SESSION_COOKIE_SECURE'] = False
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # ----------------------------------------------------
 # 🔗 Blueprint: Email Rules
