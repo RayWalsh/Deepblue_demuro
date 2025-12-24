@@ -86,6 +86,8 @@ def get_case_json(case_id):
         print("❌ Error loading case JSON:", e)
         return jsonify({"success": False, "error": "DB error"}), 500
 
+
+
 @case_bp.route("/update-case/<int:case_id>", methods=["POST"])
 @login_required
 def update_case(case_id):
@@ -163,6 +165,71 @@ def update_case(case_id):
         return jsonify({"error": "Database update failed"}), 500
 
     return jsonify({"success": True})
+
+# --------------------------------------------------
+# 🧩 COLUMN METADATA (Single column + choices)
+# --------------------------------------------------
+@case_bp.route("/api/column-metadata/<column_name>", methods=["GET"])
+@login_required
+def get_column_metadata(column_name):
+    try:
+        with get_db_connection() as conn:
+            # 1️⃣ Load column meta
+            meta_result = conn.execute(
+                text("""
+                    SELECT
+                        ColumnName,
+                        DisplayName,
+                        FieldType,
+                        GroupName,
+                        IsEditable,
+                        IsVisible
+                    FROM dbo.ColumnMeta
+                    WHERE ColumnName = :col
+                """),
+                {"col": column_name}
+            )
+
+            meta_row = meta_result.fetchone()
+            if not meta_row:
+                return jsonify({
+                    "success": False,
+                    "error": "Column not found"
+                }), 404
+
+            column = dict(meta_row._mapping)
+
+            # 2️⃣ Load choices (only if choice field)
+            choices = []
+            if column.get("FieldType") == "choice":
+                choice_result = conn.execute(
+                    text("""
+                        SELECT
+                            ChoiceValue AS Value,
+                            DisplayOrder AS SortOrder,
+                            IsActive
+                        FROM dbo.ColumnChoices
+                        WHERE ColumnName = :col
+                        ORDER BY DisplayOrder ASC
+                    """),
+                    {"col": column_name}
+                )
+
+                choice_rows = choice_result.fetchall()
+                choices = [dict(row._mapping) for row in choice_rows]
+
+        return jsonify({
+            "success": True,
+            "column": column,
+            "choices": choices
+        })
+
+    except Exception as e:
+        print(f"❌ Error loading column metadata for {column_name}:", e)
+        return jsonify({
+            "success": False,
+            "error": "Failed to load column metadata"
+        }), 500
 
 # --------------------------------------------------
 # 🧩 COLUMN CHOICES (Choice / Lookup fields)

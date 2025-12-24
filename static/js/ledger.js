@@ -261,17 +261,16 @@ columnMenu.addEventListener("click", (e) => {
 
   // 🧱 EDIT COLUMN → open side modal
   if (btn.id === "editColumnBtn") {
-  // Prefill column name (read-only for now)
-  const nameInput = document.getElementById("editColumnName");
-  if (nameInput && activeSortColumn) {
-    nameInput.value = labelFor(activeSortColumn);
-  }
-
   editColumnModal.classList.add("open");
   columnMenu.style.display = "none";
   menuOpen = false;
+
+  if (activeSortColumn) {
+    loadColumnMetadata(activeSortColumn);
+  }
+
   return;
-  } 
+} 
 
   // ⬇️ existing sort logic continues
   if (!btn.dataset.sort || !activeSortColumn) return;
@@ -368,6 +367,87 @@ function normalizeSqlType(raw) {
 function getTypeBadge(rawType) {
   const { label, icon } = normalizeSqlType(rawType);
   return `<span class="col-type"><i class="fa-solid ${icon}"></i>${label}</span>`;
+}
+
+// --------------------------------------------------
+// 🧩 COLUMN METADATA (READ-ONLY)
+// --------------------------------------------------
+async function loadColumnMetadata(columnName) {
+  const body = editColumnModal.querySelector(".side-modal-body");
+  body.innerHTML = `<p class="muted">Loading column metadata…</p>`;
+
+  try {
+    const res = await fetch(`/api/column-metadata/${encodeURIComponent(columnName)}`, {
+      cache: "no-store",
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error("Failed loading metadata");
+
+    const col = json.column;
+    const choices = json.choices || [];
+
+    body.innerHTML = `
+      <div class="form-group">
+        <label>Name</label>
+        <input value="${col.ColumnName}" disabled />
+      </div>
+
+      <div class="form-group">
+        <label>Display Name</label>
+        <input value="${col.DisplayName || ""}" disabled />
+      </div>
+
+      <div class="form-group">
+        <label>Field Type</label>
+        <input value="${col.FieldType}" disabled />
+      </div>
+
+      <div class="form-group">
+        <label>Group</label>
+        <input value="${col.GroupName || "—"}" disabled />
+      </div>
+
+      <div class="form-inline">
+        <label>
+          <input type="checkbox" ${col.IsEditable ? "checked" : ""} disabled />
+          Editable
+        </label>
+
+        <label>
+          <input type="checkbox" ${col.IsVisible ? "checked" : ""} disabled />
+          Visible
+        </label>
+      </div>
+
+      ${col.FieldType === "choice" ? renderChoiceList(choices) : ""}
+    `;
+  } catch (err) {
+    console.error(err);
+    body.innerHTML = `<p class="error">Failed to load column metadata</p>`;
+  }
+}
+
+function renderChoiceList(choices) {
+  if (!choices.length) {
+    return `<p class="muted">No choices defined.</p>`;
+  }
+
+  return `
+    <hr />
+    <h4>Choices</h4>
+    <ul class="choice-list">
+      ${choices
+        .sort((a, b) => a.SortOrder - b.SortOrder)
+        .map(
+          (c) => `
+          <li class="${c.IsActive ? "" : "muted"}">
+            ${c.Value}
+            ${!c.IsActive ? "<small>(inactive)</small>" : ""}
+          </li>`
+        )
+        .join("")}
+    </ul>
+  `;
 }
 
 // --------------------------------------------------
