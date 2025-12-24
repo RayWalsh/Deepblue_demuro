@@ -8,6 +8,10 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- =========================
+     Case Header
+========================= -->
 <div class="case-header">
   <div class="header-left">
     <h2>{{ case.DeepBlueRef }} — {{ case.VesselName }}</h2>
@@ -19,275 +23,30 @@
   </div>
 
   <div class="header-right">
-    <a id="backToLedger" href="{{ url_for('ledger_bp.ledger_page') }}" class="header-btn">
-      <i class="fas fa-arrow-left"></i> <span>Back to Ledger</span>
+    <a id="backToLedger"
+       href="{{ url_for('ledger_bp.ledger_page') }}"
+       class="header-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Ledger</span>
     </a>
+
     <button class="header-btn" id="editBtn" title="Edit">
       <i class="fas fa-pen"></i>
     </button>
+
     <button class="header-btn" title="Export">
       <i class="fas fa-file-export"></i>
     </button>
   </div>
 </div>
 
+<!-- =========================
+     Metadata-driven Case Body
+========================= -->
 <div class="case-detail-container" data-case-id="{{ case.CaseID }}">
-  <section class="case-details-view">
+  <div id="case-meta-content"></div>
 
-    <!-- General Info -->
-    <h3>General Info</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Client Name</label>
-        <input id="ClientName" value="{{ case.ClientName }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Vessel Name</label>
-        <input id="VesselName" value="{{ case.VesselName }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Voyage Number</label>
-        <input id="VoyageNumber" value="{{ case.VoyageNumber }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Voyage End Date</label>
-        <input id="VoyageEndDate"
-               value="{{ case.VoyageEndDate }}"
-               disabled
-               data-field-type="date">
-      </div>
-    </div>
-
-    <!-- Charterparty -->
-    <h3>Charterparty Details</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>CP Type</label>
-        <input id="CPType" value="{{ case.CPType }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>CP Form</label>
-        <input id="CPForm" value="{{ case.CPForm }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Layday</label>
-        <input id="Layday"
-               value="{{ case.Layday }}"
-               disabled
-               data-field-type="date">
-      </div>
-
-      <div class="form-field">
-        <label>Cancelling</label>
-        <input id="Cancelling"
-               value="{{ case.Cancelling }}"
-               disabled
-               data-field-type="date">
-      </div>
-
-      <div class="form-field">
-        <label>Contract Type</label>
-        <input id="ContractType" value="{{ case.ContractType }}" disabled>
-      </div>
-    </div>
-
-    <!-- Parties -->
-    <h3>Parties Involved</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Owners Name</label>
-        <input id="OwnersName" value="{{ case.OwnersName }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Brokers Name</label>
-        <input id="BrokersName" value="{{ case.BrokersName }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Charterers Name</label>
-        <input id="CharterersName" value="{{ case.CharterersName }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Contact Name</label>
-        <input id="ContactName" value="{{ case.ContactName }}" disabled>
-      </div>
-    </div>
-
-    <!-- Laytime & Rates -->
-    <h3>Laytime & Rates</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Loading Rate</label>
-        <input id="LoadingRate" value="{{ case.LoadingRate }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Discharging Rate</label>
-        <input id="DischargingRate" value="{{ case.DischargingRate }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Demurrage Rate</label>
-        <input id="DemurrageRate"
-               value="{{ case.DemurrageRate }}"
-               disabled
-               data-field-type="money">
-      </div>
-
-      <div class="form-field">
-        <label>Lumpsum Hours</label>
-        <input id="LumpsumHours" value="{{ case.LumpsumHours }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Reversible</label>
-        <input id="Reversible" value="{{ case.Reversible }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Calculation Type</label>
-        <input id="CalculationType" value="{{ case.CalculationType }}" disabled>
-      </div>
-    </div>
-
-    <!-- Claim Info -->
-    <h3>Claim Info</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Initial Claim</label>
-        <input id="InitialClaim"
-               value="{{ case.InitialClaim }}"
-               disabled
-               data-field-type="money">
-      </div>
-
-      <div class="form-field">
-        <label>Claim Filed Amount</label>
-        <input id="ClaimFiledAmount"
-               value="{{ case.ClaimFiledAmount }}"
-               disabled
-               data-field-type="money">
-      </div>
-
-      <div class="form-field">
-        <label>Claim Status</label>
-        <input id="ClaimStatus" value="{{ case.ClaimStatus }}" disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Notice Received</label>
-        <input id="NoticeReceived"
-               value="{{ case.NoticeReceived }}"
-               disabled
-               data-field-type="date">
-      </div>
-
-      <div class="form-field">
-        <label>Claim Received</label>
-        <input id="ClaimReceived"
-               value="{{ case.ClaimReceived }}"
-               disabled
-               data-field-type="date">
-      </div>
-
-      <div class="form-field">
-        <label>Claim Days</label>
-        <input id="ClaimDays" value="{{ case.ClaimDays }}" disabled>
-      </div>
-    </div>
-
-    <!-- Calculated Totals (LOCKED) -->
-    <h3>Calculated Totals</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Total Allowed Laytime</label>
-        <input id="TotalAllowedLaytime"
-               data-readonly="true"
-               value="{{ case.TotalAllowedLaytime }}"
-               disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Total Time Used</label>
-        <input id="TotalTimeUsed"
-               data-readonly="true"
-               value="{{ case.TotalTimeUsed }}"
-               disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Time on Demurrage</label>
-        <input id="TotalTimeOnDemurrage"
-               data-readonly="true"
-               value="{{ case.TotalTimeOnDemurrage }}"
-               disabled>
-      </div>
-
-      <div class="form-field">
-        <label>Total Demurrage Cost</label>
-        <input id="TotalDemurrageCost"
-               data-readonly="true"
-               value="{{ case.TotalDemurrageCost }}"
-               disabled
-               data-field-type="money">
-      </div>
-
-      <div class="form-field">
-        <label>Agreed Amount</label>
-        <input id="AgreedAmount"
-               value="{{ case.AgreedAmount }}"
-               disabled
-               data-field-type="money">
-      </div>
-
-      <div class="form-field">
-        <label>Agreed Date</label>
-        <input id="AgreedDate"
-               value="{{ case.AgreedDate }}"
-               disabled
-               data-field-type="date">
-      </div>
-    </div>
-
-    <!-- Meta -->
-    <h3>Meta & Internal</h3>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Created At</label>
-        <input value="{{ case.CreatedAt }}"
-               disabled
-               data-readonly="true"
-               data-field-type="date">
-      </div>
-
-      <div class="form-field">
-        <label>Paid Date</label>
-        <input id="PaidDate"
-               value="{{ case.PaidDate }}"
-               disabled
-               data-field-type="date">
-      </div>
-
-      <div class="form-field">
-        <label>Invoice Number</label>
-        <input id="InvoiceNumber" value="{{ case.InvoiceNumber }}" disabled>
-      </div>
-
-      <div class="form-field wide">
-        <label>Calculator Notes</label>
-        <textarea id="CalculatorNotes" disabled>{{ case.CalculatorNotes }}</textarea>
-      </div>
-    </div>
-
-  </section>
-
+  <!-- Save notification (used by unified case.js) -->
   <div id="saveNotification" class="save-notification hidden"></div>
 </div>
 

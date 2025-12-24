@@ -399,3 +399,32 @@ body.case-details .form-field select {
     grid-column: span 1;
   }
 }
+
+/* =========================================
+   Metadata-driven Case View
+========================================= */
+
+.case-meta-container {
+  margin-top: 40px;
+}
+
+.case-meta-container .case-details-view {
+  margin-bottom: 32px;
+}
+
+.case-meta-container h3 {
+  margin-top: 32px;
+}
+
+/* Ensure grid matches main case layout */
+.case-meta-container .form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 16px 20px;
+}
+
+/* Match field sizing */
+.case-meta-container .form-field input,
+.case-meta-container .form-field textarea {
+  width: 100%;
+}
