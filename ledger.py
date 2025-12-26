@@ -32,14 +32,31 @@ def get_ledger():
     def inner():
         try:
             with get_db_connection() as conn:
+
+                # 1️⃣ Fetch rows
                 result = conn.execute(text("""
-                    SELECT * FROM dbo.Cases ORDER BY CPDate DESC
+                    SELECT * FROM dbo.Cases
+                    ORDER BY CPDate DESC
                 """))
-                columns = result.keys()
-                rows = [dict(zip(columns, row)) for row in result.fetchall()]
+                rows = [dict(row._mapping) for row in result.fetchall()]
+
+                # 2️⃣ Fetch column definitions WITH metadata
+                col_result = conn.execute(text("""
+                    SELECT
+                        c.COLUMN_NAME       AS name,
+                        COALESCE(m.DisplayName, c.COLUMN_NAME) AS display,
+                        c.DATA_TYPE         AS type
+                    FROM INFORMATION_SCHEMA.COLUMNS c
+                    LEFT JOIN dbo.ColumnMeta m
+                        ON m.ColumnName = c.COLUMN_NAME
+                    WHERE c.TABLE_NAME = 'Cases'
+                    ORDER BY c.ORDINAL_POSITION
+                """))
+
+                columns = [dict(row._mapping) for row in col_result.fetchall()]
 
             return jsonify({
-                "columns": [{"name": c} for c in columns],
+                "columns": columns,
                 "rows": rows
             }), 200
 

@@ -630,3 +630,57 @@ body {
   font-size: 0.9rem;
   background: #f5f7fa;
 }
+
+/* Compact grid for column metadata */
+.column-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;   /* 👈 more horizontal breathing room */
+  row-gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eef1f6;
+}
+
+.side-modal .column-meta-grid input {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+/* Choice rows — single-line layout */
+.choice-list.editable li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.choice-list.editable li input[type="text"] {
+  flex: 1;
+  min-width: 0;           /* critical to prevent overflow */
+}
+
+.choice-list.editable .choice-up {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.choice-list.editable .choice-down {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.choice-list.editable label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+/* Normalize side modal footer buttons */
+.side-modal-footer .header-add-btn {
+  font-size: 0.85rem;      /* match Cancel/Delete */
+  padding: 6px 12px;
+  font-weight: 600;
+}

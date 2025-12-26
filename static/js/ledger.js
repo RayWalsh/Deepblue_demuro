@@ -378,24 +378,26 @@ async function loadColumnMetadata(columnName) {
     const choices = json.choices || [];
 
     body.innerHTML = `
-      <div class="form-group">
-        <label>Name</label>
-        <input value="${col.ColumnName}" disabled />
-      </div>
+      <div class="column-meta-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input value="${col.ColumnName}" disabled />
+        </div>
 
-      <div class="form-group">
-        <label>Display Name</label>
-        <input id="editDisplayName" value="${col.DisplayName || ""}" />
-      </div>
+        <div class="form-group">
+          <label>Display Name</label>
+          <input id="editDisplayName" value="${col.DisplayName || ""}" />
+        </div>
 
-      <div class="form-group">
-        <label>Field Type</label>
-        <input value="${col.FieldType}" disabled />
-      </div>
+        <div class="form-group">
+          <label>Field Type</label>
+          <input value="${col.FieldType}" disabled />
+        </div>
 
-      <div class="form-group">
-        <label>Group</label>
-        <input id="editGroupName" value="${col.GroupName || ""}" />
+        <div class="form-group">
+          <label>Group</label>
+          <input id="editGroupName" value="${col.GroupName || ""}" />
+        </div>
       </div>
 
       <div class="form-inline">

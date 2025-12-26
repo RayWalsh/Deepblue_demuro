@@ -46,14 +46,15 @@
   font-size: 13px;
   letter-spacing: 0.02em;
   color: #ffffff;
-  text-transform: lowercase;
   white-space: nowrap;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Capitalise first letter only */
-.data-table thead th::first-letter {
-  text-transform: uppercase;
+
+.data-table thead th {
+  font-family: "Source Serif 4", serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;   /* important for serifs */
 }
 
 /* ============================================
