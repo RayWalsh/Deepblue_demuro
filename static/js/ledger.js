@@ -122,10 +122,9 @@ async function loadLedger() {
 
     originalLedgerData = [...json.rows];
     ledgerData = [...json.rows];
-    // ✅ Works whether /api/ledger returns strings OR objects
-    allColumns = (json.columns || []).map(c =>
-      typeof c === "string" ? c : c.name
-    ).filter(Boolean);
+    // Columns now come from SQL with name + display
+// Example: { name: "VesselName", display: "Ship Name" }
+allColumns = (json.columns || []).filter(c => c && c.name);
 
     console.log("🧩 API columns raw:", allColumns);
     console.log("🧩 First column entry type:", typeof allColumns[0]);
@@ -135,7 +134,7 @@ async function loadLedger() {
     // 🧭 DETERMINE VISIBLE COLUMNS
     // --------------------------------------------------
     // 💻📱 Show all columns on all devices (except CaseID)
-visibleColumns = allColumns.filter(c => c !== "CaseID");
+visibleColumns = allColumns.filter(c => c.name !== "CaseID");
 
     renderTable(ledgerData);
   } catch (err) {
@@ -153,18 +152,22 @@ function renderTable(rows) {
 
   // Build table headers dynamically using visibleColumns + labels
   headRow.innerHTML = visibleColumns
-  .filter(col => col !== "CaseID")
-  .map(col => {
+  .filter(c => c.name !== "CaseID")
+  .map(c => {
     let cls = "";
 
-    if (sortState.column === col) {
+    if (sortState.column === c.name) {
       cls =
         sortState.direction === "asc"
           ? "sorted sorted-asc"
           : "sorted sorted-desc";
     }
 
-    return `<th class="${cls}" data-col="${col}">${labelFor(col)}</th>`;
+    return `
+      <th class="${cls}" data-col="${c.name}">
+        ${c.display || c.name}
+      </th>
+    `;
   })
   .join("");
 
@@ -174,12 +177,13 @@ function renderTable(rows) {
   const tr = document.createElement("tr");
 
   visibleColumns
-    .filter((col) => col !== "CaseID")
-    .forEach((col) => {
-      const td = document.createElement("td");
+  .filter(c => c.name !== "CaseID")
+  .forEach((c) => {
+    const col = c.name; // 🔑 normalize here
+    const td = document.createElement("td");
 
-      let val = row[col];
-      if (col.toLowerCase().includes("date")) val = displayDate(val);
+    let val = row[col];
+    if (col.toLowerCase().includes("date")) val = displayDate(val);
       if (typeof val === "number") val = val.toLocaleString();
       td.textContent = val ?? "—";
 
@@ -196,23 +200,9 @@ function renderTable(rows) {
     });
 
   tableBody.appendChild(tr);
-});
-
-  // Make "Ref" column (DeepBlueRef) clickable for editing
-  const refIndex = visibleColumns.indexOf("DeepBlueRef");
-  if (refIndex !== -1) {
-    document
-      .querySelectorAll(`.case-table tbody tr td:nth-child(${refIndex + 1})`)
-      .forEach((cell) => {
-        cell.style.cursor = "pointer";
-        cell.addEventListener("click", (e) => {
-          const ref = e.target.textContent.trim();
-          const item = ledgerData.find((r) => (r.DeepBlueRef || "—") === ref);
-          if (item) openEditModal(item);
-        });
-      });
-  }
+  });
 }
+
 
 let activeSortColumn = null;
 let activeHeaderEl = null;
@@ -235,6 +225,7 @@ document.addEventListener("click", (e) => {
   const index = [...th.parentNode.children].indexOf(th);
   const column = visibleColumns[index];
 
+
   // 🔁 Toggle if same header clicked again
   if (menuOpen && activeHeaderEl === th) {
     columnMenu.style.display = "none";
@@ -244,7 +235,7 @@ document.addEventListener("click", (e) => {
   }
 
   // Open menu for this header
-  activeSortColumn = column;
+  activeSortColumn = column.name; // ✅ ALWAYS a string
   activeHeaderEl = th;
   menuOpen = true;
 
@@ -394,7 +385,7 @@ async function loadColumnMetadata(columnName) {
 
       <div class="form-group">
         <label>Display Name</label>
-        <input value="${col.DisplayName || ""}" disabled />
+        <input id="editDisplayName" value="${col.DisplayName || ""}" />
       </div>
 
       <div class="form-group">
@@ -404,22 +395,22 @@ async function loadColumnMetadata(columnName) {
 
       <div class="form-group">
         <label>Group</label>
-        <input value="${col.GroupName || "—"}" disabled />
+        <input id="editGroupName" value="${col.GroupName || ""}" />
       </div>
 
       <div class="form-inline">
         <label>
-          <input type="checkbox" ${col.IsEditable ? "checked" : ""} disabled />
+          <input id="editIsEditable" type="checkbox" ${col.IsEditable ? "checked" : ""} />
           Editable
         </label>
 
         <label>
-          <input type="checkbox" ${col.IsVisible ? "checked" : ""} disabled />
+          <input id="editIsVisible" type="checkbox" ${col.IsVisible ? "checked" : ""} />
           Visible
         </label>
       </div>
 
-      ${col.FieldType === "choice" ? renderChoiceList(choices) : ""}
+      ${col.FieldType === "choice" ? renderEditableChoiceList(choices) : ""}
     `;
   } catch (err) {
     console.error(err);
@@ -427,27 +418,79 @@ async function loadColumnMetadata(columnName) {
   }
 }
 
-function renderChoiceList(choices) {
-  if (!choices.length) {
-    return `<p class="muted">No choices defined.</p>`;
+  function renderEditableChoiceList(choices) {
+    return `
+      <hr />
+      <h4>Choices</h4>
+
+      <ul class="choice-list editable">
+        ${choices
+          .sort((a, b) => a.SortOrder - b.SortOrder)
+          .map(
+            (c, idx) => `
+            <li data-index="${idx}">
+              <input
+                type="text"
+                value="${c.Value}"
+                ${c.IsActive ? "" : "class='muted'"}
+              />
+
+              <button class="choice-up">↑</button>
+              <button class="choice-down">↓</button>
+
+              <label>
+                <input type="checkbox" ${c.IsActive ? "checked" : ""} />
+                Active
+              </label>
+            </li>
+          `
+          )
+          .join("")}
+      </ul>
+
+      <button id="addChoiceBtn" class="secondary-btn small">
+        ➕ Add choice
+      </button>
+    `;
   }
 
-  return `
-    <hr />
-    <h4>Choices</h4>
-    <ul class="choice-list">
-      ${choices
-        .sort((a, b) => a.SortOrder - b.SortOrder)
-        .map(
-          (c) => `
-          <li class="${c.IsActive ? "" : "muted"}">
-            ${c.Value}
-            ${!c.IsActive ? "<small>(inactive)</small>" : ""}
-          </li>`
-        )
-        .join("")}
-    </ul>
-  `;
+// --------------------------------------------------
+// 💾 SAVE COLUMN METADATA (NO CHOICES)
+// --------------------------------------------------
+const saveColumnMetaBtn = document.getElementById("saveColumnMetaBtn");
+
+if (saveColumnMetaBtn) {
+  saveColumnMetaBtn.addEventListener("click", async () => {
+    if (!activeSortColumn) return;
+
+    const payload = {
+      DisplayName: document.getElementById("colDisplayName")?.value.trim() || null,
+      GroupName: document.getElementById("colGroupName")?.value.trim() || null,
+      IsEditable: document.getElementById("colIsEditable")?.checked || false,
+      IsVisible: document.getElementById("colIsVisible")?.checked || false,
+    };
+
+    try {
+      const res = await fetch(
+        `/api/column-metadata/${encodeURIComponent(activeSortColumn)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Save failed");
+
+      alert("✅ Column metadata saved");
+      editColumnModal.classList.remove("open");
+      loadLedger(); // refresh headers / visibility
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to save column metadata");
+    }
+  });
 }
 
 // --------------------------------------------------
@@ -490,7 +533,7 @@ async function renderSettingsContent() {
             .map(
               (col) => `
               <label style="display:flex;align-items:center;gap:8px;">
-                <input type="checkbox" value="${col.name}" ${visibleColumns.includes(col.name) ? "checked" : ""}>
+                <input type="checkbox" value="${col.name}" ${visibleColumns.some(c =>  typeof c === "string" ? c === col.name : c.name === col.name) ? "checked" : ""}>
                 <span>${labelFor(col.name)}</span>
                 ${getTypeBadge(col.type)}   <!-- will show Text/Money/Date etc -->
               </label>`
@@ -584,8 +627,13 @@ async function renderSettingsContent() {
       alert("At least one column must be visible.");
       return;
     }
-    visibleColumns = selected;
-    localStorage.setItem("ledger_visible_columns", JSON.stringify(selected));
+    visibleColumns = allColumns.filter(c => selected.includes(c.name));
+
+    localStorage.setItem(
+      "ledger_visible_columns",
+      JSON.stringify(visibleColumns.map(c => c.name))
+    );
+
     renderTable(ledgerData);
     settingsModal.style.display = "none";
   });
@@ -890,6 +938,47 @@ if (cancelEditColumn) {
   };
 }
 
+const saveColumnBtn = editColumnModal.querySelector(".header-add-btn");
+
+if (saveColumnBtn) {
+  saveColumnBtn.onclick = async () => {
+    if (!activeSortColumn) return;
+
+    const payload = {
+      DisplayName: document.getElementById("editDisplayName")?.value || null,
+      GroupName: document.getElementById("editGroupName")?.value || null,
+      IsEditable: document.getElementById("editIsEditable")?.checked || false,
+      IsVisible: document.getElementById("editIsVisible")?.checked || false,
+    };
+
+    try {
+      const res = await fetch(
+        `/api/column-metadata/${encodeURIComponent(activeSortColumn)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const json = await res.json();
+
+      if (!json.success) {
+        throw new Error(json.error || "Update failed");
+      }
+
+      // ✅ Success UX
+      editColumnModal.classList.remove("open");
+      await loadLedger(); // refresh headers
+      alert("✅ Column updated");
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to save column settings");
+    }
+  };
+}
+
 // --------------------------------------------------
 // 🔍 SEARCH FILTER (AND + quoted phrases)
 // --------------------------------------------------
@@ -946,36 +1035,35 @@ searchInput.oninput = (e) => {
   }
 
   function exportCurrentTableToCSV() {
-    const headers = visibleColumns.slice();
+  const headers = visibleColumns;
 
-    const lines = ledgerData.map((row) => {
-      const map = {
-        Ref: row.DeepBlueRef || "",
-        "Ship Name": row.VesselName || "",
-        Charterer: row.ClientName || "",
-        "CP Date": displayDate(row.CPDate),
-        "Claim Submitted": displayDate(row.ClaimSubmittedDate),
-        "Amount (USD)": row.ClaimFiledAmount ?? "",
-        Status: row.ClaimStatus || "",
-      };
-      return headers.map((h) => toCSVCell(map[h] ?? "")).join(",");
-    });
+  const lines = ledgerData.map((row) =>
+    headers
+      .map((c) => toCSVCell(row[c.name] ?? ""))
+      .join(",")
+  );
 
-    const csv = [headers.map(toCSVCell).join(","), ...lines].join("\r\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-    const fname = `ledger-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(
-      now.getDate()
-    )}-${pad(now.getHours())}${pad(now.getMinutes())}.csv`;
-    a.href = URL.createObjectURL(blob);
-    a.download = fname;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }
+  const headerRow = headers.map((c) =>
+    toCSVCell(c.display || c.name)
+  ).join(",");
+
+  const csv = [headerRow, ...lines].join("\r\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+
+  a.href = URL.createObjectURL(blob);
+  a.download = `ledger-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(
+    now.getDate()
+  )}.csv`;
+
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(a.href);
+  a.remove();
+}
 
   if (exportBtn) exportBtn.addEventListener("click", exportCurrentTableToCSV);
 
