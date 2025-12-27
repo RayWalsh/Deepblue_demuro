@@ -414,6 +414,24 @@ async function loadColumnMetadata(columnName) {
 
       ${col.FieldType === "choice" ? renderEditableChoiceList(choices) : ""}
     `;
+
+    const addChoiceBtn = body.querySelector("#addChoiceBtn");
+    const choiceList = body.querySelector(".choice-list.editable");
+
+    if (addChoiceBtn && choiceList) {
+      addChoiceBtn.addEventListener("click", () => {
+        choiceList.insertAdjacentHTML(
+          "beforeend",
+          createChoiceRow("", true)
+        );
+
+        // Focus new choice input
+        const inputs = choiceList.querySelectorAll('input[type="text"]');
+        inputs[inputs.length - 1]?.focus();
+      });
+    }
+
+
   } catch (err) {
     console.error(err);
     body.innerHTML = `<p class="error">Failed to load column metadata</p>`;
@@ -440,9 +458,8 @@ async function loadColumnMetadata(columnName) {
               <button class="choice-up">↑</button>
               <button class="choice-down">↓</button>
 
-              <label>
+              <label title="Active">
                 <input type="checkbox" ${c.IsActive ? "checked" : ""} />
-                Active
               </label>
             </li>
           `
@@ -456,45 +473,25 @@ async function loadColumnMetadata(columnName) {
     `;
   }
 
-// --------------------------------------------------
-// 💾 SAVE COLUMN METADATA (NO CHOICES)
-// --------------------------------------------------
-const saveColumnMetaBtn = document.getElementById("saveColumnMetaBtn");
+function createChoiceRow(value = "", isActive = true) {
+  return `
+    <li>
+      <input
+        type="text"
+        value="${value}"
+      />
 
-if (saveColumnMetaBtn) {
-  saveColumnMetaBtn.onclick = async () => {
-    if (!activeSortColumn) return;
+      <button class="choice-up">↑</button>
+      <button class="choice-down">↓</button>
 
-    const payload = {
-      DisplayName: document.getElementById("editDisplayName")?.value?.trim() || null,
-      GroupName: document.getElementById("editGroupName")?.value?.trim() || null,
-      IsEditable: document.getElementById("editIsEditable")?.checked || false,
-      IsVisible: document.getElementById("editIsVisible")?.checked || false,
-    };
-
-    try {
-      const res = await fetch(
-        `/api/column-metadata/${encodeURIComponent(activeSortColumn)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Save failed");
-
-      editColumnModal.classList.remove("open");
-      await loadLedger();
-      alert("✅ Column updated");
-
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to save column settings");
-    }
-  };
+      <label title="Active">
+        <input type="checkbox" ${isActive ? "checked" : ""} />
+      </label>
+    </li>
+  `;
 }
+
+
 
 // --------------------------------------------------
 // ⚙️ SETTINGS MODAL (SQL-DRIVEN)
@@ -947,6 +944,24 @@ if (saveColumnBtn) {
   saveColumnBtn.onclick = async () => {
     if (!activeSortColumn) return;
 
+    // --------------------------------------------------
+    // 🧩 COLLECT CHOICES (if applicable)
+    // --------------------------------------------------
+    const choiceRows = editColumnModal.querySelectorAll(
+      ".choice-list.editable li"
+    );
+
+    const choices = [...choiceRows].map((li, idx) => {
+      const valueInput = li.querySelector('input[type="text"]');
+      const activeInput = li.querySelector('input[type="checkbox"]');
+
+      return {
+        Value: valueInput?.value.trim(),
+        IsActive: activeInput?.checked ?? true,
+        SortOrder: idx + 1
+      };
+    }).filter(c => c.Value); // remove empty rows
+
     const payload = {
       DisplayName: document.getElementById("editDisplayName")?.value || null,
       GroupName: document.getElementById("editGroupName")?.value || null,
@@ -968,6 +983,20 @@ if (saveColumnBtn) {
 
       if (!json.success) {
         throw new Error(json.error || "Update failed");
+      }
+
+      // --------------------------------------------------
+      // 💾 SAVE CHOICES (only if present)
+      // --------------------------------------------------
+      if (choices.length) {
+        await fetch(
+          `/api/column-choices/${encodeURIComponent(activeSortColumn)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ choices }),
+          }
+        );
       }
 
       // ✅ Success UX

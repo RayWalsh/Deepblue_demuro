@@ -587,6 +587,7 @@ body {
   padding: 20px;
   flex: 1;
   overflow-y: auto;
+  
 }
 
 .side-modal-footer {
@@ -651,6 +652,7 @@ body {
   margin-bottom: 18px;
   padding-bottom: 12px;
   border-bottom: 1px solid #eef1f6;
+   min-width: 0;
 }
 
 .side-modal .column-meta-grid input {
@@ -689,3 +691,19 @@ body {
   font-size: 0.85rem;
 }
 
+/* Hide the Active text but keep meaning */
+.choice-list.editable label {
+  font-size: 0;            /* removes text width */
+  white-space: nowrap;
+}
+
+/* Restore checkbox size */
+.choice-list.editable label input[type="checkbox"] {
+  font-size: initial;
+  transform: scale(0.95);
+}
+
+/* Add tooltip instead */
+.choice-list.editable label input[type="checkbox"] {
+  cursor: pointer;
+}

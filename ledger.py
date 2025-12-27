@@ -358,3 +358,41 @@ def update_column_metadata(column_name):
             return jsonify({"success": False, "error": "DB update failed"}), 500
 
     return inner()
+
+@ledger_bp.route("/api/column-choices/<string:column_name>", methods=["POST"])
+def save_column_choices(column_name):
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        data = request.get_json() or {}
+        choices = data.get("choices", [])
+
+        with get_db_connection() as conn:
+            # 1️⃣ Remove existing choices for this column
+            conn.execute(
+                text("DELETE FROM ColumnChoices WHERE ColumnName = :col"),
+                {"col": column_name}
+            )
+
+            # 2️⃣ Insert updated choices
+            for idx, c in enumerate(choices, start=1):
+                conn.execute(
+                    text("""
+                        INSERT INTO ColumnChoices
+                        (ColumnName, ChoiceValue, IsActive, DisplayOrder)
+                        VALUES (:col, :val, :active, :order)
+                    """),
+                    {
+                        "col": column_name,
+                        "val": c.get("Value"),              # from JS
+                        "active": bool(c.get("IsActive")),
+                        "order": idx
+                    }
+                )
+
+            conn.commit()
+
+        return jsonify({"success": True})
+
+    return inner()
