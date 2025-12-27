@@ -561,7 +561,7 @@ body {
   top: 0;
   right: -420px; /* hidden */
   width: 420px;
-  height: 100vh;
+  height: calc(100vh - env(safe-area-inset-bottom));
   background: #fff;
   box-shadow: -6px 0 16px rgba(0,0,0,0.15);
   display: flex;
@@ -590,11 +590,15 @@ body {
 }
 
 .side-modal-footer {
-  padding: 16px 20px;
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
   border-top: 1px solid #e5e5e5;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
   display: flex;
-  gap: 10px;
   justify-content: flex-end;
+  gap: 10px;
+  z-index: 10;
 }
 
 .close-btn {
@@ -629,6 +633,13 @@ body {
   border: 1px solid #cdd9e8;
   font-size: 0.9rem;
   background: #f5f7fa;
+}
+
+/* Normalize side modal footer buttons */
+.side-modal-footer .header-add-btn {
+  font-size: 0.85rem;      /* match Cancel/Delete */
+  padding: 6px 12px;
+  font-weight: 600;
 }
 
 /* Compact grid for column metadata */
@@ -678,9 +689,3 @@ body {
   font-size: 0.85rem;
 }
 
-/* Normalize side modal footer buttons */
-.side-modal-footer .header-add-btn {
-  font-size: 0.85rem;      /* match Cancel/Delete */
-  padding: 6px 12px;
-  font-weight: 600;
-}

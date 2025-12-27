@@ -198,7 +198,6 @@ def add_ledger_item():
 # ==============================================
 # ⚙️ ADVANCED SETTINGS API — Column Management
 # ==============================================
-from sqlalchemy import inspect
 
 # -------------------------------
 # 📋 List SQL Columns
@@ -307,5 +306,55 @@ def reset_columns():
 
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
+
+    return inner()
+
+@ledger_bp.route("/api/column-metadata/<string:column_name>", methods=["POST"])
+def update_column_metadata(column_name):
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+
+        allowed_fields = {
+            "DisplayName",
+            "GroupName",
+            "IsEditable",
+            "IsVisible"
+        }
+
+        # 1️⃣ Keep only allowed fields
+        updates = {k: v for k, v in data.items() if k in allowed_fields}
+
+        if not updates:
+            return jsonify({"success": False, "error": "No valid fields"}), 400
+
+        # 2️⃣ 🔑 NORMALISE EMPTY STRINGS → NULL  ✅ ADD IT HERE
+        for k, v in updates.items():
+            if isinstance(v, str) and v.strip() == "":
+                updates[k] = None
+
+        # 3️⃣ Build SQL
+        set_clause = ", ".join([f"{k} = :{k}" for k in updates])
+        updates["ColumnName"] = column_name
+
+        sql = text(f"""
+            UPDATE dbo.ColumnMeta
+            SET {set_clause}
+            WHERE ColumnName = :ColumnName
+        """)
+
+        try:
+            with get_db_connection() as conn:
+                conn.execute(sql, updates)
+                conn.commit()
+
+            return jsonify({"success": True})
+        except Exception as e:
+            print("❌ Column meta update failed:", e)
+            return jsonify({"success": False, "error": "DB update failed"}), 500
 
     return inner()

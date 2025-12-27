@@ -462,14 +462,14 @@ async function loadColumnMetadata(columnName) {
 const saveColumnMetaBtn = document.getElementById("saveColumnMetaBtn");
 
 if (saveColumnMetaBtn) {
-  saveColumnMetaBtn.addEventListener("click", async () => {
+  saveColumnMetaBtn.onclick = async () => {
     if (!activeSortColumn) return;
 
     const payload = {
-      DisplayName: document.getElementById("colDisplayName")?.value.trim() || null,
-      GroupName: document.getElementById("colGroupName")?.value.trim() || null,
-      IsEditable: document.getElementById("colIsEditable")?.checked || false,
-      IsVisible: document.getElementById("colIsVisible")?.checked || false,
+      DisplayName: document.getElementById("editDisplayName")?.value?.trim() || null,
+      GroupName: document.getElementById("editGroupName")?.value?.trim() || null,
+      IsEditable: document.getElementById("editIsEditable")?.checked || false,
+      IsVisible: document.getElementById("editIsVisible")?.checked || false,
     };
 
     try {
@@ -485,14 +485,15 @@ if (saveColumnMetaBtn) {
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Save failed");
 
-      alert("✅ Column metadata saved");
       editColumnModal.classList.remove("open");
-      loadLedger(); // refresh headers / visibility
+      await loadLedger();
+      alert("✅ Column updated");
+
     } catch (err) {
       console.error(err);
-      alert("❌ Failed to save column metadata");
+      alert("❌ Failed to save column settings");
     }
-  });
+  };
 }
 
 // --------------------------------------------------
