@@ -431,6 +431,29 @@ async function loadColumnMetadata(columnName) {
       });
     }
 
+    // 🔼🔽 Move choice up / down (event delegation)
+    if (choiceList) {
+      choiceList.addEventListener("click", (e) => {
+        const upBtn = e.target.closest(".choice-up");
+        const downBtn = e.target.closest(".choice-down");
+        if (!upBtn && !downBtn) return;
+
+        e.preventDefault();
+
+        const li = e.target.closest("li");
+        if (!li) return;
+
+        if (upBtn) {
+          const prev = li.previousElementSibling;
+          if (prev) choiceList.insertBefore(li, prev);
+        }
+
+        if (downBtn) {
+          const next = li.nextElementSibling;
+          if (next) choiceList.insertBefore(next, li);
+        }
+      });
+    }
 
   } catch (err) {
     console.error(err);
@@ -455,8 +478,8 @@ async function loadColumnMetadata(columnName) {
                 ${c.IsActive ? "" : "class='muted'"}
               />
 
-              <button class="choice-up">↑</button>
-              <button class="choice-down">↓</button>
+              <button type="button" class="choice-up">↑</button>
+              <button type="button" class="choice-down">↓</button>
 
               <label title="Active">
                 <input type="checkbox" ${c.IsActive ? "checked" : ""} />
@@ -481,8 +504,8 @@ function createChoiceRow(value = "", isActive = true) {
         value="${value}"
       />
 
-      <button class="choice-up">↑</button>
-      <button class="choice-down">↓</button>
+      <button type="button" class="choice-up">↑</button>
+      <button type="button" class="choice-down">↓</button>
 
       <label title="Active">
         <input type="checkbox" ${isActive ? "checked" : ""} />
