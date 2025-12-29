@@ -707,3 +707,20 @@ body {
 .choice-list.editable label input[type="checkbox"] {
   cursor: pointer;
 }
+
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #e8f1fb;
+  color: #0e3a6d;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.pill-warning {
+  background-color: #fff3e0;   /* soft orange */
+  color: #b45309;              /* readable orange text */
+  border: 1px solid #f59e0b;
+}

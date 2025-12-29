@@ -45,7 +45,8 @@ def get_ledger():
                     SELECT
                         c.COLUMN_NAME       AS name,
                         COALESCE(m.DisplayName, c.COLUMN_NAME) AS display,
-                        c.DATA_TYPE         AS type
+                        c.DATA_TYPE         AS type,
+                        m.FieldType         AS fieldType
                     FROM INFORMATION_SCHEMA.COLUMNS c
                     LEFT JOIN dbo.ColumnMeta m
                         ON m.ColumnName = c.COLUMN_NAME
@@ -322,6 +323,7 @@ def update_column_metadata(column_name):
         allowed_fields = {
             "DisplayName",
             "GroupName",
+            "FieldType",
             "IsEditable",
             "IsVisible"
         }
@@ -394,5 +396,23 @@ def save_column_choices(column_name):
             conn.commit()
 
         return jsonify({"success": True})
+
+    return inner()
+
+@ledger_bp.route("/api/column-groups", methods=["GET"])
+def get_column_groups():
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+        with get_db_connection() as conn:
+            res = conn.execute(text("""
+                SELECT DISTINCT GroupName
+                FROM dbo.ColumnMeta
+                WHERE GroupName IS NOT NULL AND LTRIM(RTRIM(GroupName)) <> ''
+                ORDER BY GroupName
+            """))
+            groups = [r[0] for r in res.fetchall()]
+        return jsonify({"success": True, "groups": groups})
 
     return inner()

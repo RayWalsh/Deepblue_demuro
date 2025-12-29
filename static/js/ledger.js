@@ -34,6 +34,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const closeEditColumnModal = document.getElementById("closeEditColumnModal");
   const cancelEditColumn = document.getElementById("cancelEditColumn");
 
+  const FIELD_TYPES = [
+  { value: "text",     label: "Text" },
+  { value: "number",   label: "Number" },
+  { value: "money",    label: "Currency" },
+  { value: "date",     label: "Date" },
+  { value: "datetime", label: "Date & Time" },
+  { value: "boolean",  label: "Yes / No" },
+  { value: "choice",   label: "Choice (Dropdown)" }
+  ];
+
 // --------------------------------------------------
 // ⚙️ STATE
 // --------------------------------------------------
@@ -42,6 +52,13 @@ let originalLedgerData = [];
 let allColumns = [];
 let currentEditItem = null;
 let expanded = false;
+let choiceColumns = new Set();
+let choiceOptions = {}; 
+// Example shape:
+// {
+//   ClaimStatus: ["Pending", "Settled"],
+//   CalculationType: ["Voyage", "TC"]
+// }
 
 let sortState = {
   column: null,
@@ -110,6 +127,36 @@ let visibleColumns = [];
     });
   }
 
+// --------------------------------------------------
+// 🟣 LOAD CHOICE OPTIONS (for pill validation)
+// --------------------------------------------------
+async function loadChoiceOptions() {
+  choiceOptions = {};
+
+  const choiceCols = allColumns
+    .filter(c => c.fieldType === "choice")
+    .map(c => c.name);
+
+  for (const col of choiceCols) {
+    try {
+      const res = await fetch(`/api/column-choices/${encodeURIComponent(col)}`, {
+        cache: "no-store"
+      });
+
+      if (!res.ok) continue;
+
+      const json = await res.json();
+
+      choiceOptions[col] = (json.choices || []).map(c => choiceValue);
+    } catch (e) {
+      console.warn(`⚠️ Failed loading choices for ${col}`, e);
+    }
+  }
+
+  console.log("🟣 Loaded choice options:", choiceOptions);
+}
+
+
   // --------------------------------------------------
 // 📡 LOAD LEDGER (SQL-DRIVEN HEADERS)
 // --------------------------------------------------
@@ -125,6 +172,26 @@ async function loadLedger() {
     // Columns now come from SQL with name + display
 // Example: { name: "VesselName", display: "Ship Name" }
 allColumns = (json.columns || []).filter(c => c && c.name);
+
+// 🟣 Load valid choices for choice columns
+await loadChoiceOptions();
+
+
+
+// --------------------------------------------------
+// 🟣 Mark choice columns from API metadata
+// --------------------------------------------------
+choiceColumns.clear();
+
+allColumns.forEach(c => {
+  if (c.fieldType === "choice") {
+    choiceColumns.add(c.name);
+  }
+});
+
+console.log("🟣 Choice columns (from metadata):", [...choiceColumns]);
+
+console.log("🟣 Choice columns:", [...choiceColumns]);
 
     console.log("🧩 API columns raw:", allColumns);
     console.log("🧩 First column entry type:", typeof allColumns[0]);
@@ -184,8 +251,34 @@ function renderTable(rows) {
 
     let val = row[col];
     if (col.toLowerCase().includes("date")) val = displayDate(val);
-      if (typeof val === "number") val = val.toLocaleString();
+    if (typeof val === "number") val = val.toLocaleString();
+
+    if (choiceColumns.has(col) && val) {
+      const values = Array.isArray(val) ? val : [val];
+
+      const norm = (s) => String(s ?? "").trim().toLowerCase();
+      const allowed = choiceOptions[col] || [];
+
+      td.innerHTML = values.map(v => {
+        const hasRules = allowed.length > 0;
+        const isValid = !hasRules || allowed.map(norm).includes(norm(v)); // ✅ key line
+
+        const cls = isValid ? "pill" : "pill pill-warning";
+        
+        console.log({
+          column: col,
+          value: v,
+          allowed,
+          hasRules: allowed.length > 0,
+          valid: (!allowed.length) || allowed.map(norm).includes(norm(v))
+        });
+        
+        return `<span class="${cls}">${v}</span>`;
+      }).join("");
+
+    } else {
       td.textContent = val ?? "—";
+    }
 
       // 🔑 PRIMARY CLICK TARGET — REF COLUMN
       if (col === "DeepBlueRef") {
@@ -377,6 +470,16 @@ async function loadColumnMetadata(columnName) {
     const col = json.column;
     const choices = json.choices || [];
 
+    // 🔽 Fetch existing column groups
+    let groups = [];
+    try {
+      const gRes = await fetch("/api/column-groups", { cache: "no-store" });
+      const gJson = await gRes.json();
+      groups = gJson.groups || [];
+    } catch (e) {
+      console.warn("Could not load column groups");
+    }
+
     body.innerHTML = `
       <div class="column-meta-grid">
         <div class="form-group">
@@ -391,12 +494,29 @@ async function loadColumnMetadata(columnName) {
 
         <div class="form-group">
           <label>Field Type</label>
-          <input value="${col.FieldType}" disabled />
+          <select id="editFieldType">
+            ${FIELD_TYPES.map(t => `
+              <option value="${t.value}" ${t.value === col.FieldType ? "selected" : ""}>
+                ${t.label}
+              </option>
+            `).join("")}
+          </select>
+
+          <small class="muted">
+            Changing field type may affect existing data.
+          </small>
         </div>
 
         <div class="form-group">
           <label>Group</label>
-          <input id="editGroupName" value="${col.GroupName || ""}" />
+          <select id="editGroupName">
+            <option value="">—</option>
+            ${groups.map(g => `
+              <option value="${g}" ${g === (col.GroupName || "") ? "selected" : ""}>
+                ${g}
+              </option>
+            `).join("")}
+          </select>
         </div>
       </div>
 
@@ -988,6 +1108,7 @@ if (saveColumnBtn) {
     const payload = {
       DisplayName: document.getElementById("editDisplayName")?.value || null,
       GroupName: document.getElementById("editGroupName")?.value || null,
+      FieldType: document.getElementById("editFieldType")?.value || null,
       IsEditable: document.getElementById("editIsEditable")?.checked || false,
       IsVisible: document.getElementById("editIsVisible")?.checked || false,
     };
