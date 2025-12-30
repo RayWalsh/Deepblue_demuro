@@ -214,13 +214,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         break;
       }
 
+      // ✅ NEW: datetime support
+      case "datetime": {
+        inputEl = document.createElement("input");
+        inputEl.type = "datetime-local";
+        inputEl.dataset.field = col;
+        inputEl.disabled = disabled;
+        inputEl.value = toDateTimeInputValue(rawValue);
+        break;
+      }
+
       case "number":
       case "money": {
         inputEl = document.createElement("input");
         inputEl.type = "number";
         inputEl.dataset.field = col;
         inputEl.disabled = disabled;
-        inputEl.value = rawValue === null || rawValue === undefined ? "" : String(rawValue);
+        inputEl.value =
+          rawValue === null || rawValue === undefined ? "" : String(rawValue);
         break;
       }
 
@@ -245,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         blank.textContent = "—";
         inputEl.appendChild(blank);
 
-        choices.forEach(c => {
+        choices.forEach((c) => {
           const opt = document.createElement("option");
           opt.value = c;
           opt.textContent = c;
@@ -261,7 +272,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         inputEl.type = "text";
         inputEl.dataset.field = col;
         inputEl.disabled = disabled;
-        inputEl.value = rawValue === null || rawValue === undefined ? "" : String(rawValue);
+        inputEl.value =
+          rawValue === null || rawValue === undefined ? "" : String(rawValue);
         break;
       }
     }
@@ -460,6 +472,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       return v === "" ? null : v;
     }
 
+    if (ft === "datetime") {
+      const v = (el.value || "").trim();
+      return v === "" ? null : v;
+    }
+
     // text/number/money/choice
     const v = (el.value ?? "").toString().trim();
     return v === "" ? null : v;
@@ -477,8 +494,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (ft === "date") {
-      // normalize DB datetime -> YYYY-MM-DD
+      // normalize DB datetime → YYYY-MM-DD
       return toDateInputValue(valueFromDb) || null;
+    }
+
+    if (ft === "datetime") {
+      // normalize DB datetime → YYYY-MM-DDTHH:MM (for datetime-local inputs)
+      return toDateTimeInputValue(valueFromDb) || null;
     }
 
     // For numbers stored as numeric, normalize to string to compare against input.value
@@ -486,7 +508,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return String(valueFromDb);
     }
 
-    // choice/text etc
+    // choice / text etc
     return String(valueFromDb);
   }
 
@@ -498,14 +520,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (ft === "date") {
-      // Save as "YYYY-MM-DD 00:00:00" (matches your DB expectations)
+      // Save as "YYYY-MM-DD 00:00:00" (matches DB expectations)
       const v = (el.value || "").trim();
       return v === "" ? null : `${v} 00:00:00`;
     }
 
-    // number/money/choice/text
+    if (ft === "datetime") {
+      const v = (el.value || "").trim();
+      return v === "" ? null : toSQLDateTime(v);
+    }
+
+    // number / money / choice / text
     const v = (el.value ?? "").toString().trim();
     return v === "" ? null : v;
+  }
+
+  function toSQLDateTime(value) {
+    // value comes from <input type="datetime-local">
+    // format: YYYY-MM-DDTHH:MM
+    if (!value) return null;
+
+    return value.replace("T", " ") + ":00";
   }
 
   function toDateInputValue(value) {
@@ -517,6 +552,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function toDateTimeInputValue(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (isNaN(d)) return "";
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+
+    // HTML datetime-local format
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
   }
 
   function cssEscape(str) {

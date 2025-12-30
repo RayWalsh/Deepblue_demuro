@@ -127,6 +127,70 @@ let visibleColumns = [];
     });
   }
 
+  function displayDateTime(isoString) {
+    if (!isoString) return "—";
+    const d = new Date(isoString);
+    if (isNaN(d)) return "—";
+
+    return d.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+//** 
+//* 🧩 BUILD PAYLOAD FROM FORM INPUTS (metadata-driven)
+//** 
+function buildPayloadFromInputs(container) {
+  const payload = {};
+
+  container.querySelectorAll("input, textarea").forEach((i) => {
+    const name = i.name;
+    const raw = i.value?.trim?.() ?? "";
+
+    const meta = allColumns.find(c => c.name === name);
+    const fieldType = meta?.fieldType;
+
+    // Empty values
+    if (!raw && fieldType !== "boolean") {
+      payload[name] = null;
+      return;
+    }
+
+    // 🗓 DATE → midnight
+    if (fieldType === "date") {
+      payload[name] = toISO(raw + " 00:00");
+      return;
+    }
+
+    // 🕓 DATETIME
+    if (fieldType === "datetime") {
+      payload[name] = toISO(raw);
+      return;
+    }
+
+    // ✅ BOOLEAN
+    if (fieldType === "boolean") {
+      payload[name] = i.checked ? 1 : 0;
+      return;
+    }
+
+    // 🔢 NUMBER / MONEY
+    if (fieldType === "number" || fieldType === "money") {
+      payload[name] = raw === "" ? null : Number(raw);
+      return;
+    }
+
+    // 📝 DEFAULT (text, choice, lookup, etc.)
+    payload[name] = raw;
+  });
+
+  return payload;
+}
+
 // --------------------------------------------------
 // 🟣 LOAD CHOICE OPTIONS (for pill validation)
 // --------------------------------------------------
@@ -250,7 +314,16 @@ function renderTable(rows) {
     const td = document.createElement("td");
 
     let val = row[col];
-    if (col.toLowerCase().includes("date")) val = displayDate(val);
+    const colMeta = allColumns.find(c => c.name === col);
+    const fieldType = colMeta?.fieldType;
+
+    if (fieldType === "date") {
+      val = displayDate(val);               // date only
+    }
+
+    if (fieldType === "datetime") {
+      val = displayDateTime(val);           // date + time
+    }
     if (typeof val === "number") val = val.toLocaleString();
 
     if (choiceColumns.has(col) && val) {
@@ -922,12 +995,72 @@ async function renderSettingsContent() {
 
   const systemFields = ["CaseID", "CreatedAt"];
 
-  function inferInputType(name) {
-    const lower = name.toLowerCase();
-    if (lower.includes("date")) return "date";
-    if (lower.includes("amount") || lower.includes("rate") || lower.includes("days") || lower.includes("hours"))
+  function inferInputType(colName) {
+    // --------------------------------------------------
+    // 1️⃣ Try metadata first (source of truth)
+    // --------------------------------------------------
+    const meta = allColumns.find(c => c.name === colName);
+
+    if (meta?.fieldType) {
+      switch (meta.fieldType) {
+        case "date":
+          return "date";
+
+        case "datetime":
+          return "datetime-local";
+
+        case "number":
+        case "money":
+          return "number";
+
+        case "boolean":
+          return "checkbox";
+
+        case "choice":
+          return "select"; // (we’ll wire this later)
+
+        case "text":
+        default:
+          return "text";
+      }
+    }
+
+    function renderChoiceSelect({ name, value, disabled = false }) {
+      const options = choiceOptions[name] || [];
+
+      const optsHtml = options.map(opt => `
+        <option value="${opt}" ${String(opt) === String(value) ? "selected" : ""}>
+          ${opt}
+        </option>
+      `).join("");
+
+      return `
+        <select name="${name}" ${disabled ? "disabled" : ""}>
+          <option value="">— Select —</option>
+          ${optsHtml}
+        </select>
+      `;
+    }
+
+    // --------------------------------------------------
+    // 2️⃣ Fallback heuristics (only if no metadata)
+    // --------------------------------------------------
+    const lower = colName.toLowerCase();
+
+    if (lower.includes("notes") || lower.includes("instruction"))
+      return "textarea";
+
+    if (
+      lower.includes("amount") ||
+      lower.includes("rate") ||
+      lower.includes("days") ||
+      lower.includes("hours")
+    )
       return "number";
-    if (lower.includes("notes") || lower.includes("instruction")) return "textarea";
+
+    if (lower.includes("date"))
+      return "date";
+
     return "text";
   }
 
@@ -936,60 +1069,70 @@ async function renderSettingsContent() {
   // --------------------------------------------------
   function openEditModal(data) {
     currentEditItem = data;
-    editModal.style.display = "flex";
-    let html = "";
-    for (const [groupName, fields] of Object.entries(fieldGroups)) {
-      html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
-      fields.forEach((col) => {
-        const type = inferInputType(col);
-        const value = data[col] ?? "";
-        const disabled = systemFields.includes(col) ? "disabled" : "";
-        if (type === "textarea") {
-          html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}>${value}</textarea></div>`;
-        } else {
-          html += `<div><label>${col}</label><input type="${type}" name="${col}" value="${value}" ${disabled}/></div>`;
-        }
-      });
-      html += "</div></section>";
-    }
-    editModalBody.innerHTML = html;
-  }
-
-  closeEditEntryBtn.onclick = () => (editModal.style.display = "none");
-  editModal.onclick = (e) => {
-    if (e.target === editModal) editModal.style.display = "none";
-  };
-
-  saveEntryBtn.onclick = async () => {
-    const payload = {};
-editModalBody.querySelectorAll("input, textarea").forEach((i) => {
-  let val = i.value.trim();
-  if (i.type === "date" || i.name.toLowerCase().includes("date")) {
-    payload[i.name] = toISO(val);
-  } else {
-    payload[i.name] = val || null;
-  }
-});
-
-    const caseId = currentEditItem.CaseID;
-    try {
-      const res = await fetch(`/api/update-ledger-item/${caseId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("✅ Entry updated");
-        editModal.style.display = "none";
-        loadLedger();
-      } else {
-        alert("❌ " + (data.error || "Update failed"));
+      editModal.style.display = "flex";
+      let html = "";
+      for (const [groupName, fields] of Object.entries(fieldGroups)) {
+        html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
+        fields.forEach((col) => {
+          const type = inferInputType(col);
+          const value = data[col] ?? "";
+          const disabled = systemFields.includes(col) ? "disabled" : "";
+          if (type === "textarea") {
+            html += `
+              <div>
+                <label>${col}</label>
+                <textarea name="${col}" rows="2" ${disabled}>${value}</textarea>
+              </div>
+            `;
+          } 
+          else if (type === "select") {
+            html += `
+              <div>
+                <label>${col}</label>
+                ${renderChoiceSelect({ name: col, value, disabled: !!disabled })}
+              </div>
+            `;
+          }
+          else {
+            html += `
+              <div>
+                <label>${col}</label>
+                <input type="${type}" name="${col}" value="${value}" ${disabled}/>
+              </div>
+            `;
+          }
+        });
+        html += "</div></section>";
       }
-    } catch (e) {
-      alert("❌ " + e.message);
+      editModalBody.innerHTML = html;
     }
-  };
+
+    closeEditEntryBtn.onclick = () => (editModal.style.display = "none");
+      editModal.onclick = (e) => {
+        if (e.target === editModal) editModal.style.display = "none";
+    };
+
+    saveEntryBtn.onclick = async () => {
+    const payload = buildPayloadFromInputs(editModalBody);
+    const caseId = currentEditItem.CaseID;
+      try {
+        const res = await fetch(`/api/update-ledger-item/${caseId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Entry updated");
+          editModal.style.display = "none";
+          loadLedger();
+        } else {
+          alert("❌ " + (data.error || "Update failed"));
+        }
+      } catch (e) {
+        alert("❌ " + e.message);
+      }
+    };
 
   deleteEntryBtn.onclick = async () => {
     const caseId = currentEditItem.CaseID;
@@ -1010,61 +1153,92 @@ editModalBody.querySelectorAll("input, textarea").forEach((i) => {
   };
 
   // --------------------------------------------------
-  // ➕ ADD ENTRY MODAL
-  // --------------------------------------------------
-  openAddBtn.onclick = () => {
-    addModal.style.display = "flex";
-    let html = "";
-    for (const [groupName, fields] of Object.entries(fieldGroups)) {
-      html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
-      fields.forEach((col) => {
-        const type = inferInputType(col);
-        const disabled = systemFields.includes(col) ? "disabled" : "";
-        if (type === "textarea") {
-          html += `<div><label>${col}</label><textarea name="${col}" rows="2" ${disabled}></textarea></div>`;
-        } else {
-          html += `<div><label>${col}</label><input type="${type}" name="${col}" ${disabled}/></div>`;
-        }
-      });
-      html += "</div></section>";
-    }
-    addModalBody.innerHTML = html;
-  };
+// ➕ ADD ENTRY MODAL
+// --------------------------------------------------
+openAddBtn.onclick = () => {
+  addModal.style.display = "flex";
 
-  closeAddEntryBtn.onclick = () => (addModal.style.display = "none");
-  addModal.onclick = (e) => {
-    if (e.target === addModal) addModal.style.display = "none";
-  };
+  let html = "";
 
-  saveAddEntryBtn.onclick = async () => {
-    const payload = {};
-addModalBody.querySelectorAll("input, textarea").forEach((i) => {
-  let val = i.value.trim();
-  if (i.type === "date" || i.name.toLowerCase().includes("date")) {
-    payload[i.name] = toISO(val);
-  } else {
-    payload[i.name] = val || null;
-  }
-});
+  for (const [groupName, fields] of Object.entries(fieldGroups)) {
+    html += `
+      <section class="field-group">
+        <h4>${groupName}</h4>
+        <div class="field-grid">
+    `;
 
-    try {
-      const res = await fetch("/api/add-ledger-item", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("✅ New ledger entry added");
-        addModal.style.display = "none";
-        loadLedger();
-      } else {
-        alert("❌ " + (data.error || "Insert failed"));
+    fields.forEach((col) => {
+      const type = inferInputType(col);
+      const disabled = systemFields.includes(col) ? "disabled" : "";
+
+      if (type === "textarea") {
+        html += `
+          <div>
+            <label>${col}</label>
+            <textarea name="${col}" rows="2" ${disabled}></textarea>
+          </div>
+        `;
       }
-    } catch (e) {
-      alert("❌ " + e.message);
+      else if (type === "select") {
+        html += `
+          <div>
+            <label>${col}</label>
+            ${renderChoiceSelect({ name: col, value: "", disabled: !!disabled })}
+          </div>
+        `;
+      }
+      else {
+        html += `
+          <div>
+            <label>${col}</label>
+            <input type="${type}" name="${col}" ${disabled}/>
+          </div>
+        `;
+      }
+    });
+
+    html += `
+        </div>
+      </section>
+    `;
+  }
+
+  addModalBody.innerHTML = html;
+};
+
+closeAddEntryBtn.onclick = () => {
+  addModal.style.display = "none";
+};
+
+addModal.onclick = (e) => {
+  if (e.target === addModal) {
+    addModal.style.display = "none";
+  }
+};
+
+saveAddEntryBtn.onclick = async () => {
+  const payload = buildPayloadFromInputs(addModalBody);
+
+  try {
+    const res = await fetch("/api/add-ledger-item", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("✅ New ledger entry added");
+      addModal.style.display = "none";
+      loadLedger();
+    } else {
+      alert("❌ " + (data.error || "Insert failed"));
     }
-  };
+  } catch (e) {
+    alert("❌ " + e.message);
+  }
+};
 
 // --------------------------------------------------
 // 🧱 EDIT COLUMN SIDE MODAL — OPEN / CLOSE
