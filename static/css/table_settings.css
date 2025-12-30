@@ -3,7 +3,7 @@
    Namespace: #tableSettingsModal
    Purpose:
    - Side panel layout
-   - Column reorder UI
+   - Column visibility + reorder UI
    - Fixed header + footer
    ====================================================== */
 
@@ -13,13 +13,13 @@
    ====================================================== */
 
 #tableSettingsModal {
-  z-index: 1005; /* slightly above tables, below global alerts */
+  z-index: 1005; /* above tables, below global alerts */
 }
 
 
 /* ======================================================
    MODAL CONTENT STRUCTURE
-   Forces header / body / footer layout
+   Header / Body / Footer flex layout
    ====================================================== */
 
 #tableSettingsModal .modal-content {
@@ -95,9 +95,14 @@
   background: #f6f8fb;
 }
 
+/* Muted (hidden) columns */
+#tableSettingsModal .table-settings-item.muted {
+  opacity: 0.55;
+}
+
 
 /* ======================================================
-   LEFT SIDE: LABEL + TYPE
+   LEFT SIDE: CHECKBOX + LABEL + TYPE
    ====================================================== */
 
 #tableSettingsModal .table-settings-left {
@@ -106,12 +111,29 @@
   gap: 2px;
 }
 
+/* Checkbox + label row */
+#tableSettingsModal .table-settings-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Checkbox sizing */
+#tableSettingsModal .table-settings-title input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Column name */
 #tableSettingsModal .table-settings-label {
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
+  cursor: pointer;
 }
 
+/* Column type (Text, Date, Choice, etc.) */
 #tableSettingsModal .table-settings-type {
   font-size: 12px;
   color: #6b7280;
@@ -159,13 +181,18 @@
   cursor: default;
 }
 
+/* Hidden rows never show arrows */
+#tableSettingsModal .table-settings-item.muted .table-settings-arrows {
+  display: none;
+}
+
 
 /* ======================================================
    FOOTER (FIXED TO BOTTOM)
    ====================================================== */
 
 #tableSettingsModal .modal-footer {
-  flex-shrink: 0;
+  margin-top: auto; /* 🔒 guarantees bottom alignment */
 
   display: flex;
   justify-content: flex-end;

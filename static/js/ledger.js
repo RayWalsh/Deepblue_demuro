@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // --------------------------------------------------
 // ⚙️ STATE
 // --------------------------------------------------
-let ledgerData = [];
+window.ledgerData = [];
 let originalLedgerData = [];
 let allColumns = [];
 let currentEditItem = null;
@@ -139,138 +139,176 @@ window.visibleColumns = [];
     });
   }
 
-//** 
-//* 🧩 BUILD PAYLOAD FROM FORM INPUTS (metadata-driven)
-//** 
-function buildPayloadFromInputs(container) {
-  const payload = {};
+  //** 
+  //* 🧩 BUILD PAYLOAD FROM FORM INPUTS (metadata-driven)
+  //** 
+  function buildPayloadFromInputs(container) {
+    const payload = {};
 
-  container.querySelectorAll("input, textarea").forEach((i) => {
-    const name = i.name;
-    const raw = i.value?.trim?.() ?? "";
+    container.querySelectorAll("input, textarea").forEach((i) => {
+      const name = i.name;
+      const raw = i.value?.trim?.() ?? "";
 
-    const meta = allColumns.find(c => c.name === name);
-    const fieldType = meta?.fieldType;
+      const meta = allColumns.find(c => c.name === name);
+      const fieldType = meta?.fieldType;
 
-    // Empty values
-    if (!raw && fieldType !== "boolean") {
-      payload[name] = null;
-      return;
-    }
+      // Empty values
+      if (!raw && fieldType !== "boolean") {
+        payload[name] = null;
+        return;
+      }
 
-    // 🗓 DATE → midnight
-    if (fieldType === "date") {
-      payload[name] = toISO(raw + " 00:00");
-      return;
-    }
+      // 🗓 DATE → midnight
+      if (fieldType === "date") {
+        payload[name] = toISO(raw + " 00:00");
+        return;
+      }
 
-    // 🕓 DATETIME
-    if (fieldType === "datetime") {
-      payload[name] = toISO(raw);
-      return;
-    }
+      // 🕓 DATETIME
+      if (fieldType === "datetime") {
+        payload[name] = toISO(raw);
+        return;
+      }
 
-    // ✅ BOOLEAN
-    if (fieldType === "boolean") {
-      payload[name] = i.checked ? 1 : 0;
-      return;
-    }
+      // ✅ BOOLEAN
+      if (fieldType === "boolean") {
+        payload[name] = i.checked ? 1 : 0;
+        return;
+      }
 
-    // 🔢 NUMBER / MONEY
-    if (fieldType === "number" || fieldType === "money") {
-      payload[name] = raw === "" ? null : Number(raw);
-      return;
-    }
+      // 🔢 NUMBER / MONEY
+      if (fieldType === "number" || fieldType === "money") {
+        payload[name] = raw === "" ? null : Number(raw);
+        return;
+      }
 
-    // 📝 DEFAULT (text, choice, lookup, etc.)
-    payload[name] = raw;
-  });
+      // 📝 DEFAULT (text, choice, lookup, etc.)
+      payload[name] = raw;
+    });
 
-  return payload;
-}
-
-// --------------------------------------------------
-// 🟣 LOAD CHOICE OPTIONS (for pill validation)
-// --------------------------------------------------
-async function loadChoiceOptions() {
-  choiceOptions = {};
-
-  const choiceCols = allColumns
-    .filter(c => c.fieldType === "choice")
-    .map(c => c.name);
-
-  for (const col of choiceCols) {
-    try {
-      const res = await fetch(`/api/column-choices/${encodeURIComponent(col)}`, {
-        cache: "no-store"
-      });
-
-      if (!res.ok) continue;
-
-      const json = await res.json();
-
-      choiceOptions[col] = (json.choices || []).map(c => choiceValue);
-    } catch (e) {
-      console.warn(`⚠️ Failed loading choices for ${col}`, e);
-    }
+    return payload;
   }
 
-  console.log("🟣 Loaded choice options:", choiceOptions);
-}
+  // --------------------------------------------------
+  // 🟣 LOAD CHOICE OPTIONS (for pill validation)
+  // Supports string[] OR object[] API responses
+  // --------------------------------------------------
+  async function loadChoiceOptions() {
+    choiceOptions = {};
+
+    const choiceCols = allColumns
+      .filter(c => c.fieldType === "choice")
+      .map(c => c.name);
+
+    for (const col of choiceCols) {
+      try {
+        const res = await fetch(
+          `/api/column-choices/${encodeURIComponent(col)}`,
+          { cache: "no-store" }
+        );
+
+        if (!res.ok) continue;
+
+        const json = await res.json();
+
+        console.log(`📦 Raw choices response for ${col}:`, json);
+
+        const normalized = (json.choices || [])
+          .map(c => {
+            // ✅ Handle BOTH strings and objects
+            if (typeof c === "string") {
+              return c.trim().toLowerCase();
+            }
+
+            const raw =
+              c.Value ??
+              c.value ??
+              c.ChoiceValue ??
+              c.choiceValue ??
+              c.Label ??
+              c.label ??
+              "";
+
+            return String(raw).trim().toLowerCase();
+          })
+          .filter(Boolean);
+
+        console.log(`🧪 Normalized choices for ${col}:`, normalized);
+
+        choiceOptions[col] = normalized;
+
+      } catch (e) {
+        console.warn(`⚠️ Failed loading choices for ${col}`, e);
+      }
+    }
+
+    console.log("🟣 Loaded choice options (final):", choiceOptions);
+  }
 
 
   // --------------------------------------------------
-// 📡 LOAD LEDGER (SQL-DRIVEN HEADERS)
-// --------------------------------------------------
-async function loadLedger() {
-  try {
-    console.log("📡 Fetching /api/ledger ...");
-    const res = await fetch("/api/ledger", { headers: { "Cache-Control": "no-cache" } });
-    const json = await res.json();
-    if (!json.rows) throw new Error(json.error || "No rows returned");
+  // 📡 LOAD LEDGER (SQL-DRIVEN HEADERS)
+  // --------------------------------------------------
+  async function loadLedger() {
+    try {
+      console.log("📡 Fetching /api/ledger ...");
+      const res = await fetch("/api/ledger", { headers: { "Cache-Control": "no-cache" } });
+      const json = await res.json();
+      if (!json.rows) throw new Error(json.error || "No rows returned");
 
-    originalLedgerData = [...json.rows];
-    ledgerData = [...json.rows];
-    // Columns now come from SQL with name + display
-// Example: { name: "VesselName", display: "Ship Name" }
-allColumns = (json.columns || []).filter(c => c && c.name);
+      originalLedgerData = [...json.rows];
+      ledgerData = [...json.rows];
+      // Columns now come from SQL with name + display
+  // Example: { name: "VesselName", display: "Ship Name" }
+  allColumns = (json.columns || []).filter(c => c && c.name);
+  window.allColumns = allColumns; // 🔑 expose globally
 
-// 🟣 Load valid choices for choice columns
-await loadChoiceOptions();
+  // 🟣 Load valid choices for choice columns
+  await loadChoiceOptions();
 
 
 
-// --------------------------------------------------
-// 🟣 Mark choice columns from API metadata
-// --------------------------------------------------
-choiceColumns.clear();
+  // --------------------------------------------------
+  // 🟣 Mark choice columns from API metadata
+  // --------------------------------------------------
+  choiceColumns.clear();
 
-allColumns.forEach(c => {
-  if (c.fieldType === "choice") {
-    choiceColumns.add(c.name);
+  allColumns.forEach(c => {
+    if (c.fieldType === "choice") {
+      choiceColumns.add(c.name);
+    }
+  });
+
+  console.log("🟣 Choice columns (from metadata):", [...choiceColumns]);
+
+  console.log("🟣 Choice columns:", [...choiceColumns]);
+
+      console.log("🧩 API columns raw:", allColumns);
+      console.log("🧩 First column entry type:", typeof allColumns[0]);
+      console.log("🧩 First column entry value:", allColumns[0]);
+
+  // --------------------------------------------------
+  // 🧠 RESTORE / DETERMINE VISIBLE COLUMNS
+  // --------------------------------------------------
+
+  // 1️⃣ Restore saved view state (from table_settings.js)
+  if (typeof window.loadViewState === "function") {
+    window.loadViewState();
   }
-});
 
-console.log("🟣 Choice columns (from metadata):", [...choiceColumns]);
-
-console.log("🟣 Choice columns:", [...choiceColumns]);
-
-    console.log("🧩 API columns raw:", allColumns);
-    console.log("🧩 First column entry type:", typeof allColumns[0]);
-    console.log("🧩 First column entry value:", allColumns[0]);
-
-    // --------------------------------------------------
-    // 🧭 DETERMINE VISIBLE COLUMNS
-    // --------------------------------------------------
-    // 💻📱 Show all columns on all devices (except CaseID)
-visibleColumns = allColumns.filter(c => c.name !== "CaseID");
-
-    renderTable(ledgerData);
-  } catch (err) {
-    console.error("❌ Ledger fetch failed:", err);
-    tableBody.innerHTML = `<tr><td colspan="7">⚠️ Error loading ledger.</td></tr>`;
+  // 2️⃣ Fallback if nothing restored (first visit)
+  if (!Array.isArray(window.visibleColumns) || window.visibleColumns.length === 0) {
+    window.visibleColumns = allColumns.filter(c => c.name !== "CaseID");
   }
-}
+
+  // 3️⃣ Render using resolved column order
+  renderTable(ledgerData);
+
+    } catch (err) {
+      console.error("❌ Ledger fetch failed:", err);
+      tableBody.innerHTML = `<tr><td colspan="7">⚠️ Error loading ledger.</td></tr>`;
+    }
+  }
 
 // --------------------------------------------------
 // 🧾 RENDER TABLE (SQL-DRIVEN HEADERS)
@@ -1200,21 +1238,31 @@ searchInput.oninput = (e) => {
 
 
 
-// --------------------------------------------------
-// 🔁 RESTORE SEARCH FROM URL
-// --------------------------------------------------
-function restoreSearchFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  const search = params.get("search");
+  // --------------------------------------------------
+  // 🔁 RESTORE SEARCH FROM URL
+  // --------------------------------------------------
+  function restoreSearchFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const search = params.get("search");
 
-  if (search) {
-    searchInput.value = search;
-    searchInput.dispatchEvent(new Event("input"));
+    if (search) {
+      searchInput.value = search;
+      searchInput.dispatchEvent(new Event("input"));
+    }
   }
-}
 
-// --------------------------------------------------
-// 🚀 INIT
-// --------------------------------------------------
-loadLedger().then(restoreSearchFromURL);
+  // --------------------------------------------------
+  // 🔁 External refresh hook (used by Table Settings)
+  // --------------------------------------------------
+  window.refreshLedgerView = function () {
+    // Re-render using current state:
+    // - visibleColumns (order + visibility)
+    // - ledgerData (current filtered/sorted rows)
+    renderTable(window.ledgerData);
+  };
+
+  // --------------------------------------------------
+  // 🚀 INIT
+  // --------------------------------------------------
+  loadLedger().then(restoreSearchFromURL);
 });
