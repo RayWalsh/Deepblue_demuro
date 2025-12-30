@@ -5,6 +5,7 @@
 
 <!-- ✅ GLOBAL TABLE STYLES -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/table_settings.css') }}">
 
 <!-- ✅ LEDGER-SPECIFIC STYLES -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ledger.css') }}">
@@ -105,25 +106,6 @@
   </div>
 </div>
 
-<!-- ===============================
-     ⚙️ Settings Modal
-     =============================== -->
-<div id="settingsModal" class="modal-overlay">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Ledger Settings</h3>
-      <button id="closeSettingsBtn" class="close-btn">&times;</button>
-    </div>
-
-    <div class="modal-body">
-      <h4>Ledger Preferences</h4>
-      <p>
-        Here you’ll soon be able to configure field options,
-        column visibility, and view preferences.
-      </p>
-    </div>
-  </div>
-</div>
 
 <!-- =========================================
      Edit Column Side Modal (Shell Only)
@@ -198,6 +180,11 @@
   </button>
 </div>
 
+<!-- ===============================
+     ⚙️ Table Settings Modal (Reusable)
+     =============================== -->
+{% include "_table_settings_modal.html" %}
 
+<script src="{{ url_for('static', filename='js/table_settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
 {% endblock %}

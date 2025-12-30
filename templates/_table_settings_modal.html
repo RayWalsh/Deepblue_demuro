@@ -1,0 +1,38 @@
+<!-- ===============================
+     ⚙️ Table View Settings Modal
+     (Side Modal – unified system)
+     =============================== -->
+<div id="tableSettingsModal"
+     class="side-modal"
+     data-table="ledger">
+
+  <!-- Header -->
+  <div class="side-modal-header">
+    <h3>Edit view columns</h3>
+    <button id="closeTableSettingsBtn" class="close-btn">&times;</button>
+  </div>
+
+  <!-- Body -->
+  <div class="side-modal-body table-settings-body">
+    <p class="muted">
+      Select the columns to display and use the arrows to change their order.
+    </p>
+
+    <ul
+      id="tableSettingsColumnList"
+      class="table-settings-list"
+      role="listbox">
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="side-modal-footer">
+    <button id="cancelTableSettingsBtn" class="secondary-btn">
+      Cancel
+    </button>
+    <button id="applyTableSettingsBtn" class="primary-btn">
+      Apply
+    </button>
+  </div>
+
+</div>
