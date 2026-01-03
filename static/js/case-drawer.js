@@ -106,12 +106,18 @@
       `;
     }
 
-    if (type === "number") {
+    if (type === "number" || type === "money") {
       const numVal = value === "" ? "" : value;
       return `
         <label class="form-row">
           <span>${safeHtml(label)}</span>
-          <input type="number" value="${safeHtml(numVal)}" data-key="${safeHtml(key)}" ${disabledAttr} />
+          <input
+            type="number"
+            step="0.01"
+            value="${safeHtml(numVal)}"
+            data-key="${safeHtml(key)}"
+            ${disabledAttr}
+          />
         </label>
       `;
     }
@@ -150,8 +156,11 @@
   // Map metadata GroupName -> your 3 tabs
   function groupToTabKey(groupName) {
     const g = String(groupName || "").toLowerCase();
+
     if (g.includes("charter")) return "charterparty";
+    if (g.includes("claim")) return "claim";          // ✅ ADD
     if (g.includes("rate") || g.includes("laytime")) return "rates";
+
     return "general";
   }
 
@@ -159,9 +168,10 @@
     const modal = document.getElementById("editCaseModal");
     const panelGeneral = document.getElementById("edit-general");
     const panelCP = document.getElementById("edit-charterparty");
+    const panelClaim = document.getElementById("edit-claim");
     const panelRates = document.getElementById("edit-rates");
 
-    if (!modal || !panelGeneral || !panelCP || !panelRates) {
+    if (!modal || !panelGeneral || !panelCP || !panelRates || !panelClaim) {
       console.warn("❌ Edit case modal structure missing");
       return;
     }
@@ -183,6 +193,7 @@
     panelGeneral.innerHTML = `<p class="muted">Loading…</p>`;
     panelCP.innerHTML = `<p class="muted">Loading…</p>`;
     panelRates.innerHTML = `<p class="muted">Loading…</p>`;
+    panelClaim.innerHTML = `<p class="muted">Loading…</p>`;
 
     // --------------------------------------------------
     // 📡 Load metadata (allowed)
@@ -209,6 +220,7 @@
     let htmlGeneral = "";
     let htmlCP = "";
     let htmlRates = "";
+    let htmlClaim = "";
 
     for (const field of visible) {
       const key = field.ColumnName;
@@ -225,6 +237,7 @@
       const tabKey = groupToTabKey(field.GroupName);
 
       if (tabKey === "charterparty") htmlCP += fieldHtml;
+      else if (tabKey === "claim") htmlClaim += fieldHtml;   // ✅ ADD
       else if (tabKey === "rates") htmlRates += fieldHtml;
       else htmlGeneral += fieldHtml;
     }
@@ -235,6 +248,8 @@
       htmlCP || `<p class="muted">No fields.</p>`;
     panelRates.innerHTML =
       htmlRates || `<p class="muted">No fields.</p>`;
+    panelClaim.innerHTML =
+      htmlClaim || `<p class="muted">No fields.</p>`;
   }
 
   function coerceValue(inputEl) {

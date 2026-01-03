@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from sqlalchemy import text
 from utils import get_db_connection, login_required
+from datetime import date, datetime
 
 case_bp = Blueprint("case_bp", __name__)
 
@@ -82,6 +83,25 @@ def case_dashboard(case_id):
                 )
 
             case = dict(row._mapping)
+
+            # -----------------------------
+            # Days Open (Claim)
+            # -----------------------------
+            claim_filed = case.get("ClaimFiled")
+            agreed_date = case.get("AgreedDate")
+
+            days_open = None
+
+            if claim_filed:
+                start = claim_filed.date() if isinstance(claim_filed, datetime) else claim_filed
+                end = (
+                    agreed_date.date()
+                    if agreed_date
+                    else date.today()
+                )
+                days_open = (end - start).days
+
+            case["DaysOpen"] = days_open
 
         return render_template("case-dashboard.html", case=case)
 
@@ -184,7 +204,7 @@ def update_case(case_id):
     # Try to read editable columns from metadata; if table missing, fall back to payload keys
     try:
         with get_db_connection() as conn:
-            rows = conn.execute(text("SELECT ColumnName FROM dbo.CaseMetadata WHERE IsEditable = 1")).fetchall()
+            rows = conn.execute(text("SELECT ColumnName FROM dbo.ColumnMeta WHERE IsEditable = 1")).fetchall()
             editable_cols = {r[0] for r in rows}
     except Exception as e:
         print("⚠️ CaseMetadata lookup failed, falling back to payload keys:", e)

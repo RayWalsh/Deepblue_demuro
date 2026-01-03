@@ -100,25 +100,42 @@
     Owners Under Negotiation
   </div>
 
-  <!-- KPI row -->
   <div class="kpi-row">
 
-    <div class="kpi">
-      <div class="kpi-label">Claim Filed</div>
-      <div class="kpi-value">USD 425,000</div>
+  <div class="kpi">
+    <div class="kpi-label">Claim Filed</div>
+    <div class="kpi-value">
+      {% if case.InitialClaim %}
+        USD {{ "{:,.2f}".format(case.InitialClaim) }}
+      {% else %}
+        —
+      {% endif %}
     </div>
-
-    <div class="kpi">
-      <div class="kpi-label">Agreed Amount</div>
-      <div class="kpi-value muted">—</div>
-    </div>
-
-    <div class="kpi">
-      <div class="kpi-label">Days Open</div>
-      <div class="kpi-value">38</div>
-    </div>
-
   </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Agreed Amount</div>
+    <div class="kpi-value muted">
+      {% if case.AgreedAmount %}
+        USD {{ "{:,.2f}".format(case.AgreedAmount) }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kpi-label">Days Open</div>
+    <div class="kpi-value">
+      {% if case.DaysOpen is not none %}
+        {{ case.DaysOpen }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+  </div>
+
+</div>
 
   <!-- Meta row -->
   <div class="claim-meta">
@@ -394,40 +411,6 @@
 
 
 
-<!-- =========================
-     EDIT CASE MODAL (REAL INSTANCE)
-========================= -->
-<div id="editCaseModal" class="side-modal" role="dialog" aria-modal="true" aria-labelledby="editCaseModal-title">
-  <div class="side-modal-header">
-    <h3 id="editCaseModal-title">Edit Case</h3>
 
-    <button type="button" class="close-btn" data-side-modal-close aria-label="Close">
-      &times;
-    </button>
-  </div>
-
-  <div class="side-modal-body" id="editCaseModalBody">
-
-  <!-- Tabs -->
-  <div class="drawer-tabs" id="editCaseTabs">
-    <button type="button" class="drawer-tab active" data-tab="general">General</button>
-    <button type="button" class="drawer-tab" data-tab="charterparty">Charterparty</button>
-    <button type="button" class="drawer-tab" data-tab="rates">Laytime & Rates</button>
-  </div>
-
-  <!-- Panels -->
-  <div class="drawer-panel active" id="edit-general"></div>
-  <div class="drawer-panel" id="edit-charterparty"></div>
-  <div class="drawer-panel" id="edit-rates"></div>
-
-</div>
-
-  <div class="side-modal-footer">
-    <button type="button" class="btn-secondary" data-side-modal-close>Cancel</button>
-    <button type="button" class="btn-primary" id="saveCaseBtn">Save Changes</button>
-  </div>
-</div>
-
-<div class="side-modal-overlay"></div>
 
 {% endblock %}

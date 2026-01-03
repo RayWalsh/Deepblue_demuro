@@ -27,6 +27,19 @@ window.CASE_EDIT_SCHEMA = {
     ]
   },
 
+  claim: {
+    title: "Claim Info",
+    fields: [
+      { key: "ClaimFiled", label: "Claim Submitted Date", type: "date" },
+      { key: "ClaimReceived", label: "Claim Received", type: "date" },
+      { key: "InitialClaim", label: "Initial Claim", type: "number" },
+      { key: "ClaimFiledAmount", label: "Claim Filed Amount", type: "number" },
+      { key: "ClaimStatus", label: "Claim Status", type: "text" },
+      { key: "ClaimType", label: "Claim Type", type: "text" },
+      { key: "ClaimNotes", label: "Claim Notes", type: "text" }
+    ]
+  },
+
   rates: {
     title: "Laytime & Rates",
     fields: [

@@ -1,0 +1,30 @@
+<!-- Edit Case Side Modal -->
+<div id="editCaseModal" class="side-modal" role="dialog" aria-modal="true">
+  <div class="side-modal-header">
+    <h3>Edit Case</h3>
+    <button type="button" class="close-btn" data-side-modal-close>&times;</button>
+  </div>
+
+  <div class="side-modal-body">
+
+    <div class="drawer-tabs">
+      <button class="drawer-tab active" data-tab="general">General</button>
+      <button class="drawer-tab" data-tab="charterparty">Charterparty</button>
+      <button class="drawer-tab" data-tab="claim">Claim</button>
+      <button class="drawer-tab" data-tab="rates">Laytime & Rates</button>
+    </div>
+
+    <div class="drawer-panel active" id="edit-general"></div>
+    <div class="drawer-panel" id="edit-charterparty"></div>
+    <div class="drawer-panel" id="edit-claim"></div>
+    <div class="drawer-panel" id="edit-rates"></div>
+
+  </div>
+
+  <div class="side-modal-footer">
+    <button class="btn-secondary" data-side-modal-close>Cancel</button>
+    <button class="btn-primary" id="saveCaseBtn">Save Changes</button>
+  </div>
+</div>
+
+<div class="side-modal-overlay"></div>
