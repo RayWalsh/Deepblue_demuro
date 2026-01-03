@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/side-modal.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% endblock %}
@@ -106,6 +107,8 @@
       document.getElementById('user-menu').classList.toggle('show');
     }
   </script>
+  <script src="{{ url_for('static', filename='js/case-drawer.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/side-modal.js') }}"></script>
   <div id="toast" class="toast hidden"></div>
 </body>
 </html>

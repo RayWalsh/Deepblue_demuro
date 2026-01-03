@@ -3,30 +3,135 @@ from flask import Blueprint, render_template, request, jsonify
 from sqlalchemy import text
 from utils import get_db_connection, login_required
 
-case_bp = Blueprint('case_bp', __name__)
+case_bp = Blueprint("case_bp", __name__)
 
-@case_bp.route('/case/<int:case_id>')
+# ==================================================
+# 🔧 HELPERS
+# ==================================================
+
+def get_editable_case_fields(conn):
+    """
+    Returns a set of column names that are editable,
+    derived from dbo.ColumnMeta (single source of truth).
+    """
+    result = conn.execute(
+        text("""
+            SELECT ColumnName
+            FROM dbo.ColumnMeta
+            WHERE IsEditable = 1
+        """)
+    )
+    return {row.ColumnName for row in result.fetchall()}
+
+
+# ==================================================
+# 📄 VIEW CASE (LEGACY / SIMPLE)
+# ==================================================
+
+@case_bp.route("/case/<int:case_id>")
 @login_required
 def view_case(case_id):
     try:
         with get_db_connection() as conn:
-            result = conn.execute(text("SELECT * FROM dbo.Cases WHERE CaseID = :id"), {"id": case_id})
+            result = conn.execute(
+                text("SELECT * FROM dbo.Cases WHERE CaseID = :id"),
+                {"id": case_id}
+            )
             row = result.fetchone()
 
             if not row:
-                return render_template('case.html', error="Case not found", case_id=case_id)
+                return render_template(
+                    "case.html",
+                    error="Case not found",
+                    case_id=case_id
+                )
 
-            case = dict(row._mapping)  # Convert Row object to dict
+            case = dict(row._mapping)
+
+        return render_template("case.html", case=case)
 
     except Exception as e:
         print(f"❌ Error fetching case {case_id}:", e)
-        return render_template('case.html', error="Database error", case_id=case_id)
+        return render_template(
+            "case.html",
+            error="Database error",
+            case_id=case_id
+        )
 
-    return render_template('case.html', case=case)
 
-# --------------------------------------------------
+# ==================================================
+# 📊 CASE DASHBOARD (NEW UI)
+# ==================================================
+
+@case_bp.route("/case-dashboard/<int:case_id>")
+@login_required
+def case_dashboard(case_id):
+    try:
+        with get_db_connection() as conn:
+            result = conn.execute(
+                text("SELECT * FROM dbo.Cases WHERE CaseID = :id"),
+                {"id": case_id}
+            )
+            row = result.fetchone()
+
+            if not row:
+                return render_template(
+                    "case-dashboard.html",
+                    error="Case not found",
+                    case_id=case_id
+                )
+
+            case = dict(row._mapping)
+
+        return render_template("case-dashboard.html", case=case)
+
+    except Exception as e:
+        print(f"❌ Error fetching case {case_id}:", e)
+        return render_template(
+            "case-dashboard.html",
+            error="Database error",
+            case_id=case_id
+        )
+
+
+# ==================================================
+# 📦 CASE JSON (CLIENT USE)
+# ==================================================
+
+@case_bp.route("/api/case/<int:case_id>", methods=["GET"])
+@login_required
+def get_case_json(case_id):
+    try:
+        with get_db_connection() as conn:
+            result = conn.execute(
+                text("SELECT * FROM dbo.Cases WHERE CaseID = :id"),
+                {"id": case_id}
+            )
+            row = result.fetchone()
+
+            if not row:
+                return jsonify({
+                    "success": False,
+                    "error": "Case not found"
+                }), 404
+
+            return jsonify({
+                "success": True,
+                "case": dict(row._mapping)
+            })
+
+    except Exception as e:
+        print("❌ Error loading case JSON:", e)
+        return jsonify({
+            "success": False,
+            "error": "Database error"
+        }), 500
+
+
+# ==================================================
 # 🧩 CASE METADATA (UI STRUCTURE)
-# --------------------------------------------------
+# ==================================================
+
 @case_bp.route("/api/case-metadata", methods=["GET"])
 @login_required
 def get_case_metadata():
@@ -49,8 +154,7 @@ def get_case_metadata():
             """))
 
             rows = result.fetchall()
-            columns = list(result.keys())
-            metadata = [dict(zip(columns, row)) for row in rows]
+            metadata = [dict(row._mapping) for row in rows]
 
         return jsonify({
             "success": True,
@@ -64,117 +168,64 @@ def get_case_metadata():
             "error": "Failed to load case metadata"
         }), 500
 
-@case_bp.route("/api/case/<int:case_id>", methods=["GET"])
-@login_required
-def get_case_json(case_id):
-    try:
-        with get_db_connection() as conn:
-            result = conn.execute(
-                text("SELECT * FROM dbo.Cases WHERE CaseID = :id"),
-                {"id": case_id}
-            )
-            row = result.fetchone()
-            if not row:
-                return jsonify({"success": False, "error": "Case not found"}), 404
 
-            return jsonify({
-                "success": True,
-                "case": dict(row._mapping)
-            })
+# ==================================================
+# ✏️ UPDATE CASE (SIDE MODAL SAVE)
+# ==================================================
 
-    except Exception as e:
-        print("❌ Error loading case JSON:", e)
-        return jsonify({"success": False, "error": "DB error"}), 500
-
-
-
-@case_bp.route("/update-case/<int:case_id>", methods=["POST"])
+@case_bp.route('/update-case/<int:case_id>', methods=['POST'])
 @login_required
 def update_case(case_id):
-    data = request.json
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
+    print("🟡 update_case called (case_bp)")
+    payload = request.get_json() or {}
+    print(f"🟡 CaseID: {case_id}")
+    print(f"🟡 Incoming payload: {payload}")
 
-    # Normalise empty strings and "None" → NULL
-    for k, v in list(data.items()):
-        if isinstance(v, str):
-            v_strip = v.strip()
-            if v_strip == "" or v_strip.lower() == "none":
-                data[k] = None
+    # Try to read editable columns from metadata; if table missing, fall back to payload keys
+    try:
+        with get_db_connection() as conn:
+            rows = conn.execute(text("SELECT ColumnName FROM dbo.CaseMetadata WHERE IsEditable = 1")).fetchall()
+            editable_cols = {r[0] for r in rows}
+    except Exception as e:
+        print("⚠️ CaseMetadata lookup failed, falling back to payload keys:", e)
+        editable_cols = set(payload.keys())
 
-    # Allow only known fields
-    allowed_fields = {
-        "ClientName",
-        "VesselName",
-        "VoyageNumber",
-        "VoyageEndDate",
-        "CPType",
-        "CPForm",
-        "OwnersName",
-        "BrokersName",
-        "CharterersName",
-        "Layday",
-        "Cancelling",
-        "LoadingRate",
-        "DischargingRate",
-        "DemurrageRate",
-        "InitialClaim",
-        "NoticeReceived",
-        "ClaimReceived",
-        "NoticeDays",
-        "ClaimDays",
-        "ContractType",
-        "ClaimType",
-        "ClaimFiledAmount",
-        "ClaimStatus",
-        "Reversible",
-        "LumpsumHours",
-        "CalculationType",
-        "TotalAllowedLaytime",
-        "TotalTimeUsed",
-        "TotalTimeOnDemurrage",
-        "TotalDemurrageCost",
-        "AgreedAmount",
-        "AgreedDate",
-        "PaidDate",
-        "ContactName",
-        "InvoiceNumber",
-        "CalculatorNotes"
-    }
+    # Validate column names to avoid SQL injection (letters, numbers, underscore)
+    import re
+    valid_name = re.compile(r'^[A-Za-z0-9_]+$')
 
-    fields_to_update = {k: v for k, v in data.items() if k in allowed_fields}
+    updates = {k: v for k, v in payload.items() if isinstance(k, str) and valid_name.match(k) and k in editable_cols}
+    if not updates:
+        return jsonify(success=True, message="No changes"), 200
 
-    if not fields_to_update:
-        return jsonify({"error": "No valid fields to update"}), 400
-
-    set_clause = ", ".join([f"{key} = :{key}" for key in fields_to_update])
-    fields_to_update["CaseID"] = case_id
-
-    query = f"""
-        UPDATE dbo.Cases
-        SET {set_clause}
-        WHERE CaseID = :CaseID
-    """
+    set_clause = ", ".join(f"[{k}] = :{k}" for k in updates.keys())
+    sql = text(f"UPDATE Cases SET {set_clause} WHERE CaseID = :case_id")
+    params = {**updates, "case_id": case_id}
 
     try:
         with get_db_connection() as conn:
-            conn.execute(text(query), fields_to_update)
+            conn.execute(sql, params)
             conn.commit()
-    except Exception as e:
-        print(f"❌ Error updating case {case_id}:", e)
-        return jsonify({"error": "Database update failed"}), 500
+        return jsonify(success=True), 200
+    except Exception as err:
+        print(f"❌ Error updating case {case_id}:", err)
+        try:
+            with get_db_connection() as conn:
+                conn.rollback()
+        except Exception:
+            pass
+        return jsonify(success=False, error=str(err)), 500
+    
+    
+# ==================================================
+# 🧩 COLUMN METADATA (SINGLE COLUMN)
+# ==================================================
 
-    return jsonify({"success": True})
-
-# --------------------------------------------------
-# 🧩 COLUMN METADATA (Single column + choices)
-# --------------------------------------------------
 @case_bp.route("/api/column-metadata/<column_name>", methods=["GET"])
 @login_required
 def get_column_metadata(column_name):
     try:
         with get_db_connection() as conn:
-            # 1️⃣ Load column meta
             meta_result = conn.execute(
                 text("""
                     SELECT
@@ -199,7 +250,6 @@ def get_column_metadata(column_name):
 
             column = dict(meta_row._mapping)
 
-            # 2️⃣ Load choices (only if choice field)
             choices = []
             if column.get("FieldType") == "choice":
                 choice_result = conn.execute(
@@ -215,8 +265,7 @@ def get_column_metadata(column_name):
                     {"col": column_name}
                 )
 
-                choice_rows = choice_result.fetchall()
-                choices = [dict(row._mapping) for row in choice_rows]
+                choices = [dict(row._mapping) for row in choice_result.fetchall()]
 
         return jsonify({
             "success": True,
@@ -231,9 +280,11 @@ def get_column_metadata(column_name):
             "error": "Failed to load column metadata"
         }), 500
 
-# --------------------------------------------------
-# 🧩 COLUMN CHOICES (Choice / Lookup fields)
-# --------------------------------------------------
+
+# ==================================================
+# 🧩 COLUMN CHOICES (LOOKUP)
+# ==================================================
+
 @case_bp.route("/api/column-choices/<column_name>", methods=["GET"])
 @login_required
 def get_column_choices(column_name):
@@ -252,8 +303,7 @@ def get_column_choices(column_name):
                 {"col": column_name}
             )
 
-            rows = result.fetchall()
-            choices = [row.ChoiceValue for row in rows]
+            choices = [row.ChoiceValue for row in result.fetchall()]
 
         return jsonify({
             "success": True,

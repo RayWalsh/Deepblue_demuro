@@ -394,8 +394,8 @@ function renderTable(rows) {
         td.classList.add("row-action");        // ✅ CSS now applies
         td.title = "Click to edit case";
         td.addEventListener("click", () => {
-  window.location.href = `/case/${row.CaseID}`;
-});
+          window.location.href = `/case-dashboard/${row.CaseID}`;
+        });
       }
 
       tr.appendChild(td);

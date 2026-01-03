@@ -2,6 +2,8 @@
 // 📄 case.js — Unified metadata-driven Case View + Edit + Save UX
 // Replaces legacy static form logic + case-metadata.js
 // =========================================
+console.warn("⚠️ case.js loaded — INLINE CASE EDITING DISABLED");
+return;
 
 document.addEventListener("DOMContentLoaded", async () => {
   // --------------------------------------------------

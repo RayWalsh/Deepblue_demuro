@@ -1,0 +1,75 @@
+<!-- ============================================
+     SIDE MODAL — REUSABLE SHELL
+     Proven layout: fixed header + footer
+     Scrollable body
+     ============================================ -->
+
+<div
+  id="editCaseModal"
+  class="side-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="editCaseModal-title"
+>
+
+  <!-- ===============================
+       HEADER
+       =============================== -->
+  <div class="side-modal-header">
+    <h3 id="editCaseModal-title">Edit Case</h3>
+
+    <button
+      type="button"
+      class="close-btn"
+      aria-label="Close"
+      data-side-modal-close
+    >
+      &times;
+    </button>
+  </div>
+
+  <!-- ===============================
+       BODY (SCROLLABLE)
+       =============================== -->
+  <div class="side-modal-body">
+
+    <!-- Tabs -->
+    <div class="edit-drawer-tabs">
+      <button class="drawer-tab active" data-tab="general">General</button>
+      <button class="drawer-tab" data-tab="charterparty">Charterparty</button>
+      <button class="drawer-tab" data-tab="rates">Laytime & Rates</button>
+    </div>
+
+    <!-- Panels -->
+    <div class="drawer-panel active" id="edit-general">
+      <!-- General form injected here -->
+    </div>
+
+    <div class="drawer-panel" id="edit-charterparty">
+      <!-- Charterparty form injected here -->
+    </div>
+
+    <div class="drawer-panel" id="edit-rates">
+      <!-- Rates form injected here -->
+    </div>
+
+  </div>
+
+  <!-- ===============================
+       FOOTER (FIXED)
+       =============================== -->
+  <div class="side-modal-footer">
+    <button type="button" class="btn-secondary" data-side-modal-close>
+      Cancel
+    </button>
+    <button type="button" class="btn-primary" id="saveEdit">
+      Save Changes
+    </button>
+  </div>
+
+</div>
+
+<!-- ===============================
+     SHARED OVERLAY (ONE PER PAGE)
+     =============================== -->
+<div class="side-modal-overlay"></div>

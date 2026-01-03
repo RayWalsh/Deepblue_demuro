@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+{% block title %}Case Dashboard{% endblock %}
+{% block body_class %}case-dashboard case-dashboard-page{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/case-dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<script id="case-data" type="application/json">
+  {{ case | tojson }}
+</script>
+
+<script>
+  window.caseData = JSON.parse(
+    document.getElementById("case-data").textContent
+  );
+</script>
+
+
+
+<!-- =========================
+     CASE HEADER
+========================= -->
+<header class="case-header">
+  <div class="case-header-left">
+    <h1>
+      {{ case.DeepBlueRef }}
+      <span class="vessel">— {{ case.VesselName }}</span>
+    </h1>
+
+    <div class="case-pills">
+      <span class="pill">Voyage {{ case.VoyageNumber }}</span>
+      <span class="pill">CP {{ case.CPDate }}</span>
+      <span class="pill">{{ case.CharterersName }}</span>
+    </div>
+  </div>
+
+  <div class="case-header-right">
+    <button class="icon-btn" title="Settings">
+      <i class="fas fa-sliders-h"></i>
+    </button>
+    <button class="icon-btn" id="editCaseBtn" title="Edit">
+      <i class="fas fa-pen"></i>
+    </button>
+  </div>
+</header>
+
+<!-- =========================
+     TABS
+========================= -->
+<section class="case-tabs">
+
+  <div class="tab-bar">
+    <button class="tab active" data-tab="info">Case Info</button>
+    <button class="tab" data-tab="laytime">Laytime</button>
+    <button class="tab" data-tab="port-1">Port: Rotterdam</button>
+    <button class="tab" data-tab="port-2">Port: Houston</button>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- =========================
+         TAB: CASE INFO
+    ========================== -->
+    <div class="tab-panel active" id="tab-info">
+
+<div class="case-dashboard">
+
+  <!-- ✅ HERO: GENERAL INFO (FULL WIDTH) -->
+  <section class="panel panel-general-info panel-hero">
+    <h2>General Info</h2>
+
+    <div class="kv-grid">
+      <div class="kv"><span>Client</span><strong>{{ case.ClientName }}</strong></div>
+      <div class="kv"><span>Vessel</span><strong>{{ case.VesselName }}</strong></div>
+      <div class="kv"><span>Voyage No.</span><strong>{{ case.VoyageNumber }}</strong></div>
+      <div class="kv"><span>Deep Blue Ref</span><strong>{{ case.DeepBlueRef }}</strong></div>
+      <div class="kv"><span>Charterer</span><strong>{{ case.CharterersName }}</strong></div>
+      <div class="kv"><span>Owners</span><strong>{{ case.OwnersName }}</strong></div>
+      <div class="kv"><span>Broker</span><strong>{{ case.BrokersName }}</strong></div>
+      <div class="kv"><span>Contact</span><strong>{{ case.ContactName }}</strong></div>
+      <div class="kv"><span>CP Date</span><strong>{{ case.CPDate }}</strong></div>
+      <div class="kv"><span>Voyage End</span><strong>{{ case.VoyageEndDate }}</strong></div>
+    </div>
+  </section>
+
+        <!-- LEFT: MAIN PANELS -->
+        <main class="dashboard-main">
+
+<!-- CLAIM -->
+  <section class="panel claim-panel">
+  <h2>Claim & Status</h2>
+
+  <!-- Primary status -->
+  <div class="claim-status warning">
+    <i class="fas fa-comments-dollar"></i>
+    Owners Under Negotiation
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+
+    <div class="kpi">
+      <div class="kpi-label">Claim Filed</div>
+      <div class="kpi-value">USD 425,000</div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Agreed Amount</div>
+      <div class="kpi-value muted">—</div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Days Open</div>
+      <div class="kpi-value">38</div>
+    </div>
+
+  </div>
+
+  <!-- Meta row -->
+  <div class="claim-meta">
+    <span><strong>Claim Received:</strong> 04 Aug 2025</span>
+    <span><strong>Last Action:</strong> 12 Sep 2025</span>
+  </div>
+</section>
+
+          <!-- NOTICES -->
+          <section class="panel notices-panel">
+
+  <h2>Notices</h2>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+
+    <!-- DAYS TO TIMEBAR -->
+    <div class="kpi critical">
+      <div class="kpi-label">Days to Timebar</div>
+      <div class="kpi-value">12</div>
+    </div>
+
+    <!-- TIMEBAR DATE -->
+    <div class="kpi neutral">
+      <div class="kpi-label">Timebar Date</div>
+      <div class="kpi-value">15 Oct 2025</div>
+    </div>
+
+    <!-- NEXT NOTICE -->
+    <div class="kpi warning">
+      <div class="kpi-label">Next Notice Due</div>
+      <div class="kpi-value">In 3 Days</div>
+    </div>
+
+  </div>
+
+  <!-- ACTION CALLOUT -->
+  <div class="notice-callout critical">
+    <strong>Action required</strong><br>
+    Next notice must be sent within <strong>3 days</strong> to protect the claim.
+  </div>
+
+</section>
+
+
+
+  <!-- CHARTERPARTY -->
+  <section class="panel panel-charterparty">
+    <h2>Charterparty</h2>
+
+    <div class="kv-grid">
+      <div class="kv"><span>CP Type</span><strong>{{ case.CPType }}</strong></div>
+      <div class="kv"><span>CP Form</span><strong>{{ case.CPForm }}</strong></div>
+      <div class="kv"><span>Contract Type</span><strong>{{ case.ContractType }}</strong></div>
+      <div class="kv"><span>Layday</span><strong>{{ case.Layday }}</strong></div>
+      <div class="kv"><span>Cancelling</span><strong>{{ case.Cancelling }}</strong></div>
+      <div class="kv">
+        <span>Reversible</span>
+        <strong>{{ "Yes" if case.Reversible else "No" }}</strong>
+      </div>
+      <div class="kv"><span>Calculation Type</span><strong>{{ case.CalculationType }}</strong></div>
+    </div>
+  </section>
+          
+          
+
+  <!-- LAYTIME & RATES -->
+  <section class="panel laytime-panel">
+
+  <h2>Laytime & Rates</h2>
+
+  <div class="kv-grid">
+
+    <!-- RATES -->
+    <div class="kv">
+      <div class="kv-label">Loading Rate</div>
+      <div class="kv-value">{{ case.LoadingRate }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="kv-label">Discharging Rate</div>
+      <div class="kv-value">{{ case.DischargingRate }}</div>
+    </div>
+
+    <div class="kv">
+  <div class="kv-label">Demurrage Rate</div>
+  <div class="kv-value money">{{ case.DemurrageRate }}</div>
+</div>
+
+    <div class="kv">
+      <div class="kv-label">Dispatch Rate</div>
+      <div class="kv-value">
+        {{ case.DispatchRate or "—" }}
+      </div>
+    </div>
+
+    <!-- STRUCTURE -->
+    <div class="kv">
+      <div class="kv-label">Laytime Type</div>
+      <div class="kv-value">{{ case.CalculationType }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="kv-label">Reversible</div>
+      <div class="kv-value">
+        {% if case.Reversible %}Yes{% else %}No{% endif %}
+      </div>
+    </div>
+
+    <div class="kv">
+      <div class="kv-label">Lumpsum Hours</div>
+      <div class="kv-value">{{ case.LumpsumHours }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="kv-label">Allowed Laytime</div>
+      <div class="kv-value">{{ case.TotalAllowedLaytime }}</div>
+    </div>
+
+  </div>
+
+</section>
+
+  
+
+          <!-- TOTALS -->
+          <section class="panel totals-panel">
+  <h2>Calculated Totals</h2>
+
+  <!-- Laytime outcome -->
+  <div class="totals-status danger">
+    <i class="fas fa-clock"></i>
+    On Demurrage
+  </div>
+
+  <!-- Laytime KPIs -->
+  <div class="kpi-row">
+
+    <div class="kpi">
+      <div class="kpi-label">Allowed Laytime</div>
+      <div class="kpi-value">120.00 hrs</div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Time Used</div>
+      <div class="kpi-value">138.25 hrs</div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Excess Time</div>
+      <div class="kpi-value">18.25 hrs</div>
+    </div>
+
+  </div>
+
+  <!-- Financial KPIs -->
+  <div class="kpi-row">
+
+    <div class="kpi">
+      <div class="kpi-label">Demurrage Rate</div>
+      <div class="kpi-value">USD 25,000 / day</div>
+    </div>
+
+    <div class="kpi highlight">
+      <div class="kpi-label">Total Demurrage</div>
+      <div class="kpi-value">USD 456,250</div>
+    </div>
+
+  </div>
+
+  <!-- Agreement info -->
+  <div class="totals-meta">
+    <span><strong>Agreed Amount:</strong> USD 380,000</span>
+    <span><strong>Agreed Date:</strong> 12 Sep 2025</span>
+  </div>
+</section>
+
+        </main>
+
+        <!-- RIGHT: FILES -->
+       <aside class="panel files-panel">
+
+  <div class="files-header">
+    <h2>Documents</h2>
+
+    <button class="upload-btn">
+      <i class="fas fa-upload"></i>
+      Upload
+    </button>
+  </div>
+
+  <div class="files-dropzone">
+    Drag & drop files here or click Upload
+  </div>
+
+  <ul class="file-list">
+
+    <li class="file-item">
+      <i class="fas fa-file-contract"></i>
+
+      <div class="file-meta">
+        <span class="file-name">Charterparty.pdf</span>
+        <span class="file-info">
+          Uploaded • 12 Sep
+        </span>
+      </div>
+
+      <div class="file-actions">
+        <i class="fas fa-eye" title="Open"></i>
+        <i class="fas fa-download" title="Download"></i>
+      </div>
+    </li>
+
+    <li class="file-item generated">
+      <i class="fas fa-calculator"></i>
+
+      <div class="file-meta">
+        <span class="file-name">Demurrage Calculation.pdf</span>
+        <span class="file-info">
+          Generated • 14 Sep
+        </span>
+      </div>
+
+      <div class="file-actions">
+        <i class="fas fa-eye"></i>
+        <i class="fas fa-download"></i>
+      </div>
+    </li>
+
+  </ul>
+
+  <div class="files-footer">
+    <span class="missing-doc">
+      ⚠️ Statement of Facts not uploaded
+    </span>
+  </div>
+
+</aside>
+
+
+      </div>
+    </div>
+
+    <!-- =========================
+         TAB: LAYTIME
+    ========================== -->
+    <div class="tab-panel" id="tab-laytime">
+      <div class="panel placeholder">
+        Laytime calculation coming soon
+      </div>
+    </div>
+
+    <!-- =========================
+         TAB: PORT 1
+    ========================== -->
+    <div class="tab-panel" id="tab-port-1">
+      <div class="panel placeholder">
+        Statement of Facts – Rotterdam
+      </div>
+    </div>
+
+    <!-- =========================
+         TAB: PORT 2
+    ========================== -->
+    <div class="tab-panel" id="tab-port-2">
+      <div class="panel placeholder">
+        Statement of Facts – Houston
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+
+<!-- =========================
+     EDIT CASE MODAL (REAL INSTANCE)
+========================= -->
+<div id="editCaseModal" class="side-modal" role="dialog" aria-modal="true" aria-labelledby="editCaseModal-title">
+  <div class="side-modal-header">
+    <h3 id="editCaseModal-title">Edit Case</h3>
+
+    <button type="button" class="close-btn" data-side-modal-close aria-label="Close">
+      &times;
+    </button>
+  </div>
+
+  <div class="side-modal-body" id="editCaseModalBody">
+
+  <!-- Tabs -->
+  <div class="drawer-tabs" id="editCaseTabs">
+    <button type="button" class="drawer-tab active" data-tab="general">General</button>
+    <button type="button" class="drawer-tab" data-tab="charterparty">Charterparty</button>
+    <button type="button" class="drawer-tab" data-tab="rates">Laytime & Rates</button>
+  </div>
+
+  <!-- Panels -->
+  <div class="drawer-panel active" id="edit-general"></div>
+  <div class="drawer-panel" id="edit-charterparty"></div>
+  <div class="drawer-panel" id="edit-rates"></div>
+
+</div>
+
+  <div class="side-modal-footer">
+    <button type="button" class="btn-secondary" data-side-modal-close>Cancel</button>
+    <button type="button" class="btn-primary" id="saveCaseBtn">Save Changes</button>
+  </div>
+</div>
+
+<div class="side-modal-overlay"></div>
+
+{% endblock %}
