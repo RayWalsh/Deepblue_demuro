@@ -236,6 +236,16 @@
 
   <div class="kv-grid">
 
+      <div class="kv">
+    <span>B/L Figure</span>
+    <strong>
+      {% if case.BLFigure %}
+        {{ "{:,.3f}".format(case.BLFigure) }} MT
+      {% else %}
+        —
+      {% endif %}
+    </strong>
+  </div>
     <!-- RATES -->
     <div class="kv">
       <span>Loading Rate</span>
