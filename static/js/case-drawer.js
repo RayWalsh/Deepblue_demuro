@@ -39,6 +39,20 @@
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  function toDateTimeInputValue(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+
   async function fetchMeta() {
     if (cachedMeta) return cachedMeta;
 
@@ -102,6 +116,21 @@
         <label class="form-row">
           <span>${safeHtml(label)}</span>
           <input type="date" value="${safeHtml(dateVal)}" data-key="${safeHtml(key)}" ${disabledAttr} />
+        </label>
+      `;
+    }
+
+    if (type === "datetime") {
+      const dateTimeVal = toDateTimeInputValue(value);
+      return `
+        <label class="form-row">
+          <span>${safeHtml(label)}</span>
+          <input
+            type="datetime-local"
+            value="${safeHtml(dateTimeVal)}"
+            data-key="${safeHtml(key)}"
+            ${disabledAttr}
+          />
         </label>
       `;
     }
@@ -264,7 +293,15 @@
     }
 
     if (type === "number") return inputEl.value === "" ? null : Number(inputEl.value);
-    if (type === "date") return inputEl.value === "" ? null : inputEl.value;
+    if (type === "date") {
+      return inputEl.value === "" ? null : inputEl.value;
+    }
+
+    if (type === "datetime-local") {
+      if (inputEl.value === "") return null;
+      // Convert 2026-01-04T18:49 → 2026-01-04 18:49
+      return inputEl.value.replace("T", " ");
+    }
 
     return inputEl.value === "" ? null : inputEl.value;
   }

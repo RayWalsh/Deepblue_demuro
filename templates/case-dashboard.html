@@ -95,9 +95,18 @@
   <h2>Claim & Status</h2>
 
   <!-- Primary status -->
-  <div class="claim-status warning">
+  {% set status = case.ClaimStatus %}
+
+  {% set status_class =
+    "success" if status in ["Settlement Agreed", "Claim Closed"] else
+    "warning" if status in ["Owners Under Negotiation", "Charterers Under Negotiation"] else
+    "critical" if status in ["Timebar Risk", "Claim Rejected"] else
+    "neutral"
+  %}
+
+  <div class="claim-status {{ status_class }}">
     <i class="fas fa-comments-dollar"></i>
-    Owners Under Negotiation
+    {{ status or "—" }}
   </div>
 
   <div class="kpi-row">
@@ -139,7 +148,10 @@
 
   <!-- Meta row -->
   <div class="claim-meta">
-    <span><strong>Claim Received:</strong> 04 Aug 2025</span>
+    <span>
+      <strong>Claim Received:</strong>
+      {{ case.ClaimReceived.strftime("%d %b %Y") if case.ClaimReceived else "—" }}
+    </span>
     <span><strong>Last Action:</strong> 12 Sep 2025</span>
   </div>
 </section>
@@ -190,14 +202,29 @@
       <div class="kv"><span>CP Type</span><strong>{{ case.CPType }}</strong></div>
       <div class="kv"><span>CP Form</span><strong>{{ case.CPForm }}</strong></div>
       <div class="kv"><span>Contract Type</span><strong>{{ case.ContractType }}</strong></div>
-      <div class="kv"><span>Layday</span><strong>{{ case.Layday }}</strong></div>
-      <div class="kv"><span>Cancelling</span><strong>{{ case.Cancelling }}</strong></div>
-      <div class="kv">
-        <span>Reversible</span>
-        <strong>{{ "Yes" if case.Reversible else "No" }}</strong>
+      <div class="kv"><span>Layday</span><strong>
+          {% if case.Layday %}
+            {{ case.Layday.strftime("%d %b %y") }}
+            <span style="font-weight:600;color:#64748b;"> · {{ case.Layday.strftime("%H:%M") }}</span>
+          {% else %}
+            —
+          {% endif %}
+        </strong>
       </div>
-      <div class="kv"><span>Calculation Type</span><strong>{{ case.CalculationType }}</strong></div>
-    </div>
+      <div class="kv">
+        <span>Cancelling</span>
+        <strong>
+          {% if case.Cancelling %}
+            {{ case.Cancelling.strftime("%d %b %y") }}
+            <span style="font-weight:600;color:#64748b;">
+              · {{ case.Cancelling.strftime("%H:%M") }}
+            </span>
+          {% else %}
+            —
+          {% endif %}
+        </strong>
+      </div>
+      
   </section>
           
           
@@ -211,48 +238,51 @@
 
     <!-- RATES -->
     <div class="kv">
-      <div class="kv-label">Loading Rate</div>
-      <div class="kv-value">{{ case.LoadingRate }}</div>
+      <span>Loading Rate</span>
+      <strong>{{ case.LoadingRate or "—" }}</strong>
     </div>
 
     <div class="kv">
-      <div class="kv-label">Discharging Rate</div>
-      <div class="kv-value">{{ case.DischargingRate }}</div>
+      <span>Discharging Rate</span>
+      <strong>{{ case.DischargingRate or "—" }}</strong>
     </div>
 
     <div class="kv">
-  <div class="kv-label">Demurrage Rate</div>
-  <div class="kv-value money">{{ case.DemurrageRate }}</div>
-</div>
+      <span>Demurrage Rate</span>
+      <strong class="money">
+        {{ case.DemurrageRate or "—" }}
+      </strong>
+    </div>
 
     <div class="kv">
-      <div class="kv-label">Dispatch Rate</div>
-      <div class="kv-value">
+      <span>Dispatch Rate</span>
+      <strong>
         {{ case.DispatchRate or "—" }}
-      </div>
-    </div>
-
-    <!-- STRUCTURE -->
-    <div class="kv">
-      <div class="kv-label">Laytime Type</div>
-      <div class="kv-value">{{ case.CalculationType }}</div>
+      </strong>
     </div>
 
     <div class="kv">
-      <div class="kv-label">Reversible</div>
-      <div class="kv-value">
-        {% if case.Reversible %}Yes{% else %}No{% endif %}
-      </div>
+      <span>Laytime Allocation</span>
+      <strong>
+        {{ case.CalculationType or "—" }}
+      </strong>
     </div>
 
     <div class="kv">
-      <div class="kv-label">Lumpsum Hours</div>
-      <div class="kv-value">{{ case.LumpsumHours }}</div>
+      <span>Reversible</span>
+      <strong class="{{ 'reversible-yes' if case.Reversible else 'reversible-no' }}">
+        {{ "Yes" if case.Reversible else "No" }}
+      </strong>
     </div>
 
     <div class="kv">
-      <div class="kv-label">Allowed Laytime</div>
-      <div class="kv-value">{{ case.TotalAllowedLaytime }}</div>
+      <span>Lumpsum Hours</span>
+      <strong>{{ case.LumpsumHours or "—" }}</strong>
+    </div>
+
+    <div class="kv">
+      <span>Allowed Laytime</span>
+      <strong>{{ case.TotalAllowedLaytime or "—" }}</strong>
     </div>
 
   </div>

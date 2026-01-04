@@ -954,3 +954,8 @@ body.no-scroll {
 .edit-drawer {
   bottom: 0;
 }
+
+.claim-status.critical {
+  background: #fdecea;
+  color: #991b1b;
+}
