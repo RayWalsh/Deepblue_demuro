@@ -5,10 +5,10 @@
 document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("open-settings");
   const overlay = document.getElementById("settings-overlay");
-  const closeBtn = document.getElementById("close-settings");
 
   if (!openBtn || !overlay) return;
 
+  // Open modal
   openBtn.addEventListener("click", (e) => {
     e.preventDefault();
     overlay.classList.remove("hidden");
@@ -16,12 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
     loadMainSection("account");
   });
 
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
+  // Close modal (supports id + data attribute)
+  document.querySelectorAll("#close-settings, [data-close-settings]").forEach(btn => {
+    btn.addEventListener("click", () => {
       overlay.classList.add("hidden");
     });
-  }
+  });
 
+  // Main nav handling
   document.querySelectorAll(".settings-nav .nav-item").forEach(btn => {
     btn.addEventListener("click", () => {
       setActiveMainNav(btn.dataset.section);
@@ -163,18 +165,17 @@ function attachChangePasswordHandler() {
 
       const data = await res.json();
 
-      if (data.success) {
-        msg.textContent = "Password updated successfully.";
-        msg.className = "form-message success";
-        ["currentPassword","newPassword","confirmPassword"].forEach(id => {
-          document.getElementById(id).value = "";
-        });
-      } else {
-        msg.textContent = data.error || "Failed to update password.";
-        msg.className = "form-message error";
-      }
-    } catch (err) {
-      msg.textContent = "Server error. Please try again.";
+      if (!data.success) throw new Error(data.error);
+
+      msg.textContent = "Password updated successfully.";
+      msg.className = "form-message success";
+
+      ["currentPassword", "newPassword", "confirmPassword"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+
+    } catch {
+      msg.textContent = "Failed to update password.";
       msg.className = "form-message error";
     }
   });
@@ -182,7 +183,7 @@ function attachChangePasswordHandler() {
 
 
 // =====================================================
-// ADMIN → USERS (REAL DATA)
+// ADMIN → USERS
 // =====================================================
 
 async function renderAdminUsers() {
@@ -198,7 +199,6 @@ async function renderAdminUsers() {
   try {
     const res = await fetch("/api/admin/users");
     const data = await res.json();
-
     if (!data.success) throw new Error();
 
     const rows = data.users.map(u => `
@@ -206,17 +206,22 @@ async function renderAdminUsers() {
         <td>${u.Username}</td>
         <td>${u.Email}</td>
         <td>${u.CompanyName || "-"}</td>
-        <td>${u.Role}</td>
+        <td>
+          <select
+            class="role-select"
+            data-username="${u.Username}"
+            data-original="${u.Role}"
+          >
+            <option value="Admin" ${u.Role === "Admin" ? "selected" : ""}>Admin</option>
+            <option value="User" ${u.Role === "User" ? "selected" : ""}>User</option>
+          </select>
+        </td>
         <td>${u.IsActive ? "Active" : "Inactive"}</td>
         <td class="actions">
-          <button class="btn-secondary"
-            data-action="reset"
-            data-user="${u.Username}">
+          <button class="btn-secondary" data-action="reset" data-user="${u.Username}">
             Reset password
           </button>
-          <button class="btn-danger"
-            data-action="delete"
-            data-user="${u.Username}">
+          <button class="btn-danger" data-action="delete" data-user="${u.Username}">
             Delete
           </button>
         </td>
@@ -244,6 +249,7 @@ async function renderAdminUsers() {
     `;
 
     attachAdminUserActions();
+    attachRoleChangeHandlers();
 
   } catch {
     content.innerHTML = `
@@ -253,6 +259,11 @@ async function renderAdminUsers() {
     `;
   }
 }
+
+
+// =====================================================
+// ADMIN → ACTIONS
+// =====================================================
 
 function attachAdminUserActions() {
   document.querySelectorAll("[data-action]").forEach(btn => {
@@ -269,8 +280,7 @@ function attachAdminUserActions() {
     if (btn.dataset.action === "reset") {
       btn.onclick = () => {
         const pw = prompt(`Enter new password for ${user}`);
-        if (!pw) return;
-        resetUserPassword(user, pw);
+        if (pw) resetUserPassword(user, pw);
       };
     }
   });
@@ -287,12 +297,49 @@ async function resetUserPassword(username, password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password })
   });
-  alert("Password updated");
+  showToast("Password updated", "success");
 }
 
 
 // =====================================================
-// CONFIRM ACTION MODAL (JS GENERATED)
+// ROLE CHANGE (INSTANT SAVE)
+// =====================================================
+
+function attachRoleChangeHandlers() {
+  document.querySelectorAll(".role-select").forEach(select => {
+    select.addEventListener("change", async () => {
+      const username = select.dataset.username;
+      const newRole = select.value;
+      const original = select.dataset.original;
+
+      select.disabled = true;
+
+      try {
+        const res = await fetch(`/api/admin/users/${username}/role`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: newRole })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error();
+
+        select.dataset.original = newRole;
+        showToast(`Role updated to ${newRole}`, "success");
+
+      } catch {
+        select.value = original;
+        showToast("Failed to update role", "error");
+      } finally {
+        select.disabled = false;
+      }
+    });
+  });
+}
+
+
+// =====================================================
+// CONFIRM ACTION MODAL
 // =====================================================
 
 function ensureConfirmModal() {
@@ -306,14 +353,14 @@ function ensureConfirmModal() {
     <div class="modal-shell">
       <div class="modal-header">
         <h3 id="confirmActionTitle"></h3>
-        <button class="modal-close" id="closeConfirmModal">×</button>
+        <button class="modal-close" data-close-confirm>×</button>
       </div>
       <div class="modal-body">
         <p>This action cannot be undone.</p>
         <p>Type <strong id="confirm-username-label"></strong> to confirm:</p>
         <input id="confirmUsernameInput" autocomplete="off">
         <div class="confirm-actions">
-          <button class="btn-secondary" id="cancelConfirm">Cancel</button>
+          <button class="btn-secondary" data-close-confirm>Cancel</button>
           <button class="btn-danger" id="confirmActionBtn" disabled>Confirm</button>
         </div>
       </div>
@@ -335,8 +382,8 @@ function openConfirmAction({ title, username, onConfirm }) {
 
   input.value = "";
   btn.disabled = true;
-
   overlay.classList.remove("hidden");
+
   input.oninput = () => btn.disabled = input.value !== username;
 
   btn.onclick = () => {
@@ -344,9 +391,9 @@ function openConfirmAction({ title, username, onConfirm }) {
     onConfirm();
   };
 
-  document.getElementById("cancelConfirm").onclick =
-  document.getElementById("closeConfirmModal").onclick = () =>
-    overlay.classList.add("hidden");
+  document.querySelectorAll("[data-close-confirm]").forEach(b =>
+    b.onclick = () => overlay.classList.add("hidden")
+  );
 }
 
 
@@ -361,6 +408,18 @@ function setActiveMainNav(section) {
   const active = document.querySelector(
     `.settings-nav .nav-item[data-section="${section}"]`
   );
-
   if (active) active.classList.add("active");
+}
+
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.remove("hidden", "success", "error");
+  toast.classList.add(type);
+
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2200);
 }

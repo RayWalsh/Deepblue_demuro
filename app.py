@@ -831,7 +831,43 @@ def admin_delete_user(username):
         print("❌ Delete user error:", e)
         return jsonify(success=False, error="Failed to delete user"), 500
 
+@app.route("/api/admin/users/<username>/role", methods=["POST"])
+@login_required
+def admin_update_user_role(username):
+    data = request.get_json() or {}
+    new_role = data.get("role")
 
+    # Validate role
+    if new_role not in ("Admin", "User"):
+        return jsonify(success=False, error="Invalid role"), 400
+
+    # Prevent self-demotion
+    if username == session.get("username") and new_role != "Admin":
+        return jsonify(
+            success=False,
+            error="You cannot remove your own admin access."
+        ), 403
+
+    try:
+        with get_db_connection() as conn:
+            conn.execute(
+                text("""
+                    UPDATE dbo.UsersSecure
+                    SET Role = :r
+                    WHERE Username = :u
+                """),
+                {"r": new_role, "u": username}
+            )
+            conn.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        print("❌ Role update error:", e)
+        return jsonify(
+            success=False,
+            error="Failed to update role."
+        ), 500
 
 # 🚀 Run
 # ----------------------------------------------------
