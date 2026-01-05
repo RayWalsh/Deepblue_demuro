@@ -684,3 +684,59 @@ def update_case(case_id):
         except Exception:
             pass
         return jsonify(success=False, error=str(err)), 500
+    
+    @app.route('/api/account/change-password', methods=['POST'])
+@login_required
+def change_password():
+    data = request.get_json() or {}
+
+    current_pw = data.get("current_password", "")
+    new_pw = data.get("new_password", "")
+    confirm_pw = data.get("confirm_password", "")
+
+    if not current_pw or not new_pw or not confirm_pw:
+        return jsonify(success=False, error="All fields are required."), 400
+
+    if new_pw != confirm_pw:
+        return jsonify(success=False, error="New passwords do not match."), 400
+
+    if len(new_pw) < 12:
+        return jsonify(success=False, error="Password must be at least 12 characters long."), 400
+
+    username = session.get("username")
+    if not username:
+        return jsonify(success=False, error="Not authenticated."), 401
+
+    try:
+        with get_db_connection() as conn:
+            result = conn.execute(
+                text("SELECT HashedPassword FROM dbo.UsersSecure WHERE Username = :u"),
+                {"u": username}
+            )
+            row = result.fetchone()
+
+            if not row:
+                return jsonify(success=False, error="User not found."), 404
+
+            stored_hash = row[0]
+
+            if not pbkdf2_sha256.verify(current_pw, stored_hash.strip()):
+                return jsonify(success=False, error="Current password is incorrect."), 403
+
+            new_hash = pbkdf2_sha256.hash(new_pw)
+
+            conn.execute(
+                text("""
+                    UPDATE dbo.UsersSecure
+                    SET HashedPassword = :h
+                    WHERE Username = :u
+                """),
+                {"h": new_hash, "u": username}
+            )
+            conn.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        print("❌ Change password error:", e)
+        return jsonify(success=False, error="Failed to update password."), 500
