@@ -644,48 +644,7 @@ def healthz():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-# 🚀 Run
-# ----------------------------------------------------
-if __name__ == '__main__':
-    # Local dev only
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
-@app.route('/update-case/<int:case_id>', methods=['POST'])
-def update_case(case_id):
-    print("🟡 update_case called")
-    payload = request.get_json() or {}
-    print(f"🟡 CaseID: {case_id}")
-    print(f"🟡 Incoming payload: {payload}")
-
-    # Validate column names to avoid SQL injection (allow only letters, numbers, underscore)
-    import re
-    valid_name = re.compile(r'^[A-Za-z0-9_]+$')
-
-    # Keep only safe keys present in the payload
-    updates = {k: v for k, v in payload.items() if isinstance(k, str) and valid_name.match(k)}
-    if not updates:
-        return jsonify(success=True, message="No valid changes to apply"), 200
-
-    # Build parameterized UPDATE
-    set_clause = ", ".join(f"[{k}] = :{k}" for k in updates.keys())
-    sql = text(f"UPDATE Cases SET {set_clause} WHERE CaseID = :case_id")
-    params = {**updates, "case_id": case_id}
-
-    try:
-        with get_db_connection() as conn:
-            conn.execute(sql, params)
-            conn.commit()
-        return jsonify(success=True), 200
-    except Exception as err:
-        print(f"❌ Error updating case {case_id}:", err)
-        try:
-            with get_db_connection() as conn:
-                conn.rollback()
-        except Exception:
-            pass
-        return jsonify(success=False, error=str(err)), 500
-    
-    @app.route('/api/account/change-password', methods=['POST'])
+@app.route('/api/account/change-password', methods=['POST'])
 @login_required
 def change_password():
     data = request.get_json() or {}
@@ -740,3 +699,47 @@ def change_password():
     except Exception as e:
         print("❌ Change password error:", e)
         return jsonify(success=False, error="Failed to update password."), 500
+
+@app.route('/update-case/<int:case_id>', methods=['POST'])
+def update_case(case_id):
+    print("🟡 update_case called")
+    payload = request.get_json() or {}
+    print(f"🟡 CaseID: {case_id}")
+    print(f"🟡 Incoming payload: {payload}")
+
+    # Validate column names to avoid SQL injection (allow only letters, numbers, underscore)
+    import re
+    valid_name = re.compile(r'^[A-Za-z0-9_]+$')
+
+    # Keep only safe keys present in the payload
+    updates = {k: v for k, v in payload.items() if isinstance(k, str) and valid_name.match(k)}
+    if not updates:
+        return jsonify(success=True, message="No valid changes to apply"), 200
+
+    # Build parameterized UPDATE
+    set_clause = ", ".join(f"[{k}] = :{k}" for k in updates.keys())
+    sql = text(f"UPDATE Cases SET {set_clause} WHERE CaseID = :case_id")
+    params = {**updates, "case_id": case_id}
+
+    try:
+        with get_db_connection() as conn:
+            conn.execute(sql, params)
+            conn.commit()
+        return jsonify(success=True), 200
+    except Exception as err:
+        print(f"❌ Error updating case {case_id}:", err)
+        try:
+            with get_db_connection() as conn:
+                conn.rollback()
+        except Exception:
+            pass
+        return jsonify(success=False, error=str(err)), 500
+    
+
+
+# 🚀 Run
+# ----------------------------------------------------
+if __name__ == '__main__':
+    # Local dev only
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
