@@ -19,12 +19,14 @@
   position: absolute;
   inset: 40px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
 
   display: flex;
   flex-direction: column;
 
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* ---------- Header ---------- */
@@ -60,7 +62,7 @@
 /* ---------- Body Layout ---------- */
 .settings-body {
   display: grid;
-  grid-template-columns: 220px 260px 1fr;
+  grid-template-columns: 220px 220px 1fr;
   height: 100%;
 }
 
@@ -71,6 +73,7 @@
 .settings-nav {
   padding: 16px;
   border-right: 1px solid #e3e9f1;
+  background: #f5f6f8;
 }
 
 /* Base (inactive) */
@@ -127,6 +130,7 @@
 .settings-subnav {
   padding: 16px;
   border-right: 1px solid #e3e9f1;
+  background: #f5f6f8;
 }
 
 .settings-subnav button {
@@ -291,4 +295,173 @@
 /* Error */
 .settings-section .form-message.error {
   color: #b91c1c;
+}
+
+/* =====================================================
+   SETTINGS MODAL → ADMIN → USERS TABLE
+===================================================== */
+
+.settings-content {
+  padding: 20px;
+}
+
+.settings-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e3e9f1;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.settings-table thead {
+  background: #f4f7fb;
+}
+
+.settings-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: #5b6b82;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e3e9f1;
+}
+
+.settings-table td {
+  padding: 14px;
+  font-size: 14px;
+  color: #1f2a44;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.settings-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.settings-table td.actions {
+  white-space: nowrap;
+}
+
+/* Buttons */
+.settings-table .btn-secondary {
+  background: #0e3a6d;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  margin-right: 6px;
+}
+
+.settings-table .btn-secondary:hover {
+  background: #092c54;
+}
+
+.settings-table .btn-danger {
+  background: #ffffff;
+  color: #b42318;
+  border: 1px solid #f2caca;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.settings-table .btn-danger:hover {
+  background: #fdecec;
+}
+
+.settings-nav-header {
+  margin-bottom: 16px;
+}
+
+.settings-nav-header h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0e3a6d;
+}
+
+.settings-close-inline {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+
+  color: #6b7280; /* subtle grey */
+  cursor: pointer;
+}
+
+.settings-close-inline:hover {
+  background: #f3f6fb;
+  color: #0e3a6d;
+}
+
+.settings-content {
+  position: relative;
+  padding: 24px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+/* =====================================================
+   COLUMN 3 HEADER (Outlook-style)
+===================================================== */
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* header handles its own padding */
+}
+
+/* Header row */
+.settings-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 24px;
+  border-bottom: 1px solid #e5e7eb; /* subtle divider */
+  background: #ffffff;
+
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.settings-content-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Scrollable body */
+#settings-content-inner {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-nav .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-nav .nav-item i {
+  width: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.settings-nav .nav-item.active i {
+  color: #ffffff;
 }

@@ -1,28 +1,58 @@
 <div id="settings-overlay" class="settings-overlay hidden">
   <div class="settings-modal">
 
-    <!-- Header -->
-    <div class="settings-header">
-      <h2>Settings</h2>
-      <button class="settings-close" id="close-settings">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-
     <!-- Body -->
     <div class="settings-body">
 
-      <!-- Column 1: Main categories -->
-      <aside class="settings-nav">
-        <button class="nav-item active" data-section="admin">Admin</button>
-        <button class="nav-item" data-section="account">Account</button>
-        <button class="nav-item" data-section="general">General</button>
-        <button class="nav-item" data-section="ledger">Ledger</button>
-        <button class="nav-item" data-section="reference">Reference Data</button>
-        <button class="nav-item" data-section="notifications">Notifications</button>
-        <button class="nav-item" data-section="integrations">Integrations</button>
-        <button class="nav-item" data-section="advanced">Advanced</button>
-      </aside>
+  <!-- Column 1: Main categories -->
+  <aside class="settings-nav">
+
+    <!-- Column 1 Header -->
+    <div class="settings-nav-header">
+      <h2>Settings</h2>
+    </div>
+
+    <button class="nav-item active" data-section="admin">
+      <i class="fas fa-user-shield"></i>
+      <span>Admin</span>
+    </button>
+
+    <button class="nav-item" data-section="account">
+      <i class="far fa-user"></i>
+      <span>Account</span>
+    </button>
+
+    <button class="nav-item" data-section="general">
+      <i class="fas fa-cog"></i>
+      <span>General</span>
+    </button>
+
+    <button class="nav-item" data-section="ledger">
+      <i class="fas fa-book"></i>
+      <span>Ledger</span>
+    </button>
+
+    <button class="nav-item" data-section="reference">
+      <i class="fas fa-database"></i>
+      <span>Reference Data</span>
+    </button>
+
+    <button class="nav-item" data-section="notifications">
+      <i class="far fa-bell"></i>
+      <span>Notifications</span>
+    </button>
+
+    <button class="nav-item" data-section="integrations">
+      <i class="fas fa-plug"></i>
+      <span>Integrations</span>
+    </button>
+
+    <button class="nav-item" data-section="advanced">
+      <i class="fas fa-sliders-h"></i>
+      <span>Advanced</span>
+    </button>
+
+  </aside>
 
       <!-- Column 2: Sub-sections -->
       <aside class="settings-subnav">
@@ -31,9 +61,21 @@
 
       <!-- Column 3: Content -->
       <section class="settings-content">
+
+        <!-- Column 3 header -->
+        <div class="settings-content-header">
+          <h3 id="settings-content-title">Settings</h3>
+
+          <button class="settings-close-inline" id="close-settings">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable content -->
         <div id="settings-content-inner">
           <!-- Filled dynamically -->
         </div>
+
       </section>
 
     </div>

@@ -735,6 +735,102 @@ def update_case(case_id):
             pass
         return jsonify(success=False, error=str(err)), 500
     
+@app.route("/api/admin/users", methods=["GET"])
+@login_required
+def admin_list_users():
+    try:
+        with get_db_connection() as conn:
+            result = conn.execute(text("""
+                SELECT
+                    Username,
+                    Email,
+                    CompanyName,
+                    Role,
+                    IsActive
+                FROM dbo.UsersSecure
+                ORDER BY Username
+            """))
+
+            users = [dict(r._mapping) for r in result.fetchall()]
+
+        return jsonify(
+            success=True,
+            count=len(users),
+            users=users
+        )
+
+    except Exception as e:
+        print("❌ Admin user fetch error:", e)
+        return jsonify(success=False, error=str(e)), 500
+
+@app.route("/api/admin/users/<username>/reset-password", methods=["POST"])
+@login_required
+def admin_reset_password(username):
+
+    data = request.get_json() or {}
+    new_pw = data.get("password", "")
+
+    if len(new_pw) < 12:
+        return jsonify(error="Password too short"), 400
+
+    try:
+        hashed = pbkdf2_sha256.hash(new_pw)
+
+        with get_db_connection() as conn:
+            conn.execute(
+                text("""
+                    UPDATE dbo.UsersSecure
+                    SET HashedPassword = :h
+                    WHERE Username = :u
+                """),
+                {"h": hashed, "u": username}
+            )
+            conn.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        print("❌ Admin reset password error:", e)
+        return jsonify(error="Reset failed"), 500
+
+@app.route('/api/admin/users/<username>/status', methods=['POST'])
+@login_required
+def admin_set_user_status(username):
+
+    data = request.get_json() or {}
+    is_active = bool(data.get("is_active"))
+
+    with get_db_connection() as conn:
+        conn.execute(
+            text("""
+                UPDATE dbo.UsersSecure
+                SET IsActive = :a
+                WHERE Username = :u
+            """),
+            {"a": 1 if is_active else 0, "u": username}
+        )
+        conn.commit()
+
+    return jsonify(success=True)
+
+@app.route("/api/admin/users/<username>", methods=["DELETE"])
+@login_required
+def admin_delete_user(username):
+
+    try:
+        with get_db_connection() as conn:
+            conn.execute(
+                text("DELETE FROM dbo.UsersSecure WHERE Username = :u"),
+                {"u": username}
+            )
+            conn.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        print("❌ Delete user error:", e)
+        return jsonify(success=False, error="Failed to delete user"), 500
+
 
 
 # 🚀 Run
