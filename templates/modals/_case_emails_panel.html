@@ -1,0 +1,95 @@
+<!-- =========================
+     CASE EMAILS SIDE PANEL (REUSABLE)
+========================= -->
+
+<div id="emailsOverlay" class="sidepanel-overlay hidden"></div>
+
+<aside id="emailsPanel" class="sidepanel hidden" aria-hidden="true">
+
+  <!-- =========================
+       HEADER
+  ========================= -->
+  <div class="sidepanel-header">
+    <div class="sidepanel-title">
+      <h2>Emails</h2>
+      <p class="muted" id="emailsSubTitle">Loading…</p>
+    </div>
+
+    <div class="sidepanel-actions">
+      <button
+        id="attachEmailBtn"
+        class="btn-secondary"
+        title="Attach Outlook email to this case"
+      >
+        Attach email
+      </button>
+
+      <button
+        id="closeEmailsBtn"
+        class="icon-btn"
+        title="Close"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================
+       TOOLBAR
+  ========================= -->
+  <div class="sidepanel-toolbar">
+    <input
+      id="emailsSearch"
+      class="sidepanel-search"
+      placeholder="Search subject, sender, snippet…"
+    />
+
+    <select id="emailsFilter" class="sidepanel-select">
+      <option value="all">All</option>
+      <option value="important">Important</option>
+      <option value="claim">Claim</option>
+      <option value="chaser">Chaser</option>
+      <option value="settlement">Settlement</option>
+      <option value="evidence">Evidence</option>
+    </select>
+  </div>
+
+  <!-- =========================
+       EMAIL LIST / EMPTY STATE
+  ========================= -->
+  <div id="emailsList" class="emails-list">
+
+    <!-- EMPTY STATE (shown when no emails) -->
+    <div class="emails-empty">
+      <i class="fas fa-envelope-open-text"></i>
+      <h3>No emails linked to this case</h3>
+      <p>
+        Emails related to this case will appear here automatically,<br>
+        or can be attached manually.
+      </p>
+
+      <div class="emails-empty-actions">
+        <button
+          id="attachEmailBtn"
+          class="btn-secondary"
+        >
+          Attach email
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================
+       FOOTER
+  ========================= -->
+  <div class="sidepanel-footer">
+    <button
+      id="emailsLoadMoreBtn"
+      class="btn-secondary full-width"
+    >
+      Load more
+    </button>
+  </div>
+
+</aside>

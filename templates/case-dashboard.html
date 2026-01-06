@@ -8,10 +8,16 @@
 {% endblock %}
 
 {% block content %}
+{% include "modals/_case_emails_panel.html" %}
 
 <script id="case-data" type="application/json">
   {{ case | tojson }}
 </script>
+
+<script>
+  window.CASE_ID = {{ case.CaseID }};
+</script>
+<script type="module" src="{{ url_for('static', filename='js/case_emails.js') }}"></script>
 
 <script>
   window.caseData = JSON.parse(
@@ -39,9 +45,14 @@
   </div>
 
   <div class="case-header-right">
+    <button class="icon-btn" title="Emails" id="openEmailsBtn">
+      <i class="fas fa-envelope"></i>
+    </button>
+
     <button class="icon-btn" title="Settings">
       <i class="fas fa-sliders-h"></i>
     </button>
+
     <button class="icon-btn" id="editCaseBtn" title="Edit">
       <i class="fas fa-pen"></i>
     </button>

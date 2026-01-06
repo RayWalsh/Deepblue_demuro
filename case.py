@@ -1,5 +1,5 @@
 # case.py
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, session
 from sqlalchemy import text
 from utils import get_db_connection, login_required
 from datetime import date, datetime
@@ -337,3 +337,81 @@ def get_column_choices(column_name):
             "success": False,
             "error": "Failed to load column choices"
         }), 500
+    
+@case_bp.route("/api/case/<int:case_id>/emails", methods=["GET"])
+@login_required
+def get_case_emails(case_id):
+    """
+    Temporary stub endpoint.
+    Returns no emails yet.
+    Locks in frontend contract.
+    """
+    return jsonify({
+        "success": True,
+        "items": []
+    })
+
+@case_bp.route("/api/case/<int:case_id>/emails", methods=["POST"])
+@login_required
+def attach_case_email(case_id):
+    data = request.get_json() or {}
+
+    outlook_link = data.get("OutlookLink")
+    subject = data.get("Subject")
+    from_address = data.get("FromAddress")
+    direction = data.get("Direction")
+    counterparty_role = data.get("CounterpartyRole")
+    tag = data.get("Tag")
+
+    if not outlook_link or not direction or not counterparty_role:
+        return jsonify(
+            success=False,
+            error="Missing required fields"
+        ), 400
+
+    try:
+        with get_db_connection() as conn:
+            conn.execute(
+                text("""
+                    INSERT INTO dbo.CaseEmails (
+                        CaseID,
+                        OutlookLink,
+                        Subject,
+                        FromAddress,
+                        Direction,
+                        CounterpartyRole,
+                        Tag,
+                        CreatedBy
+                    )
+                    VALUES (
+                        :case_id,
+                        :outlook_link,
+                        :subject,
+                        :from_address,
+                        :direction,
+                        :counterparty_role,
+                        :tag,
+                        :created_by
+                    )
+                """),
+                {
+                    "case_id": case_id,
+                    "outlook_link": outlook_link,
+                    "subject": subject,
+                    "from_address": from_address,
+                    "direction": direction,
+                    "counterparty_role": counterparty_role,
+                    "tag": tag,
+                    "created_by": session.get("username")
+                }
+            )
+            conn.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        print("❌ Attach email error:", e)
+        return jsonify(
+            success=False,
+            error="Failed to attach email"
+        ), 500

@@ -1,0 +1,104 @@
+/* =========================
+   CASE EMAILS SIDE PANEL
+========================= */
+
+#emailsPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 420px;
+  max-width: 90vw;
+
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.12);
+
+  display: flex;
+  flex-direction: column;
+
+  z-index: 1100;
+}
+
+#emailsOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1090;
+}
+
+/* Header */
+#emailsPanel .sidepanel-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Toolbar */
+#emailsPanel .sidepanel-toolbar {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+}
+
+/* List */
+#emailsList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+/* Footer */
+#emailsPanel .sidepanel-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Utilities */
+.hidden {
+  display: none !important;
+}
+
+/* =========================
+   EMAILS EMPTY STATE
+========================= */
+
+.emails-empty {
+  height: 100%;
+  min-height: 240px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  color: #64748b;
+}
+
+.emails-empty i {
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: #94a3b8;
+}
+
+.emails-empty h3 {
+  margin: 8px 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.emails-empty p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.emails-empty-actions {
+  margin-top: 8px;
+}
