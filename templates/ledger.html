@@ -161,8 +161,31 @@
   </div>
 </div>
 
+<!-- =========================================
+     🔍 Filter Column Side Modal
+========================================= -->
+<div id="filterColumnModal" class="side-modal">
+  <div class="side-modal-header">
+    <h3 id="filterModalTitle">Filter</h3>
+    <button id="closeFilterModal" class="close-btn">&times;</button>
+  </div>
+
+  <div class="side-modal-body" id="filterModalBody">
+    <!-- injected dynamically -->
+  </div>
+
+  <div class="side-modal-footer">
+    <button class="secondary-btn" id="clearFilterBtn">
+      Clear
+    </button>
+    <button class="header-add-btn small" id="applyFilterBtn">
+      Apply
+    </button>
+  </div>
+</div>
+
 <!-- ===============================
-     📊 Column Header Menu (Sort)
+     📊 Column Header Menu (Sort + Filter)
      =============================== -->
 <div id="columnMenu" class="column-menu">
   <button data-sort="asc">
@@ -171,6 +194,13 @@
 
   <button data-sort="desc">
     Sort Z → A <span class="tick">✓</span>
+  </button>
+
+  <div class="menu-divider"></div>
+
+  <!-- 🔍 NEW: Filter -->
+  <button id="filterColumnBtn">
+    Filter <span class="fas fa-filter"></span>
   </button>
 
   <div class="menu-divider"></div>

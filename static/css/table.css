@@ -267,3 +267,18 @@
     font-size: 12px;
   }
 }
+
+/* ============================================
+   Column Menu — Filter button alignment fix
+   ============================================ */
+
+#filterColumnBtn {
+  justify-content: flex-start;   /* 🔑 override space-between */
+  gap: 8px;
+}
+
+#filterColumnBtn i {
+  margin-left: 0;               /* ensure icon stays next to text */
+  font-size: 0.85rem;
+  opacity: 0.75;
+}

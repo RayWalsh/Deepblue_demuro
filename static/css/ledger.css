@@ -626,14 +626,27 @@ body {
   color: #0e3a6d;
 }
 
-.side-modal input,
+/* Only text-like inputs should be full width (NOT checkboxes/radios) */
+.side-modal input:not([type="checkbox"]):not([type="radio"]),
+.side-modal select,
 .side-modal textarea {
   width: 100%;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #cdd9e8;
-  font-size: 0.9rem;
-  background: #f5f7fa;
+  font-size: 0.95rem;
+  background: #f9fbfe;
+}
+
+/* Keep checkboxes sane */
+.side-modal input[type="checkbox"],
+.side-modal input[type="radio"] {
+  width: auto;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* Normalize side modal footer buttons */
@@ -724,3 +737,109 @@ body {
   color: #b45309;              /* readable orange text */
   border: 1px solid #f59e0b;
 }
+
+/* =========================================
+   🔍 Filter Side Modal — Styling
+========================================= */
+
+#filterColumnModal .side-modal-header h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Filter list */
+.filter-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Each filter row */
+.filter-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eef1f6;
+}
+
+/* Last row no border */
+.filter-list li:last-child {
+  border-bottom: none;
+}
+
+/* Label layout */
+.filter-list label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #0e3a6d;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Checkbox styling */
+.filter-list input[type="checkbox"] {
+  transform: scale(1.05);
+  accent-color: #0e3a6d;
+  cursor: pointer;
+}
+
+/* Hover affordance */
+.filter-list li:hover {
+  background: #f6f9fe;
+  border-radius: 6px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+/* =========================================
+   Filter Modal Footer Buttons
+========================================= */
+
+#filterColumnModal .side-modal-footer {
+  justify-content: space-between;
+}
+
+/* Clear button */
+#clearFilterBtn {
+  background: #eef3f9;
+  border: 1px solid #d3dbe7;
+  color: #234;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 500;
+}
+
+/* Apply button */
+#applyFilterBtn {
+  background: linear-gradient(to bottom right, #0e3a6d, #1d4f8f);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 600;
+}
+
+/* Hover states */
+#applyFilterBtn:hover {
+  background: linear-gradient(to bottom right, #164b80, #2a6dc2);
+}
+
+#clearFilterBtn:hover {
+  background: #e5ecf5;
+}
+
+@media (max-width: 768px) {
+  #filterColumnModal {
+    width: 100%;
+  }
+
+  #filterColumnModal .side-modal-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .filter-list label {
+    font-size: 1rem;
+  }
+}
+

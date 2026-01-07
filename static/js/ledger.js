@@ -32,6 +32,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const closeEditColumnModal = document.getElementById("closeEditColumnModal");
   const cancelEditColumn = document.getElementById("cancelEditColumn");
 
+  /* 🔍 FILTER COLUMN MODAL */
+  const filterModal = document.getElementById("filterColumnModal");
+  const filterModalBody = document.getElementById("filterModalBody");
+  const filterModalTitle = document.getElementById("filterModalTitle");
+  const closeFilterModal = document.getElementById("closeFilterModal");
+  const clearFilterBtn = document.getElementById("clearFilterBtn");
+  const applyFilterBtn = document.getElementById("applyFilterBtn");
+
   const FIELD_TYPES = [
   { value: "text",     label: "Text" },
   { value: "number",   label: "Number" },
@@ -50,13 +58,12 @@ let originalLedgerData = [];
 let allColumns = [];
 let currentEditItem = null;
 let expanded = false;
+
 let choiceColumns = new Set();
 let choiceOptions = {}; 
-// Example shape:
-// {
-//   ClaimStatus: ["Pending", "Settled"],
-//   CalculationType: ["Voyage", "TC"]
-// }
+
+let activeFilters = {};        // { ColumnName: [values...] }
+let currentFilterColumn = null;
 
 let sortState = {
   column: null,
@@ -64,6 +71,87 @@ let sortState = {
 };
 
 const PROTECTED_FIELDS = ["CaseID", "DeepBlueRef"];
+
+// --------------------------------------------------
+// 🔍 COLUMN FILTER MODAL
+// --------------------------------------------------
+function openFilterModal(columnName) {
+  currentFilterColumn = columnName;
+
+  const colMeta = allColumns.find(c => c.name === columnName);
+  filterModalTitle.textContent = `Filter: ${colMeta?.display || columnName}`;
+
+  // Collect distinct values from full dataset
+  const values = [
+    ...new Set(
+      originalLedgerData
+        .map(r => r[columnName])
+        .filter(v => v !== null && v !== undefined && v !== "")
+    )
+  ].sort();
+
+  const selected = activeFilters[columnName] || [];
+
+  filterModalBody.innerHTML = `
+    <ul class="filter-list">
+      ${values.map(v => `
+        <li>
+          <label>
+            <input
+              type="checkbox"
+              value="${v}"
+              ${selected.includes(v) ? "checked" : ""}
+            />
+            ${v}
+          </label>
+        </li>
+      `).join("")}
+    </ul>
+  `;
+
+  filterModal.classList.add("open");
+}
+
+// --------------------------------------------------
+// 🔍 APPLY ACTIVE COLUMN FILTERS
+// --------------------------------------------------
+function applyFilters() {
+  ledgerData = originalLedgerData.filter(row => {
+    return Object.entries(activeFilters).every(([col, values]) => {
+      return values.includes(String(row[col]));
+    });
+  });
+
+  renderTable(ledgerData);
+}
+
+// --------------------------------------------------
+// 🔘 FILTER MODAL BUTTON HANDLERS
+// --------------------------------------------------
+applyFilterBtn.onclick = () => {
+  const checked = [
+    ...filterModalBody.querySelectorAll("input:checked")
+  ].map(i => i.value);
+
+  if (checked.length) {
+    activeFilters[currentFilterColumn] = checked;
+  } else {
+    delete activeFilters[currentFilterColumn];
+  }
+
+  applyFilters();
+  filterModal.classList.remove("open");
+};
+
+clearFilterBtn.onclick = () => {
+  delete activeFilters[currentFilterColumn];
+  applyFilters();
+  filterModal.classList.remove("open");
+};
+
+closeFilterModal.onclick = () => {
+  filterModal.classList.remove("open");
+};
 
 // --------------------------------------------------
 // 💻 DEVICE DETECTION
@@ -452,18 +540,31 @@ columnMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
 
-  // 🧱 EDIT COLUMN → open side modal
-  if (btn.id === "editColumnBtn") {
-  editColumnModal.classList.add("open");
-  columnMenu.style.display = "none";
-  menuOpen = false;
+  // 🧱 FILTER COLUMN → open filter side modal
+  if (btn.id === "filterColumnBtn") {
+    if (!activeSortColumn) return;
 
-  if (activeSortColumn) {
-    loadColumnMetadata(activeSortColumn);
+    openFilterModal(activeSortColumn);
+
+    columnMenu.style.display = "none";
+    menuOpen = false;
+    activeHeaderEl = null;
+    return;
   }
 
-  return;
-} 
+  // 🧱 EDIT COLUMN → open side modal
+  if (btn.id === "editColumnBtn") {
+    if (!activeSortColumn) return;
+
+    editColumnModal.classList.add("open");
+
+    columnMenu.style.display = "none";
+    menuOpen = false;
+    activeHeaderEl = null;
+
+    loadColumnMetadata(activeSortColumn);
+    return;
+  }
 
   // ⬇️ existing sort logic continues
   if (!btn.dataset.sort || !activeSortColumn) return;
@@ -472,51 +573,52 @@ columnMenu.addEventListener("click", (e) => {
 
   // 🔁 Toggle OFF if same sort clicked again
   if (
-  sortState.column === activeSortColumn &&
-  sortState.direction === dir
-) {
-  sortState.column = null;
-  sortState.direction = null;
+    sortState.column === activeSortColumn &&
+    sortState.direction === dir
+  ) {
+    sortState.column = null;
+    sortState.direction = null;
 
-  ledgerData = [...originalLedgerData]; // 🔑 restore original order
+    ledgerData = [...originalLedgerData]; // restore original order
 
-  // Clear ticks
+    columnMenu.querySelectorAll("button").forEach(b =>
+      b.classList.remove("active")
+    );
+
+    renderTable(ledgerData);
+    columnMenu.style.display = "none";
+    menuOpen = false;
+    activeHeaderEl = null;
+    return;
+  }
+
+  // ⬆️ Apply new sort
+  sortState.column = activeSortColumn;
+  sortState.direction = dir;
+
+  ledgerData.sort((a, b) => {
+    const va = a[activeSortColumn] ?? "";
+    const vb = b[activeSortColumn] ?? "";
+
+    if (typeof va === "number" && typeof vb === "number") {
+      return dir === "asc" ? va - vb : vb - va;
+    }
+
+    return dir === "asc"
+      ? String(va).localeCompare(String(vb))
+      : String(vb).localeCompare(String(va));
+  });
+
   columnMenu.querySelectorAll("button").forEach(b =>
     b.classList.remove("active")
   );
 
-  renderTable(ledgerData);
-  columnMenu.style.display = "none";
-  return; // ⛔ STOP — do NOT re-sort
-} else {
-    sortState.column = activeSortColumn;
-    sortState.direction = dir;
-
-    ledgerData.sort((a, b) => {
-      const va = a[activeSortColumn] ?? "";
-      const vb = b[activeSortColumn] ?? "";
-
-      if (typeof va === "number" && typeof vb === "number") {
-        return dir === "asc" ? va - vb : vb - va;
-      }
-
-      return dir === "asc"
-        ? String(va).localeCompare(String(vb))
-        : String(vb).localeCompare(String(va));
-    });
-  }
-
-  // ✅ Tick handling
-  columnMenu.querySelectorAll("button").forEach((b) =>
-    b.classList.remove("active")
-  );
-
-  if (sortState.column === activeSortColumn) {
-    btn.classList.add("active");
-  }
+  btn.classList.add("active");
 
   renderTable(ledgerData);
   columnMenu.style.display = "none";
+  menuOpen = false;
+  activeHeaderEl = null;
 });
 
 // --------------------------------------------------
@@ -1154,12 +1256,19 @@ if (saveColumnBtn) {
 searchInput.oninput = (e) => {
   const words = e.target.value.toLowerCase().split(/\s+/).filter(Boolean);
 
+  // 🔑 IMPORTANT:
+  // If column filters are active, search should apply on TOP of them
+  const baseData =
+    Object.keys(activeFilters).length
+      ? ledgerData
+      : originalLedgerData;
+
   if (!words.length) {
-    renderTable(originalLedgerData);
+    renderTable(baseData);
     return;
   }
 
-  const filtered = originalLedgerData.filter(row => {
+  const filtered = baseData.filter(row => {
     const haystack = Object.entries(row)
       .map(([key, value]) => {
         if (!value) return "";
@@ -1192,7 +1301,6 @@ searchInput.oninput = (e) => {
 
   history.replaceState(null, "", "?" + params.toString());
 };
-
 
   // --------------------------------------------------
   // 📄 CSV EXPORT
