@@ -31,6 +31,17 @@ body {
   padding: 0 10px;
 }
 
+.ledger-section .header-add-btn.new-case-btn {
+  width: auto;
+  padding: 0 14px;
+  font-size: 0.95rem;
+  gap: 8px;
+}
+
+.ledger-section .header-add-btn.new-case-btn i {
+  font-size: 1rem;
+}
+
 @supports(padding: max(0px)) {
   .ledger-section {
     padding-left: max(0px, env(safe-area-inset-left));
@@ -842,4 +853,3 @@ body {
     font-size: 1rem;
   }
 }
-
