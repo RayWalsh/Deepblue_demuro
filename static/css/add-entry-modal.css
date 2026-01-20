@@ -1,0 +1,401 @@
+/* =====================================================
+   ➕ ADD ENTRY MODAL — SETTINGS-STYLE CONTROL PLANE
+   Deep Blue Portal
+===================================================== */
+
+
+/* =====================================================
+   GLOBAL SAFETY (NO HORIZONTAL SCROLL)
+===================================================== */
+#addEntryModal,
+#addEntryModal * {
+  box-sizing: border-box;
+}
+
+#addEntryModal {
+  overflow: hidden;
+}
+
+
+/* =====================================================
+   MODAL SHELL (CANVAS)
+===================================================== */
+#addEntryModal .modal-content {
+  width: min(900px, 95vw);
+  max-height: 90vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #f5f6f8;               /* Settings grey */
+  border-radius: 12px;
+
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.15);
+
+  overflow: hidden;
+}
+
+
+/* =====================================================
+   HEADER (MATCH SETTINGS)
+===================================================== */
+#addEntryModal .modal-header {
+  background: #f5f6f8;                 /* match canvas */
+  border-bottom: 1px solid #e3e9f1;    /* clean separator */
+
+  padding: 18px 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+#addEntryModal .modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0e3a6d;
+}
+
+#addEntryModal .modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#addEntryModal .close-btn {
+  width: 36px;
+  height: 36px;
+
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+
+  font-size: 18px;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+#addEntryModal .close-btn:hover {
+  background: #f3f6fb;
+  color: #0e3a6d;
+}
+
+
+/* =====================================================
+   BODY (SCROLLABLE CANVAS)
+===================================================== */
+#addEntryModal .modal-body {
+  background: #f5f6f8;
+  padding: 24px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+/* =====================================================
+   CHARTERPARTY UPLOAD (OCR PLACEHOLDER)
+===================================================== */
+#addEntryModal .cp-upload-zone {
+  background: #ffffff;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+
+  padding: 18px 20px;
+  margin-bottom: 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#addEntryModal .cp-upload-zone:hover {
+  border-color: #0e3a6d;
+  background: #f9fbfe;
+}
+
+#addEntryModal .cp-upload-zone i {
+  font-size: 20px;
+  color: #0e3a6d;
+}
+
+#addEntryModal .cp-upload-zone strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0e3a6d;
+}
+
+#addEntryModal .cp-upload-zone span {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+
+/* =====================================================
+   FIELD GROUPS (WHITE CARDS)
+===================================================== */
+#addEntryModal .field-group {
+  background: #ffffff;
+  border: 1px solid #e3e9f1;
+  border-radius: 10px;
+
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+#addEntryModal .field-group h4 {
+  margin: 0 0 14px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Optional icon support */
+#addEntryModal .field-group h4 i {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+
+/* =====================================================
+   GRID LAYOUT (SAFE)
+===================================================== */
+#addEntryModal .field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+#addEntryModal .field-grid > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+
+/* =====================================================
+   LABELS
+===================================================== */
+#addEntryModal label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+
+/* =====================================================
+   INPUTS / SELECTS / TEXTAREAS
+===================================================== */
+#addEntryModal input,
+#addEntryModal select,
+#addEntryModal textarea {
+  width: 100%;
+  min-width: 0;
+
+  padding: 9px 11px;
+  font-size: 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #1f2937;
+}
+
+#addEntryModal textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+#addEntryModal input:focus,
+#addEntryModal select:focus,
+#addEntryModal textarea:focus {
+  outline: none;
+  border-color: #0e3a6d;
+  box-shadow: 0 0 0 3px rgba(14, 58, 109, 0.12);
+}
+
+#addEntryModal input:disabled,
+#addEntryModal select:disabled,
+#addEntryModal textarea:disabled {
+  background: #f1f4f9;
+  color: #6b7280;
+}
+
+
+/* =====================================================
+   FOOTER (SETTINGS ACTION BAR)
+===================================================== */
+#addEntryModal .modal-footer {
+  background: #ffffff;
+  border-top: 1px solid #e3e9f1;
+
+  padding: 16px 24px;
+
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+}
+
+
+/* =====================================================
+   BUTTONS (FLAT, SETTINGS-STYLE)
+===================================================== */
+#addEntryModal .modal-primary-btn {
+  background: #0e3a6d;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 8px;
+
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  cursor: pointer;
+}
+
+#addEntryModal .modal-primary-btn:hover {
+  background: #0b2f59;
+}
+
+#addEntryModal .modal-secondary-btn {
+  background: #f3f6fb;
+  color: #1f2937;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+#addEntryModal .modal-secondary-btn:hover {
+  background: #e5e9f2;
+}
+
+/* Force save icon to pure white */
+#addEntryModal .modal-primary-btn i,
+#addEntryModal .modal-primary-btn svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Enlarge save icon (works for FA <i> OR FA SVG replacement) */
+#addEntryModal .modal-primary-btn.icon-only i,
+#addEntryModal .modal-primary-btn.icon-only svg {
+  font-size: 18px !important;   /* for <i> */
+  width: 16px !important;       /* for <svg> */
+  height: 16px !important;      /* for <svg> */
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+@media (max-width: 768px) {
+  #addEntryModal .modal-content {
+    width: 95vw;
+    max-height: 95vh;
+  }
+
+  #addEntryModal .modal-body {
+    padding: 16px;
+  }
+
+  #addEntryModal .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #addEntryModal .modal-footer {
+    padding: 12px 16px;
+  }
+
+  #addEntryModal .modal-footer button {
+    flex: 1;
+  }
+}
+
+/* =====================================================
+   DATE INPUT NORMALISATION
+   Prevents visual overflow / pop-out
+===================================================== */
+#addEntryModal input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+
+  padding-right: 12px;      /* kill Safari extra space */
+  min-height: 36px;         /* align with text inputs */
+
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* =====================================================
+   SAVE BUTTON — MATCH LEDGER ICON BUTTONS
+===================================================== */
+
+#addEntryModal .modal-primary-btn.icon-only {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #0e3a6d;
+  border-radius: 8px;
+  border: none;
+
+  box-shadow: 0 2px 6px rgba(14, 58, 109, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#addEntryModal .modal-primary-btn.icon-only i {
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+/* Hover */
+#addEntryModal .modal-primary-btn.icon-only:hover {
+  background: #164b80;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(14, 58, 109, 0.3);
+}
+
+/* Active */
+#addEntryModal .modal-primary-btn.icon-only:active {
+  transform: translateY(0);
+}

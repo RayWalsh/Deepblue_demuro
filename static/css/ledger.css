@@ -161,7 +161,7 @@ body {
    ============================================== */
 
 /* Center modal content and soften background */
-#editEntryModal .modal-content,
+/*#editEntryModal .modal-content,
 #addEntryModal .modal-content {
   background: #ffffff;
   border-radius: 12px;
@@ -170,9 +170,9 @@ body {
   padding: 1.5rem;
   max-width: 480px;
   margin: auto;
-}
+}*/
 
-/* Header alignment and spacing */
+/* Header alignment and spacing
 #editEntryModal .modal-header,
 #addEntryModal .modal-header {
   border-bottom: none;
@@ -188,7 +188,7 @@ body {
   text-align: center;
 }
 
-/* Section styling — subtle separation */
+/* Section styling — subtle separation
 .field-group {
   border: none !important;
   margin-bottom: 1.2rem;
@@ -202,7 +202,7 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* Input grid spacing */
+/* Input grid spacing
 .field-grid {
   display: flex;
   flex-direction: column;
@@ -235,15 +235,15 @@ body {
   outline: none;
 }
 
-/* Disabled fields */
+/* Disabled fields 
 .field-grid input[disabled] {
   background: #f3f6f9;
   color: #888;
 }
-
+*/
 /* ======================
    🎨 Buttons (Save/Delete)
-   ====================== */
+   ====================== 
 .modal-actions {
   display: flex;
   justify-content: center;
@@ -279,7 +279,7 @@ body {
   background: linear-gradient(to bottom right, #a83226, #d84335);
   transform: translateY(-1px);
 }
-
+*/
 /* ======================
    🧭 Mobile adjustments
    ====================== */
