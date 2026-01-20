@@ -13,11 +13,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toggleBtn = document.getElementById("toggleViewBtn");
   const openSettingsBtn = document.getElementById("openSettingsBtn");
 
-  const editModal = document.getElementById("editEntryModal");
-  const closeEditEntryBtn = document.getElementById("closeEditEntryBtn");
-  const saveEntryBtn = document.getElementById("saveEntryBtn");
-  const deleteEntryBtn = document.getElementById("deleteEntryBtn");
-  const editModalBody = document.getElementById("editModalBody");
+  /*const editModal = document.getElementById("editEntryModal");*/
+  /*const closeEditEntryBtn = document.getElementById("closeEditEntryBtn");*/
+  /*const saveEntryBtn = document.getElementById("saveEntryBtn");*/
+  /*const deleteEntryBtn = document.getElementById("deleteEntryBtn");*/
+  /*const editModalBody = document.getElementById("editModalBody");*/
 
   const addModal = document.getElementById("addEntryModal");
   const openAddBtn = document.getElementById("openAddEntryBtn");
@@ -56,7 +56,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 window.ledgerData = [];
 let originalLedgerData = [];
 let allColumns = [];
-let currentEditItem = null;
 let expanded = false;
 
 let choiceColumns = new Set();
@@ -227,13 +226,33 @@ window.visibleColumns = [];
     });
   }
 
+// --------------------------------------------------
+// 🔽 CHOICE FIELD RENDERER (GLOBAL SCOPE)
+// --------------------------------------------------
+function renderChoiceSelect({ name, value, disabled = false }) {
+  const options = choiceOptions[name] || [];
+
+  const optsHtml = options.map(opt => `
+    <option value="${opt}" ${String(opt) === String(value) ? "selected" : ""}>
+      ${opt}
+    </option>
+  `).join("");
+
+  return `
+    <select name="${name}" ${disabled ? "disabled" : ""}>
+      <option value="">— Select —</option>
+      ${optsHtml}
+    </select>
+  `;
+}
+
   //** 
   //* 🧩 BUILD PAYLOAD FROM FORM INPUTS (metadata-driven)
   //** 
   function buildPayloadFromInputs(container) {
     const payload = {};
 
-    container.querySelectorAll("input, textarea").forEach((i) => {
+    container.querySelectorAll("input, textarea, select").forEach((i) => {
       const name = i.name;
       const raw = i.value?.trim?.() ?? "";
 
@@ -946,22 +965,7 @@ function createChoiceRow(value = "", isActive = true) {
       }
     }
 
-    function renderChoiceSelect({ name, value, disabled = false }) {
-      const options = choiceOptions[name] || [];
 
-      const optsHtml = options.map(opt => `
-        <option value="${opt}" ${String(opt) === String(value) ? "selected" : ""}>
-          ${opt}
-        </option>
-      `).join("");
-
-      return `
-        <select name="${name}" ${disabled ? "disabled" : ""}>
-          <option value="">— Select —</option>
-          ${optsHtml}
-        </select>
-      `;
-    }
 
     // --------------------------------------------------
     // 2️⃣ Fallback heuristics (only if no metadata)
@@ -985,8 +989,13 @@ function createChoiceRow(value = "", isActive = true) {
     return "text";
   }
 
-  // --------------------------------------------------
-  // ✏️ EDIT MODAL
+/*  // --------------------------------------------------
+  // ✏️ EDIT MODAL — DISABLED
+
+    Editing ledger entries is intentionally handled
+    via the Case Dashboard only.
+
+    Ledger is index + add + navigate.
   // --------------------------------------------------
   function openEditModal(data) {
     currentEditItem = data;
@@ -1072,11 +1081,16 @@ function createChoiceRow(value = "", isActive = true) {
       alert("❌ " + e.message);
     }
   };
-
+*/
   // --------------------------------------------------
-// ➕ ADD ENTRY MODAL
-// --------------------------------------------------
+  // ➕ ADD ENTRY MODAL
+  // --------------------------------------------------
 openAddBtn.onclick = () => {
+
+  console.log("➕ Add modal opened");
+  console.log("fieldGroups:", fieldGroups);
+  console.log("allColumns:", allColumns);
+
   addModal.style.display = "flex";
 
   let html = "";
