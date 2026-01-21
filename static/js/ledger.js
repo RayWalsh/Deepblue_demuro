@@ -13,18 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toggleBtn = document.getElementById("toggleViewBtn");
   const openSettingsBtn = document.getElementById("openSettingsBtn");
 
-  /*const editModal = document.getElementById("editEntryModal");*/
-  /*const closeEditEntryBtn = document.getElementById("closeEditEntryBtn");*/
-  /*const saveEntryBtn = document.getElementById("saveEntryBtn");*/
-  /*const deleteEntryBtn = document.getElementById("deleteEntryBtn");*/
-  /*const editModalBody = document.getElementById("editModalBody");*/
-
-  const addModal = document.getElementById("addEntryModal");
-  const openAddBtn = document.getElementById("openAddEntryBtn");
-  const closeAddEntryBtn = document.getElementById("closeAddEntryBtn");
-  const saveAddEntryBtn = document.getElementById("saveAddEntryBtn");
-  const addModalBody = document.getElementById("addModalBody");
-
   const tableWrapper = document.querySelector(".table-wrapper");
   const tableScroll = document.querySelector(".table-scroll");
 
@@ -229,7 +217,7 @@ window.visibleColumns = [];
 // --------------------------------------------------
 // 🔽 CHOICE FIELD RENDERER (GLOBAL SCOPE)
 // --------------------------------------------------
-function renderChoiceSelect({ name, value, disabled = false }) {
+window.renderChoiceSelect = function renderChoiceSelect({ name, value, disabled = false }) {
   const options = choiceOptions[name] || [];
 
   const optsHtml = options.map(opt => `
@@ -249,7 +237,7 @@ function renderChoiceSelect({ name, value, disabled = false }) {
   //** 
   //* 🧩 BUILD PAYLOAD FROM FORM INPUTS (metadata-driven)
   //** 
-  function buildPayloadFromInputs(container) {
+  window.buildPayloadFromInputs = function buildPayloadFromInputs(container) {
     const payload = {};
 
     container.querySelectorAll("input, textarea, select").forEach((i) => {
@@ -898,7 +886,7 @@ function createChoiceRow(value = "", isActive = true) {
   // --------------------------------------------------
   // 🧩 FIELD GROUPS + INPUT TYPES
   // --------------------------------------------------
-  const fieldGroups = {
+  window.fieldGroups = {
     "Case Info": [
       "CaseID",
       "DeepBlueRef",
@@ -933,9 +921,9 @@ function createChoiceRow(value = "", isActive = true) {
     ],
   };
 
-  const systemFields = ["CaseID", "CreatedAt"];
+  window.systemFields = ["CaseID", "CreatedAt"];
 
-  function inferInputType(colName) {
+  window.inferInputType = function inferInputType(colName) {
     // --------------------------------------------------
     // 1️⃣ Try metadata first (source of truth)
     // --------------------------------------------------
@@ -989,191 +977,6 @@ function createChoiceRow(value = "", isActive = true) {
     return "text";
   }
 
-/*  // --------------------------------------------------
-  // ✏️ EDIT MODAL — DISABLED
-
-    Editing ledger entries is intentionally handled
-    via the Case Dashboard only.
-
-    Ledger is index + add + navigate.
-  // --------------------------------------------------
-  function openEditModal(data) {
-    currentEditItem = data;
-      editModal.style.display = "flex";
-      let html = "";
-      for (const [groupName, fields] of Object.entries(fieldGroups)) {
-        html += `<section class="field-group"><h4>${groupName}</h4><div class="field-grid">`;
-        fields.forEach((col) => {
-          const type = inferInputType(col);
-          const value = data[col] ?? "";
-          const disabled = systemFields.includes(col) ? "disabled" : "";
-          if (type === "textarea") {
-            html += `
-              <div>
-                <label>${col}</label>
-                <textarea name="${col}" rows="2" ${disabled}>${value}</textarea>
-              </div>
-            `;
-          } 
-          else if (type === "select") {
-            html += `
-              <div>
-                <label>${col}</label>
-                ${renderChoiceSelect({ name: col, value, disabled: !!disabled })}
-              </div>
-            `;
-          }
-          else {
-            html += `
-              <div>
-                <label>${col}</label>
-                <input type="${type}" name="${col}" value="${value}" ${disabled}/>
-              </div>
-            `;
-          }
-        });
-        html += "</div></section>";
-      }
-      editModalBody.innerHTML = html;
-    }
-
-    closeEditEntryBtn.onclick = () => (editModal.style.display = "none");
-      editModal.onclick = (e) => {
-        if (e.target === editModal) editModal.style.display = "none";
-    };
-
-    saveEntryBtn.onclick = async () => {
-    const payload = buildPayloadFromInputs(editModalBody);
-    const caseId = currentEditItem.CaseID;
-      try {
-        const res = await fetch(`/api/update-ledger-item/${caseId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert("✅ Entry updated");
-          editModal.style.display = "none";
-          loadLedger();
-        } else {
-          alert("❌ " + (data.error || "Update failed"));
-        }
-      } catch (e) {
-        alert("❌ " + e.message);
-      }
-    };
-
-  deleteEntryBtn.onclick = async () => {
-    const caseId = currentEditItem.CaseID;
-    if (!confirm("Delete this entry?")) return;
-    try {
-      const res = await fetch(`/api/delete-ledger-item/${caseId}`, { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
-        alert("🗑 Entry deleted");
-        editModal.style.display = "none";
-        loadLedger();
-      } else {
-        alert("❌ " + (data.error || "Delete failed"));
-      }
-    } catch (e) {
-      alert("❌ " + e.message);
-    }
-  };
-*/
-  // --------------------------------------------------
-  // ➕ ADD ENTRY MODAL
-  // --------------------------------------------------
-openAddBtn.onclick = () => {
-
-  console.log("➕ Add modal opened");
-  console.log("fieldGroups:", fieldGroups);
-  console.log("allColumns:", allColumns);
-
-  addModal.style.display = "flex";
-
-  let html = "";
-
-  for (const [groupName, fields] of Object.entries(fieldGroups)) {
-    html += `
-      <section class="field-group">
-        <h4>${groupName}</h4>
-        <div class="field-grid">
-    `;
-
-    fields.forEach((col) => {
-      const type = inferInputType(col);
-      const disabled = systemFields.includes(col) ? "disabled" : "";
-
-      if (type === "textarea") {
-        html += `
-          <div>
-            <label>${col}</label>
-            <textarea name="${col}" rows="2" ${disabled}></textarea>
-          </div>
-        `;
-      }
-      else if (type === "select") {
-        html += `
-          <div>
-            <label>${col}</label>
-            ${renderChoiceSelect({ name: col, value: "", disabled: !!disabled })}
-          </div>
-        `;
-      }
-      else {
-        html += `
-          <div>
-            <label>${col}</label>
-            <input type="${type}" name="${col}" ${disabled}/>
-          </div>
-        `;
-      }
-    });
-
-    html += `
-        </div>
-      </section>
-    `;
-  }
-
-  addModalBody.innerHTML = html;
-};
-
-closeAddEntryBtn.onclick = () => {
-  addModal.style.display = "none";
-};
-
-addModal.onclick = (e) => {
-  if (e.target === addModal) {
-    addModal.style.display = "none";
-  }
-};
-
-saveAddEntryBtn.onclick = async () => {
-  const payload = buildPayloadFromInputs(addModalBody);
-
-  try {
-    const res = await fetch("/api/add-ledger-item", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      alert("✅ New ledger entry added");
-      addModal.style.display = "none";
-      loadLedger();
-    } else {
-      alert("❌ " + (data.error || "Insert failed"));
-    }
-  } catch (e) {
-    alert("❌ " + e.message);
-  }
-};
 
 // --------------------------------------------------
 // 🧱 EDIT COLUMN SIDE MODAL — OPEN / CLOSE
@@ -1377,10 +1180,14 @@ searchInput.oninput = (e) => {
   // 🔁 External refresh hook (used by Table Settings)
   // --------------------------------------------------
   window.refreshLedgerView = function () {
-    // Re-render using current state:
-    // - visibleColumns (order + visibility)
-    // - ledgerData (current filtered/sorted rows)
-    renderTable(window.ledgerData);
+        if (Array.isArray(window.ledgerData)) {
+      renderTable(window.ledgerData);
+    }
+
+  };
+
+  window.reloadLedger = function () {
+    loadLedger();
   };
 
   // --------------------------------------------------

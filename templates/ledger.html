@@ -72,16 +72,37 @@
      =============================== -->
 <div id="addEntryModal" class="modal-overlay">
   <div class="modal-content">
+
+    <!-- Header -->
     <div class="modal-header">
       <h3>Add New Ledger Entry</h3>
       <div class="modal-actions">
-        <button  id="saveAddEntryBtn"  class="modal-primary-btn icon-only" title="Save"><i class="fa-solid fa-floppy-disk"></i></button>
+        <button id="saveAddEntryBtn"
+                class="modal-primary-btn icon-only"
+                title="Save">
+          <i class="fa-solid fa-floppy-disk"></i>
+        </button>
         <button id="closeAddEntryBtn" class="close-btn">&times;</button>
       </div>
     </div>
 
+    <!-- Body (scrollable) -->
     <div id="addModalBody" class="modal-body">
+      <!-- Charterparty upload (OCR will prefill fields in this modal) -->
+      <!-- CP Upload (future OCR) -->
+      <div class="cp-upload-zone" id="cpUploadZone">
+        <div class="cp-upload-inner">
+          <i class="fa-solid fa-file-arrow-up"></i>
+          <div>
+            <strong>Upload Charterparty</strong>
+            <p>PDF, DOCX or Email (.eml)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic form -->
       <p>Loading form...</p>
+
     </div>
   </div>
 </div>
@@ -218,4 +239,5 @@
 
 <script src="{{ url_for('static', filename='js/table_settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
+<script src="{{ url_for('static', filename='js/add_entry_modal.js') }}"></script>
 {% endblock %}
