@@ -67,67 +67,7 @@
   </div>
 </section>
 
-<!-- ===============================
-     ➕ Add Entry Modal
-     =============================== -->
-<div id="addEntryModal" class="modal-overlay">
-  <div class="modal-content">
 
-    <!-- Header -->
-    <div class="modal-header">
-      <h3>Add New Ledger Entry</h3>
-      <div class="modal-actions">
-        <button id="saveAddEntryBtn"
-                class="modal-primary-btn icon-only"
-                title="Save">
-          <i class="fa-solid fa-floppy-disk"></i>
-        </button>
-        <button id="closeAddEntryBtn" class="close-btn">&times;</button>
-      </div>
-    </div>
-
-    <!-- Body (scrollable) -->
-    <div id="addModalBody" class="modal-body">
-      <!-- Charterparty upload (OCR will prefill fields in this modal) -->
-      <!-- CP Upload (future OCR) -->
-      <div class="cp-upload-zone" id="cpUploadZone">
-        <div class="cp-upload-inner">
-          <i class="fa-solid fa-file-arrow-up"></i>
-          <div>
-            <strong>Upload Charterparty</strong>
-            <p>PDF, DOCX or Email (.eml)</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dynamic form -->
-      <p>Loading form...</p>
-
-    </div>
-  </div>
-</div>
-
-
-<!-- ===============================
-     ✏️ Edit Entry Modal
-     =============================== 
-<div id="editEntryModal" class="modal-overlay">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="editModalTitle">Edit Ledger Entry</h3>
-      <div class="modal-actions">
-        <button id="saveEntryBtn" class="header-add-btn small">💾 Save</button>
-        <button id="deleteEntryBtn" class="header-add-btn small danger">🗑 Delete</button>
-        <button id="closeEditEntryBtn" class="close-btn">&times;</button>
-      </div>
-    </div>
-
-    <div id="editModalBody" class="modal-body">
-      <p>Loading entry...</p>
-    </div>
-  </div>
-</div>
--->
 
 <!-- =========================================
      Edit Column Side Modal (Shell Only)
@@ -236,6 +176,7 @@
      ⚙️ Table Settings Modal (Reusable)
      =============================== -->
 {% include "_table_settings_modal.html" %}
+{% include "modals/_add_entry_modal.html" %}
 
 <script src="{{ url_for('static', filename='js/table_settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>

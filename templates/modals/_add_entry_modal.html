@@ -1,6 +1,9 @@
 <!-- =====================================================
      ➕ Add Entry Modal
-     ===================================================== -->
+     Architecture:
+     - CP Upload Zone = STATIC
+     - Dynamic form = injected into #addModalForm ONLY
+===================================================== -->
 <div id="addEntryModal" class="modal-overlay">
   <div class="modal-content">
 
@@ -9,36 +12,62 @@
     ======================= -->
     <div class="modal-header">
       <h3>Add New Ledger Entry</h3>
+
       <div class="modal-actions">
         <button
           id="saveAddEntryBtn"
           class="modal-primary-btn icon-only"
           title="Save"
+          type="button"
         >
           <i class="fa-solid fa-floppy-disk"></i>
         </button>
-        <button id="closeAddEntryBtn" class="close-btn">&times;</button>
+
+        <button
+          id="closeAddEntryBtn"
+          class="close-btn"
+          type="button"
+        >&times;</button>
       </div>
     </div>
 
     <!-- ======================
          Body (Scrollable)
     ======================= -->
-    <div id="addModalBody" class="modal-body">
+    <div class="modal-body">
 
-      <!-- Charterparty upload (OCR will prefill fields here) -->
+      <!-- ======================
+           CP Upload (STATIC)
+      ======================= -->
       <div class="cp-upload-zone" id="cpUploadZone">
+        <input
+          type="file"
+          id="cpFileInput"
+          accept=".pdf,.doc,.docx,.eml"
+          hidden
+        />
+
         <div class="cp-upload-inner">
           <i class="fa-solid fa-file-arrow-up"></i>
-          <div>
+          <div class="cp-upload-text">
             <strong>Upload Charterparty</strong>
             <p>PDF, DOCX or Email (.eml)</p>
           </div>
         </div>
       </div>
 
-      <!-- Dynamic form injected by JS -->
-      <p class="muted">Loading form…</p>
+      <!-- Upload status -->
+      <div
+        id="cpUploadStatus"
+        class="cp-upload-status hidden"
+      ></div>
+
+      <!-- ======================
+           Dynamic Form Area
+      ======================= -->
+      <div id="addModalForm">
+        <p class="muted">Loading form…</p>
+      </div>
 
     </div>
   </div>

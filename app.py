@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from functools import wraps
 from sqlalchemy import create_engine, text
@@ -41,6 +45,12 @@ app.register_blueprint(settings_bp)
 # ----------------------------------------------------
 from reference_routes import reference_bp
 app.register_blueprint(reference_bp)
+
+# ----------------------------------------------------
+# 🔗 Blueprint: Charterparty Parser (CP OCR)
+# ----------------------------------------------------
+from cp_parser import cp_parser_bp
+app.register_blueprint(cp_parser_bp)
 
 # ----------------------------------------------------
 # 🧪 Debug Session Route

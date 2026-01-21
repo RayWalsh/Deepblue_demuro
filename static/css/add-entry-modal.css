@@ -399,3 +399,166 @@
 #addEntryModal .modal-primary-btn.icon-only:active {
   transform: translateY(0);
 }
+
+/* =====================================================
+   CP UPLOAD ZONE
+===================================================== */
+.cp-upload-zone {
+  margin: 12px 16px 8px;
+  padding: 14px;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  background: #f3f6fb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cp-upload-zone:hover {
+  border-color: #0e3a6d;
+  background: #eef3fb;
+}
+
+.cp-upload-zone.dragover {
+  border-color: #0e3a6d;
+  background: #e7effa;
+}
+
+.cp-upload-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none; /* allows full zone click */
+}
+
+.cp-upload-inner i {
+  font-size: 22px;
+  color: #0e3a6d;
+}
+
+.cp-upload-text strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.cp-upload-text p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Uploaded file display */
+.cp-upload-status {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cp-upload-status i {
+  font-size: 16px;
+  color: #0e3a6d;
+}
+
+.cp-upload-status .meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-upload-status .meta strong {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-upload-status .meta span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.cp-upload-status .replace {
+  font-size: 12px;
+  color: #0e3a6d;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+/* =====================================================
+   OCR EXTRACTED FIELDS
+===================================================== */
+
+/* Autofilled field highlight */
+.autofilled {
+  background-color: #f0f9ff;
+  border-color: #3b82f6;
+  padding-right: 48px; /* make room for indicator */
+}
+
+/* Confidence indicator inside field */
+.confidence-indicator {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Dot */
+.confidence-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.green { background: #2ecc71; }
+.dot.orange { background: #f39c12; }
+.dot.red { background: #e74c3c; }
+
+/* Extracted-but-not-matched note */
+.cp-extracted-note {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.cp-extracted-note.amber {
+  color: #b9770e;
+}
+
+/* =====================================================
+   POCESSING INDICATOR
+===================================================== */
+
+.cp-processing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+  margin-top: 6px;
+}
+
+.cp-processing .spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ccc;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

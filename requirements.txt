@@ -5,3 +5,5 @@ python-dotenv
 requests
 gunicorn
 SQLAlchemy
+
+azure-ai-formrecognizer>=3.3.0
