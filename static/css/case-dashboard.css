@@ -959,3 +959,14 @@ body.no-scroll {
   background: #fdecea;
   color: #991b1b;
 }
+
+/* delete button */
+.header-btn.danger {
+  border-color: #d9534f;
+  color: #d9534f;
+}
+
+.header-btn.danger:hover {
+  background: #d9534f;
+  color: #fff;
+}

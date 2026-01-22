@@ -1,6 +1,6 @@
 // ==============================================
-// 📊 case-dashboard.js
-// Display-only logic for Case Dashboard
+// 🗑️ case-dashboard.js
+// Delete Case only
 // ==============================================
 
 (function () {
@@ -9,69 +9,54 @@
     return;
   }
 
-  const caseData = window.caseData;
+  const caseId = window.caseData.CaseID;
 
-  // ----------------------------------------------
-  // Helpers
-  // ----------------------------------------------
-  function formatDateDDMMMYY(value) {
-    if (!value) return "—";
-    const d = new Date(value);
-    if (isNaN(d)) return "—";
+  // Event delegation – timing safe
+  document.addEventListener("click", async (e) => {
+    const deleteBtn = e.target.closest("#deleteCaseBtn");
+    if (!deleteBtn) return;
 
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = d.toLocaleString("en-GB", { month: "short" });
-    const year = String(d.getFullYear()).slice(-2);
+    if (!caseId) {
+      alert("Cannot delete case: missing Case ID.");
+      return;
+    }
 
-    return `${day} ${month} ${year}`;
-  }
+    const confirmText = prompt(
+      "This will permanently delete this case.\n\nType DELETE to confirm."
+    );
 
-  function formatMoney(value) {
-    if (value === null || value === undefined || value === "") return "—";
-    const num = Number(value);
-    if (isNaN(num)) return "—";
-    return `USD ${num.toLocaleString("en-US")}`;
-  }
+    if (confirmText !== "DELETE") {
+      alert("Delete cancelled.");
+      return;
+    }
 
-  function daysBetween(start, end = new Date()) {
-    if (!start) return "—";
-    const s = new Date(start);
-    if (isNaN(s)) return "—";
-    const diff = end - s;
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
-  }
+    try {
+      deleteBtn.disabled = true;
+      deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-  // ----------------------------------------------
-  // Header / Pills
-  // ----------------------------------------------
-  const cpPill = document.querySelector(".case-pills .pill:nth-child(2)");
-  if (cpPill) {
-    cpPill.textContent = `CP ${formatDateDDMMMYY(caseData.CPDate)}`;
-  }
+      const res = await fetch(`/api/case/${caseId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" }
+      });
 
-  // ----------------------------------------------
-  // General Info panel
-  // ----------------------------------------------
-  document.querySelectorAll("[data-field='CPDate']").forEach(el => {
-    el.textContent = formatDateDDMMMYY(caseData.CPDate);
+      const result = await res.json();
+
+      if (!result.success) {
+        alert("Delete failed: " + (result.error || "Unknown error"));
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        return;
+      }
+
+      // Success → back to ledger
+      window.location.href = "/ledger";
+
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Network error deleting case.");
+      deleteBtn.disabled = false;
+      deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    }
   });
-
-  // ----------------------------------------------
-  // Claim & Status KPIs
-  // ----------------------------------------------
-  const claimFiledEl = document.querySelector(".kpi-value[data-kpi='claim-filed']");
-  if (claimFiledEl) {
-    claimFiledEl.textContent = formatMoney(caseData.ClaimFiledAmount);
-  }
-
-  const agreedEl = document.querySelector(".kpi-value[data-kpi='agreed-amount']");
-  if (agreedEl) {
-    agreedEl.textContent = formatMoney(caseData.AgreedAmount);
-  }
-
-  const daysOpenEl = document.querySelector(".kpi-value[data-kpi='days-open']");
-  if (daysOpenEl) {
-    daysOpenEl.textContent = daysBetween(caseData.ClaimReceivedDate);
-  }
 
 })();

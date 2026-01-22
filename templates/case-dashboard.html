@@ -24,7 +24,7 @@
     document.getElementById("case-data").textContent
   );
 </script>
-
+<script src="{{ url_for('static', filename='js/case-dashboard.js') }}"></script>
 
 
 <!-- =========================
@@ -56,6 +56,11 @@
     <button class="icon-btn" id="editCaseBtn" title="Edit">
       <i class="fas fa-pen"></i>
     </button>
+
+    <button class="header-btn danger" id="deleteCaseBtn" title="Delete Case">
+      <i class="fas fa-trash"></i>
+    </button>
+
   </div>
 </header>
 

@@ -428,3 +428,14 @@ body.case-details .form-field select {
 .case-meta-container .form-field textarea {
   width: 100%;
 }
+
+/* Delete Button */
+.header-btn.danger {
+  border-color: #d9534f;
+  color: #d9534f;
+}
+
+.header-btn.danger:hover {
+  background: #d9534f;
+  color: #fff;
+}

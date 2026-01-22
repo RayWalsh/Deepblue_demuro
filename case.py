@@ -147,6 +147,52 @@ def get_case_json(case_id):
             "error": "Database error"
         }), 500
 
+# ==================================================
+# 🗑️ DELETE CASE
+# ==================================================
+
+@case_bp.route("/api/case/<int:case_id>", methods=["DELETE"])
+@login_required
+def delete_case(case_id):
+    try:
+        with get_db_connection() as conn:
+            # Safety check: ensure case exists
+            exists = conn.execute(
+                text("SELECT 1 FROM dbo.Cases WHERE CaseID = :id"),
+                {"id": case_id}
+            ).fetchone()
+
+            if not exists:
+                return jsonify(
+                    success=False,
+                    error="Case not found"
+                ), 404
+
+            # ⚠️ HARD DELETE
+            # (Later you can switch this to a soft delete)
+            conn.execute(
+                text("DELETE FROM dbo.Cases WHERE CaseID = :id"),
+                {"id": case_id}
+            )
+
+            conn.commit()
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        print(f"❌ Error deleting case {case_id}:", e)
+
+        try:
+            with get_db_connection() as conn:
+                conn.rollback()
+        except Exception:
+            pass
+
+        return jsonify(
+            success=False,
+            error="Failed to delete case"
+        ), 500
+
 
 # ==================================================
 # 🧩 CASE METADATA (UI STRUCTURE)
