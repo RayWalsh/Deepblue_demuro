@@ -1,5 +1,6 @@
 // ==============================================
-// ➕ Add Entry Modal Controller (Autofill + Confidence)
+// ➕ Add Entry Modal Controller
+// (Autofill + Confidence + CP Upload)
 // ==============================================
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -104,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------
   function showCPProcessing() {
     if (!cpUploadStatus) return;
-    if (cpUploadStatus.classList.contains("hidden")) return;
 
     cpUploadStatus.classList.add("loading");
 
@@ -229,20 +229,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // ❌ CLOSE MODAL
   // --------------------------------------------------
   closeAddBtn.addEventListener("click", closeModal);
-
-  addModal.addEventListener("click", (e) => {
+  addModal.addEventListener("click", e => {
     if (e.target === addModal) closeModal();
   });
 
   // --------------------------------------------------
-  // 💾 SAVE ENTRY (DeepBlueRef required)
+  // 💾 SAVE ENTRY (DeepBlueRef + CP upload)
   // --------------------------------------------------
   saveAddBtn.addEventListener("click", async () => {
 
-    // 🔒 Enforce DeepBlueRef
     const refInput = addModalForm.querySelector('[name="DeepBlueRef"]');
 
-    if (!refInput || !refInput.value || !refInput.value.trim()) {
+    if (!refInput || !refInput.value.trim()) {
       alert("❌ Deep Blue Ref is required before saving this case.");
       refInput?.focus();
       return;
@@ -251,6 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = buildPayloadFromInputs(addModalForm);
 
     try {
+      // 1️⃣ Save case
       const res = await fetch("/api/add-ledger-item", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,16 +257,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Insert failed");
 
-      if (!data.success) {
-        throw new Error(data.error || "Insert failed");
-      }
+      // 2️⃣ Upload CP (if present)
+      await uploadCharterpartyToBlob(payload);
 
+      // 3️⃣ Close + refresh
       closeModal();
-
-      if (typeof window.reloadLedger === "function") {
-        window.reloadLedger();
-      }
+      if (typeof window.reloadLedger === "function") window.reloadLedger();
 
     } catch (err) {
       alert("❌ " + err.message);
@@ -307,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     cpUploadStatus.classList.remove("hidden");
 
-    cpUploadStatus.querySelector(".replace").onclick = (e) => {
+    cpUploadStatus.querySelector(".replace").onclick = e => {
       e.stopPropagation();
       resetCPUpload();
     };
@@ -336,6 +333,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
+  // ☁️ Upload CP to Blob Storage
+  // --------------------------------------------------
+  async function uploadCharterpartyToBlob(payload) {
+
+    if (!selectedCPFile) return;
+
+    const fd = new FormData();
+    fd.append("file", selectedCPFile);
+    fd.append("DeepBlueRef", payload.DeepBlueRef);
+    fd.append("VesselName", payload.VesselName || "");
+    fd.append("CPDate", payload.CPDate || "");
+
+    try {
+      const res = await fetch(
+        "/api/case-documents/upload/charterparty",
+        { method: "POST", body: fd }
+      );
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "CP upload failed");
+
+      console.log("📎 Charterparty uploaded:", data.document);
+
+    } catch (err) {
+      alert(
+        "⚠️ Case saved successfully, but Charterparty upload failed.\n\n" +
+        err.message +
+        "\n\nYou can re-upload the document from the case page."
+      );
+    }
+  }
+
+  // --------------------------------------------------
   // 🧠 APPLY FIELDS + CONFIDENCE
   // --------------------------------------------------
   function applyCPFieldsToForm(fields) {
@@ -348,32 +378,20 @@ document.addEventListener("DOMContentLoaded", () => {
       const input = addModalForm.querySelector(`[name="${ledgerField}"]`);
       if (!input || !payload?.value) return;
 
-      // Do not overwrite user edits
       if (input.value && input.value.trim() !== "") return;
 
       let value = payload.value;
 
-      // Date fields
       if (input.type === "date") {
         value = normalizeDateForInput(value);
         if (!value) return;
         input.value = value;
-      }
-
-      // Select / dropdown fields
-      else if (input.tagName === "SELECT") {
+      } else if (input.tagName === "SELECT") {
         const options = Array.from(input.options).map(o => o.value);
         const match = fuzzyMatchOption(value, options);
-
-        if (match) {
-          input.value = match;
-        } else {
-          injectExtractedNote(input, value);
-        }
-      }
-
-      // Text / number
-      else {
+        if (match) input.value = match;
+        else injectExtractedNote(input, value);
+      } else {
         input.value = value;
       }
 

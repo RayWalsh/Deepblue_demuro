@@ -53,6 +53,12 @@ from cp_parser import cp_parser_bp
 app.register_blueprint(cp_parser_bp)
 
 # ----------------------------------------------------
+# 📂 Blueprint: Case Documents (Blob Storage)
+# ----------------------------------------------------
+from case_documents import case_documents_bp
+app.register_blueprint(case_documents_bp)
+
+# ----------------------------------------------------
 # 🧪 Debug Session Route
 # ----------------------------------------------------
 @app.route('/debug_session')
