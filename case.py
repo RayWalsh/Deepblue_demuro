@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, jsonify, session
 from sqlalchemy import text
 from utils import get_db_connection, login_required
 from datetime import date, datetime
+from case_documents import delete_case_documents
 
 case_bp = Blueprint("case_bp", __name__)
 
@@ -156,20 +157,32 @@ def get_case_json(case_id):
 def delete_case(case_id):
     try:
         with get_db_connection() as conn:
-            # Safety check: ensure case exists
-            exists = conn.execute(
-                text("SELECT 1 FROM dbo.Cases WHERE CaseID = :id"),
+            # 1️⃣ Fetch DeepBlueRef first
+            row = conn.execute(
+                text("SELECT DeepBlueRef FROM dbo.Cases WHERE CaseID = :id"),
                 {"id": case_id}
             ).fetchone()
 
-            if not exists:
+            if not row:
                 return jsonify(
                     success=False,
                     error="Case not found"
                 ), 404
 
-            # ⚠️ HARD DELETE
-            # (Later you can switch this to a soft delete)
+            deep_blue_ref = row.DeepBlueRef
+
+            # 2️⃣ Delete blobs (Charterparty folder)
+            try:
+                deleted = delete_case_documents(deep_blue_ref)
+                print(f"🧹 Deleted {deleted} blobs for case {deep_blue_ref}")
+            except Exception as blob_err:
+                print("❌ Blob delete failed:", blob_err)
+                return jsonify(
+                    success=False,
+                    error="Failed to delete case documents"
+                ), 500
+
+            # 3️⃣ Delete SQL row
             conn.execute(
                 text("DELETE FROM dbo.Cases WHERE CaseID = :id"),
                 {"id": case_id}

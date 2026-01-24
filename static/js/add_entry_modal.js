@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --------------------------------------------------
-  // 💾 SAVE ENTRY (DeepBlueRef + CP upload)
+  // 💾 SAVE ENTRY (DeepBlueRef + default ClaimStatus + CP upload)
   // --------------------------------------------------
   saveAddBtn.addEventListener("click", async () => {
 
@@ -247,6 +247,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const payload = buildPayloadFromInputs(addModalForm);
+
+    // --------------------------------------------------
+    // 🧠 Default Claim Status
+    // --------------------------------------------------
+    if (!payload.ClaimStatus || !payload.ClaimStatus.trim()) {
+      payload.ClaimStatus = "Claim Received";
+    }
 
     try {
       // 1️⃣ Save case

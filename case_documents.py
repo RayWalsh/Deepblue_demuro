@@ -70,6 +70,28 @@ def format_cp_date(cp_date_str: str) -> str:
         return datetime.utcnow().strftime("%d%b%y")
 
 # ------------------------------------------------------------
+# 🗑️ Delete ALL documents for a case (HELPER)
+# ------------------------------------------------------------
+def delete_case_documents(deep_blue_ref: str) -> int:
+    """
+    Deletes all blobs under:
+    Charterparty/{DeepBlueRef}/
+
+    Returns number of deleted blobs.
+    """
+    blob_service = get_blob_service()
+    container_client = blob_service.get_container_client("case-documents")
+
+    prefix = f"Charterparty/{deep_blue_ref}/"
+    deleted = 0
+
+    for blob in container_client.list_blobs(name_starts_with=prefix):
+        container_client.delete_blob(blob.name)
+        deleted += 1
+
+    return deleted
+
+# ------------------------------------------------------------
 # 📎 Upload Charterparty PDF
 # ------------------------------------------------------------
 @case_documents_bp.route("/api/case-documents/upload/charterparty", methods=["POST"])
