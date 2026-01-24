@@ -5,9 +5,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 import os
 from datetime import datetime
+import io
 
 from azure.storage.blob import BlobServiceClient
 from azure.core.exceptions import ResourceExistsError
@@ -16,6 +17,14 @@ from azure.core.exceptions import ResourceExistsError
 # ⚙️ Blueprint
 # ------------------------------------------------------------
 case_documents_bp = Blueprint("case_documents", __name__)
+
+# ------------------------------------------------------------
+# 📌 Required documents (v1 – hard-coded)
+# ------------------------------------------------------------
+REQUIRED_DOCUMENTS = [
+    "Charterparty",
+    "SOF"
+]
 
 # ------------------------------------------------------------
 # 🔐 Azure Blob Client Helper
@@ -28,7 +37,40 @@ def get_blob_service():
     return BlobServiceClient.from_connection_string(conn_str)
 
 # ------------------------------------------------------------
-# 📎 Upload Charterparty PDF (REAL ENDPOINT)
+# 🧼 Helpers
+# ------------------------------------------------------------
+def sanitize_filename_part(value: str) -> str:
+    return (
+        value.strip()
+        .replace(" ", "_")
+        .replace(":", "")
+        .replace("/", "-")
+    )
+
+def format_cp_date(cp_date_str: str) -> str:
+    """
+    Converts CPDate to ddMMMyy (e.g. 28Oct25).
+    Falls back safely if parsing fails.
+    """
+    if not cp_date_str:
+        return datetime.utcnow().strftime("%d%b%y")
+
+    try:
+        for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
+            try:
+                dt = datetime.strptime(cp_date_str, fmt)
+                return dt.strftime("%d%b%y")
+            except ValueError:
+                pass
+
+        dt = datetime.fromisoformat(cp_date_str)
+        return dt.strftime("%d%b%y")
+
+    except Exception:
+        return datetime.utcnow().strftime("%d%b%y")
+
+# ------------------------------------------------------------
+# 📎 Upload Charterparty PDF
 # ------------------------------------------------------------
 @case_documents_bp.route("/api/case-documents/upload/charterparty", methods=["POST"])
 def upload_charterparty():
@@ -66,8 +108,8 @@ def upload_charterparty():
     container_name = "case-documents"
     folder_path = f"Charterparty/{deep_blue_ref}"
 
-    safe_vessel = vessel_name.replace(" ", "_") if vessel_name else "UnknownVessel"
-    safe_date = cp_date if cp_date else datetime.utcnow().strftime("%Y-%m-%d")
+    safe_vessel = sanitize_filename_part(vessel_name) if vessel_name else "UnknownVessel"
+    safe_date = format_cp_date(cp_date)
 
     blob_name = f"{folder_path}/{safe_vessel}-{safe_date}-Charterparty.pdf"
 
@@ -151,3 +193,83 @@ def test_blob_upload():
     except Exception as e:
         print("❌ BLOB TEST FAILED:", repr(e))
         raise
+
+# ------------------------------------------------------------
+# 📄 List Case Documents (by DeepBlueRef)
+# ------------------------------------------------------------
+@case_documents_bp.route("/api/case-documents/<deep_blue_ref>", methods=["GET"])
+def list_case_documents(deep_blue_ref):
+    try:
+        blob_service = get_blob_service()
+        container_client = blob_service.get_container_client("case-documents")
+
+        documents = []
+
+        for blob in container_client.list_blobs():
+            parts = blob.name.split("/")
+
+            # Expected: Type / DeepBlueRef / filename
+            if len(parts) < 3:
+                continue
+
+            doc_type, ref, filename = parts[0], parts[1], parts[-1]
+
+            if ref != deep_blue_ref:
+                continue
+
+            documents.append({
+                "type": doc_type,
+                "filename": filename,
+                "path": blob.name,
+                "size": blob.size,
+                "last_modified": blob.last_modified.isoformat()
+            })
+
+        present_types = {doc["type"] for doc in documents}
+
+        missing_documents = [
+            doc_type
+            for doc_type in REQUIRED_DOCUMENTS
+            if doc_type not in present_types
+        ]
+
+        return jsonify(
+            success=True,
+            documents=documents,
+            missing=missing_documents
+        )
+
+    except Exception as e:
+        return jsonify(
+            success=False,
+            error=str(e)
+        ), 500
+
+# ------------------------------------------------------------
+# ⬇️ Download Case Document
+# ------------------------------------------------------------
+@case_documents_bp.route("/api/case-documents/download", methods=["GET"])
+def download_case_document():
+    path = request.args.get("path")
+    if not path:
+        return jsonify(success=False, error="Missing blob path"), 400
+
+    try:
+        blob_service = get_blob_service()
+        container_client = blob_service.get_container_client("case-documents")
+        blob_client = container_client.get_blob_client(path)
+
+        stream = blob_client.download_blob()
+        data = stream.readall()
+
+        return send_file(
+            io.BytesIO(data),
+            as_attachment=True,
+            download_name=os.path.basename(path)
+        )
+
+    except Exception as e:
+        return jsonify(
+            success=False,
+            error=str(e)
+        ), 500

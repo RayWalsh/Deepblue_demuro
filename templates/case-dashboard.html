@@ -25,7 +25,7 @@
   );
 </script>
 <script src="{{ url_for('static', filename='js/case-dashboard.js') }}"></script>
-
+<script src="{{ url_for('static', filename='js/case-documents.js') }}"></script>
 
 <!-- =========================
      CASE HEADER
@@ -371,62 +371,41 @@
 
         </main>
 
-        <!-- RIGHT: FILES -->
-       <aside class="panel files-panel">
+<!-- =========================
+     RIGHT: DOCUMENTS
+========================= -->
+<aside class="panel files-panel">
 
+  <!-- Header -->
   <div class="files-header">
     <h2>Documents</h2>
 
-    <button class="upload-btn">
+    <button class="upload-btn" id="uploadDocumentBtn">
       <i class="fas fa-upload"></i>
       Upload
     </button>
+    <input
+      type="file"
+      id="charterpartyFileInput"
+      accept="application/pdf"
+      style="display:none"
+    />
+
   </div>
 
+  <!-- Dropzone (passive for now) -->
   <div class="files-dropzone">
-    Drag & drop files here or click Upload
+    Drag &amp; drop files here or click Upload
   </div>
 
+  <!-- Documents list (populated by JS) -->
   <ul class="file-list">
-
-    <li class="file-item">
-      <i class="fas fa-file-contract"></i>
-
-      <div class="file-meta">
-        <span class="file-name">Charterparty.pdf</span>
-        <span class="file-info">
-          Uploaded • 12 Sep
-        </span>
-      </div>
-
-      <div class="file-actions">
-        <i class="fas fa-eye" title="Open"></i>
-        <i class="fas fa-download" title="Download"></i>
-      </div>
-    </li>
-
-    <li class="file-item generated">
-      <i class="fas fa-calculator"></i>
-
-      <div class="file-meta">
-        <span class="file-name">Demurrage Calculation.pdf</span>
-        <span class="file-info">
-          Generated • 14 Sep
-        </span>
-      </div>
-
-      <div class="file-actions">
-        <i class="fas fa-eye"></i>
-        <i class="fas fa-download"></i>
-      </div>
-    </li>
-
+    <!-- JS will inject items here -->
   </ul>
 
-  <div class="files-footer">
-    <span class="missing-doc">
-      ⚠️ Statement of Facts not uploaded
-    </span>
+  <!-- Footer / warnings -->
+  <div class="files-footer" id="documentsFooter">
+    <!-- JS can inject missing-doc warnings here -->
   </div>
 
 </aside>
