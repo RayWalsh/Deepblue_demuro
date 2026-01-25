@@ -184,6 +184,25 @@ def add_ledger_item():
             sql = text(f"INSERT INTO dbo.Cases ({columns}) VALUES ({values})")
 
             with get_db_connection() as conn:
+
+                # --------------------------------------------------
+                # 🔒 Enforce unique DeepBlueRef
+                # --------------------------------------------------
+                if "DeepBlueRef" in data and data["DeepBlueRef"]:
+                    exists = conn.execute(
+                        text("SELECT 1 FROM dbo.Cases WHERE DeepBlueRef = :ref"),
+                        {"ref": data["DeepBlueRef"]}
+                    ).fetchone()
+
+                    if exists:
+                        return jsonify({
+                            "success": False,
+                            "error": "Deep Blue Ref already exists"
+                        }), 409
+
+                # --------------------------------------------------
+                # ➕ Insert new case
+                # --------------------------------------------------
                 conn.execute(sql, data)
                 conn.commit()
 
@@ -191,6 +210,14 @@ def add_ledger_item():
             return jsonify({"success": True}), 200
 
         except Exception as e:
+            error_msg = str(e)
+
+            if "UQ_Cases_DeepBlueRef" in error_msg or "UNIQUE" in error_msg:
+                return jsonify({
+                    "success": False,
+                    "error": "Deep Blue Ref already exists"
+                }), 409
+
             print("❌ Error adding ledger item:", e)
             return jsonify({"success": False, "error": str(e)}), 500
 
