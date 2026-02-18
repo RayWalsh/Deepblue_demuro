@@ -4,6 +4,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ Ledger.js loaded");
 
+
   // --------------------------------------------------
   // 🔧 ELEMENTS
   // --------------------------------------------------
@@ -57,7 +58,12 @@ let sortState = {
   direction: null // "asc" | "desc"
 };
 
+// 🎨 Conditional formatting rules (from table settings)
+window.conditionalFormattingRules = [];
+
 const PROTECTED_FIELDS = ["CaseID", "DeepBlueRef"];
+
+
 
 // --------------------------------------------------
 // 🔍 COLUMN FILTER MODAL
@@ -406,6 +412,49 @@ window.renderChoiceSelect = function renderChoiceSelect({ name, value, disabled 
   }
 
 // --------------------------------------------------
+// 🧾 APPLY CONDITIONAL FORMATTING
+// --------------------------------------------------
+function applyConditionalFormatting(tr, row) {
+  tr.removeAttribute("style");
+
+  const rules = (window.conditionalFormattingRules || [])
+    .filter(r => r.enabled !== false);
+
+  for (const rule of rules) {
+    const cellValue = row[rule.column];
+    let match = false;
+
+    switch (rule.operator) {
+      case "equals":
+        match = String(cellValue) === String(rule.value);
+        break;
+      case "not_equals":
+        match = String(cellValue) !== String(rule.value);
+        break;
+      case "contains":
+        match = String(cellValue || "").includes(rule.value);
+        break;
+      case "gt":
+        match = Number(cellValue) > Number(rule.value);
+        break;
+      case "lt":
+        match = Number(cellValue) < Number(rule.value);
+        break;
+    }
+
+    if (!match) continue;
+
+    if (rule.target === "row") {
+      Object.entries(rule.style || {}).forEach(([k, v]) => {
+        tr.style[k] = v;
+      });
+
+      break; // 🔑 FIRST MATCH WINS
+    }
+  }
+}
+  
+// --------------------------------------------------
 // 🧾 RENDER TABLE (SQL-DRIVEN HEADERS)
 // --------------------------------------------------
 function renderTable(rows) {
@@ -436,7 +485,9 @@ function renderTable(rows) {
   tableBody.innerHTML = "";
 
   rows.forEach((row) => {
-  const tr = document.createElement("tr");
+    const tr = document.createElement("tr");
+
+    applyConditionalFormatting(tr, row);
 
   visibleColumns
   .filter(c => c.name !== "CaseID")

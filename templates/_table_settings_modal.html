@@ -12,17 +12,33 @@
     <button id="closeTableSettingsBtn" class="close-btn">&times;</button>
   </div>
 
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button type="button" class="tab active" data-tab="columns">Columns</button>
+    <button type="button" class="tab" data-tab="formatting">Formatting</button>
+  </div>
+
   <!-- Body -->
   <div class="side-modal-body table-settings-body">
-    <p class="muted">
-      Select the columns to display and use the arrows to change their order.
-    </p>
 
-    <ul
-      id="tableSettingsColumnList"
-      class="table-settings-list"
-      role="listbox">
-    </ul>
+    <!-- ✅ Columns panel -->
+    <div class="tab-panel active" id="tab-columns">
+      <p class="muted">
+        Select the columns to display and use the arrows to change their order.
+      </p>
+
+      <ul
+        id="tableSettingsColumnList"
+        class="table-settings-list"
+        role="listbox">
+      </ul>
+    </div>
+
+    <!-- ✅ Formatting panel -->
+    <div class="tab-panel" id="tab-formatting">
+      <div id="ledgerFormattingPanel"></div>
+    </div>
+
   </div>
 
   <!-- Footer -->
