@@ -26,7 +26,7 @@
 </script>
 <script src="{{ url_for('static', filename='js/case-dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/case-documents.js') }}"></script>
-
+<script type="module" src="{{ url_for('static', filename='js/case-timebars.js') }}"></script>
 <!-- =========================
      CASE HEADER
 ========================= -->
@@ -172,38 +172,52 @@
   </div>
 </section>
 
-          <!-- NOTICES -->
-          <section class="panel notices-panel">
+<!-- NOTICES (Timebars) -->
+<section class="panel notices-panel" id="timebarsPanel">
 
-  <h2>Notices</h2>
+  <div class="panel-header-row">
+    <h2>Notices</h2>
 
-  <!-- KPI ROW -->
-  <div class="kpi-row">
+    <div class="panel-actions">
+      <select id="tbNoticeTypeSelect" class="tb-select">
+        <option value="">+ Add notice type…</option>
+      </select>
 
-    <!-- DAYS TO TIMEBAR -->
-    <div class="kpi critical">
-      <div class="kpi-label">Days to Timebar</div>
-      <div class="kpi-value">12</div>
+      <button class="tb-btn" id="tbAddNoticeBtn">Add</button>
+      <button class="tb-btn" id="tbRecalcBtn">Recalc</button>
     </div>
-
-    <!-- TIMEBAR DATE -->
-    <div class="kpi neutral">
-      <div class="kpi-label">Timebar Date</div>
-      <div class="kpi-value">15 Oct 2025</div>
-    </div>
-
-    <!-- NEXT NOTICE -->
-    <div class="kpi warning">
-      <div class="kpi-label">Next Notice Due</div>
-      <div class="kpi-value">In 3 Days</div>
-    </div>
-
   </div>
 
-  <!-- ACTION CALLOUT -->
-  <div class="notice-callout critical">
-    <strong>Action required</strong><br>
-    Next notice must be sent within <strong>3 days</strong> to protect the claim.
+  <!-- KPI ROW -->
+  <div class="kpi-row" id="tbKpis">
+    <div class="kpi neutral">
+      <div class="kpi-label">Days to Timebar</div>
+      <div class="kpi-value" id="tbDaysToTimebar">—</div>
+    </div>
+
+    <div class="kpi neutral">
+      <div class="kpi-label">Timebar Date</div>
+      <div class="kpi-value" id="tbTimebarDate">—</div>
+    </div>
+
+    <div class="kpi neutral">
+      <div class="kpi-label">Next Notice Due</div>
+      <div class="kpi-value" id="tbNextNoticeDue">—</div>
+    </div>
+  </div>
+
+  <!-- Warnings / callouts -->
+  <div id="tbCallout" class="notice-callout" style="display:none;"></div>
+
+  <!-- List of active notices on this case -->
+  <div class="tb-list" id="tbNoticesList">
+    <!-- JS injects -->
+  </div>
+
+  <!-- Upcoming todos for this case (timebars + missing voyage end) -->
+  <div class="tb-todos">
+    <h3 class="tb-subtitle">Upcoming</h3>
+    <div id="tbTodosList" class="tb-todos-list"></div>
   </div>
 
 </section>

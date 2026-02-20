@@ -392,8 +392,11 @@
 
         const attachSaveHandler = (btn) => {
           if (!btn) return;
-          btn.onclick = null;
-          btn.addEventListener("click", async (e) => {
+
+          // remove previous handler if we attached one before
+          if (btn._saveHandler) btn.removeEventListener("click", btn._saveHandler);
+
+          btn._saveHandler = async (e) => {
             e.preventDefault();
             try {
               await saveEditCase();
@@ -401,30 +404,44 @@
               console.error("saveEditCase error:", err);
               alert("Save failed");
             }
-          });
+          };
+
+          btn.addEventListener("click", btn._saveHandler);
         };
 
         let saveBtn = findSaveBtn();
+
         if (saveBtn) {
           attachSaveHandler(saveBtn);
+
         } else if (modal) {
-          // delegated click: will catch clicks on matching targets even if button is injected later
           const delegated = async (e) => {
-            const btn = e.target.closest("#saveCaseBtn, [data-action='saveCase'], [data-action='save-case'], button.save, button.save-case");
+            const btn = e.target.closest(
+              "#saveCaseBtn, [data-action='saveCase'], [data-action='save-case'], button.save, button.save-case"
+            );
             if (!btn) return;
-            // prevent double invocation if concrete button is bound later
+
+            // 🔒 prevent double execution
+            if (btn.dataset._saving === "1") return;
+            btn.dataset._saving = "1";
+
             e.preventDefault();
+
             try {
               await saveEditCase();
             } catch (err) {
               console.error("saveEditCase (delegated) error:", err);
               alert("Save failed");
+            } finally {
+              btn.dataset._saving = "0";
             }
           };
-          // remove any previous delegated listener (idempotent attach)
+
+          // idempotent attach
           modal.removeEventListener("click", modal._saveDelegatedHandler);
           modal.addEventListener("click", delegated);
           modal._saveDelegatedHandler = delegated;
+
         } else {
           console.warn("editCaseModal not found; cannot bind save handler");
         }
@@ -432,34 +449,5 @@
       }, 50); // small delay is intentional
     });
 
-    // ------------------------------------------------------------------
-    // Global delegated save handler — catches clicks even if button never bound
-    // Keeps scope to the editCaseModal so other pages are unaffected.
-    // ------------------------------------------------------------------
-    document.addEventListener("click", async (e) => {
-      const btn = e.target.closest("#saveCaseBtn, [data-action='saveCase'], [data-action='save-case'], button.save, button.save-case");
-      if (!btn) return;
-      const modal = document.getElementById("editCaseModal");
-      if (!modal) return;
-      if (!modal.contains(btn)) return; // only react to buttons inside the modal
-
-      e.preventDefault();
-
-      // avoid double invocation
-      if (btn.dataset._saving === "1" || window._caseSaving) return;
-      btn.dataset._saving = "1";
-      window._caseSaving = true;
-
-      try {
-        await saveEditCase();
-      } catch (err) {
-        console.error("saveEditCase (global delegated) error:", err);
-        alert("Save failed");
-      } finally {
-        btn.dataset._saving = "0";
-        window._caseSaving = false;
-      }
-    });
-  });
-
-})();
+  }); // end DOMContentLoaded
+})(); // end IIFE    

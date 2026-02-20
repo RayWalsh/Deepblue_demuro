@@ -4,6 +4,7 @@ from sqlalchemy import text
 from utils import get_db_connection, login_required
 from datetime import date, datetime
 from case_documents import delete_case_documents
+from timebars import recalc_case_timebars
 
 case_bp = Blueprint("case_bp", __name__)
 
@@ -252,48 +253,68 @@ def get_case_metadata():
 # ✏️ UPDATE CASE (SIDE MODAL SAVE)
 # ==================================================
 
-@case_bp.route('/update-case/<int:case_id>', methods=['POST'])
+@case_bp.route("/update-case/<int:case_id>", methods=["POST"])
 @login_required
 def update_case(case_id):
-    print("🟡 update_case called (case_bp)")
     payload = request.get_json() or {}
-    print(f"🟡 CaseID: {case_id}")
-    print(f"🟡 Incoming payload: {payload}")
 
     # Try to read editable columns from metadata; if table missing, fall back to payload keys
     try:
         with get_db_connection() as conn:
-            rows = conn.execute(text("SELECT ColumnName FROM dbo.ColumnMeta WHERE IsEditable = 1")).fetchall()
+            rows = conn.execute(text("""
+                SELECT ColumnName
+                FROM dbo.ColumnMeta
+                WHERE IsEditable = 1
+            """)).fetchall()
             editable_cols = {r[0] for r in rows}
     except Exception as e:
         print("⚠️ CaseMetadata lookup failed, falling back to payload keys:", e)
         editable_cols = set(payload.keys())
 
-    # Validate column names to avoid SQL injection (letters, numbers, underscore)
     import re
-    valid_name = re.compile(r'^[A-Za-z0-9_]+$')
+    valid_name = re.compile(r"^[A-Za-z0-9_]+$")
 
-    updates = {k: v for k, v in payload.items() if isinstance(k, str) and valid_name.match(k) and k in editable_cols}
+    updates = {
+        k: v for k, v in payload.items()
+        if isinstance(k, str) and valid_name.match(k) and k in editable_cols
+    }
+
     if not updates:
         return jsonify(success=True, message="No changes"), 200
 
     set_clause = ", ".join(f"[{k}] = :{k}" for k in updates.keys())
-    sql = text(f"UPDATE Cases SET {set_clause} WHERE CaseID = :case_id")
+    sql = text(f"UPDATE dbo.Cases SET {set_clause} WHERE CaseID = :case_id")
     params = {**updates, "case_id": case_id}
 
+    conn = None
     try:
-        with get_db_connection() as conn:
-            conn.execute(sql, params)
-            conn.commit()
+        conn = get_db_connection()
+        conn.execute(sql, params)
+
+        # ✅ If VoyageEndDate changed, recalc timebars (this will DISMISS the warning todo)
+        if "VoyageEndDate" in updates:
+            print("🟢 VoyageEndDate changed — running recalc_case_timebars")
+            from timebars import recalc_case_timebars
+            recalc_case_timebars(conn, case_id, org_id=1, voyage_end_col="VoyageEndDate")
+
+        conn.commit()
         return jsonify(success=True), 200
+
     except Exception as err:
         print(f"❌ Error updating case {case_id}:", err)
         try:
-            with get_db_connection() as conn:
+            if conn is not None:
                 conn.rollback()
         except Exception:
             pass
         return jsonify(success=False, error=str(err)), 500
+
+    finally:
+        try:
+            if conn is not None:
+                conn.close()
+        except Exception:
+            pass
     
     
 # ==================================================

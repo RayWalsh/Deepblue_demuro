@@ -59,6 +59,79 @@ from case_documents import case_documents_bp
 app.register_blueprint(case_documents_bp)
 
 # ----------------------------------------------------
+# 📂 Blueprint: Timebars 
+# ----------------------------------------------------
+from timebars import timebars_bp
+app.register_blueprint(timebars_bp)
+
+@app.route("/dev/timebars-test")
+@login_required
+def dev_timebars_test():
+    return """
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Timebars Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 16px; }
+    input, select, button { font-size: 16px; padding: 10px; margin: 6px 0; width: 100%; max-width: 520px; }
+    pre { background: #111; color: #0f0; padding: 12px; border-radius: 8px; overflow:auto; max-width: 900px; }
+  </style>
+</head>
+<body>
+  <h2>Timebars API Test</h2>
+
+  <label>CaseID</label>
+  <input id="caseId" placeholder="e.g. 123" />
+
+  <label>Notice Type</label>
+  <select id="noticeType">
+    <option value="1">Demurrage Notice (90)</option>
+    <option value="2">Claim (180)</option>
+  </select>
+
+  <button onclick="addNotice()">Add Notice to Case</button>
+  <button onclick="recalc()">Recalc Case</button>
+
+  <h3>Result</h3>
+  <pre id="out">—</pre>
+
+<script>
+async function addNotice() {
+  const caseId = document.getElementById("caseId").value.trim();
+  const noticeTypeId = parseInt(document.getElementById("noticeType").value, 10);
+  if (!caseId) return alert("Enter a CaseID");
+
+  const res = await fetch(`/api/timebars/cases/${caseId}/notices`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ OrgID: 1, NoticeTypeID: noticeTypeId })
+  });
+
+  const txt = await res.text();
+  document.getElementById("out").textContent = txt;
+}
+
+async function recalc() {
+  const caseId = document.getElementById("caseId").value.trim();
+  if (!caseId) return alert("Enter a CaseID");
+
+  const res = await fetch(`/api/timebars/cases/${caseId}/recalc`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ OrgID: 1 })
+  });
+
+  const txt = await res.text();
+  document.getElementById("out").textContent = txt;
+}
+</script>
+</body>
+</html>
+    """
+
+# ----------------------------------------------------
 # 🧪 Debug Session Route
 # ----------------------------------------------------
 @app.route('/debug_session')
@@ -717,7 +790,7 @@ def change_password():
         return jsonify(success=False, error="Failed to update password."), 500
 
 @app.route('/update-case/<int:case_id>', methods=['POST'])
-def update_case(case_id):
+def update_case2(case_id):
     print("🟡 update_case called")
     payload = request.get_json() or {}
     print(f"🟡 CaseID: {case_id}")
@@ -740,8 +813,17 @@ def update_case(case_id):
     try:
         with get_db_connection() as conn:
             conn.execute(sql, params)
+
+            # ✅ If VoyageEndDate was updated, recalc timebars which will:
+            #    - dismiss the MISSING_VOYAGE_END_DATE todo if now present
+            #    - regenerate expiry dates + reminder todos
+            if "VoyageEndDate" in updates:
+                recalc_case_timebars(conn, case_id, org_id=1, voyage_end_col="VoyageEndDate")
+
             conn.commit()
+
         return jsonify(success=True), 200
+
     except Exception as err:
         print(f"❌ Error updating case {case_id}:", err)
         try:
