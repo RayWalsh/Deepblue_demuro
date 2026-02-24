@@ -129,8 +129,18 @@ def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = 
         """), {"ExpiryDate": expiry, "CaseNoticeID": case_notice_id})
 
         for off in offsets:
+            # ✅ Due date (the date the reminder should be actioned)
             due = expiry - timedelta(days=off)
-            title = f"Send {notice_name} — {off} days before timebar (expires {expiry.isoformat()})"
+
+            # ✅ Ensure "Notice" suffix (avoid double "Notice Notice")
+            display_name = notice_name if str(notice_name).lower().endswith("notice") else f"{notice_name} Notice"
+
+            # ✅ Make expiry wording explicit
+            title = (
+                f"Send {display_name} — {off} days before timebar "
+                f"(timebar expires {expiry.isoformat()})"
+            )
+
             meta = f"TIMEBAR:{case_notice_id}:OFFSET:{off}"
 
             # Update existing OPEN item if it exists, else insert
@@ -370,18 +380,50 @@ def get_case_notices(case_id):
 @timebars_bp.route("/api/timebars/cases/<int:case_id>/todos", methods=["GET"])
 def get_case_todos(case_id):
     from app import get_db_connection, login_required
+    from sqlalchemy import text
 
     @login_required
     def inner():
+        include_done = str(request.args.get("include_done", "0")).lower() in ("1", "true", "yes")
+        include_dismissed = str(request.args.get("include_dismissed", "0")).lower() in ("1", "true", "yes")
+
+        statuses = ["OPEN"]
+        if include_done:
+            statuses.append("DONE")
+        if include_dismissed:
+            statuses.append("DISMISSED")
+
+        # build an IN list safely
+        status_params = {f"s{i}": s for i, s in enumerate(statuses)}
+        status_in = ", ".join(f":s{i}" for i in range(len(statuses)))
+
+        sql = f"""
+            SELECT
+                t.TodoID,
+                t.CaseID,
+                t.Type,
+                t.Title,
+                t.DueDate,
+                t.Status,
+                t.MetaKey,
+                t.CompletedAt,
+                t.CompletedByUserID,
+                u.Username AS CompletedByName,
+                t.CompletionNote
+            FROM dbo.CaseTodos t
+            LEFT JOIN dbo.UsersSecure u
+                ON u.UserID = t.CompletedByUserID
+            WHERE t.CaseID = :CaseID
+            AND t.Status IN ({status_in})
+            AND t.Type IN ('TIMEBAR_REMINDER', 'MISSING_VOYAGE_END_DATE')
+            ORDER BY
+            CASE WHEN t.DueDate IS NULL THEN 1 ELSE 0 END,
+            t.DueDate ASC,
+            t.TodoID ASC
+        """
+
         with get_db_connection() as conn:
-            rows = conn.execute(text("""
-                SELECT TodoID, CaseID, Type, Title, DueDate, Status, MetaKey
-                FROM dbo.CaseTodos
-                WHERE CaseID=:CaseID
-                  AND Status='OPEN'
-                  AND Type IN ('TIMEBAR_REMINDER', 'MISSING_VOYAGE_END_DATE')
-                ORDER BY CASE WHEN DueDate IS NULL THEN 1 ELSE 0 END, DueDate ASC
-            """), {"CaseID": case_id}).fetchall()
+            rows = conn.execute(text(sql), {"CaseID": case_id, **status_params}).fetchall()
 
         return jsonify([dict(r._mapping) for r in rows])
 
@@ -458,6 +500,61 @@ def delete_case_notice(case_notice_id):
             # Recalc (optional) if we still have case_id
             if case_id:
                 recalc_case_timebars(conn, case_id, org_id=1, voyage_end_col="VoyageEndDate")
+
+            conn.commit()
+
+        return jsonify({"ok": True})
+
+    return inner()
+
+
+
+@timebars_bp.route("/api/timebars/todos/<int:todo_id>", methods=["PATCH"])
+def update_case_todo(todo_id):
+    from app import get_db_connection, login_required
+    from flask import session
+    from flask import current_app
+
+    @login_required
+    def inner():
+        payload = request.get_json(silent=True) or {}
+
+        # accept Status or status
+        raw_status = payload.get("Status", payload.get("status", ""))
+        status = str(raw_status).upper().strip()
+
+        note = payload.get("CompletionNote", payload.get("completionNote"))
+
+        current_app.logger.info(f"[update_case_todo] TodoID={todo_id} payload={payload} parsed_status={status}")
+
+        if status not in ("OPEN", "DONE", "DISMISSED"):
+            return jsonify({"ok": False, "error": f"Invalid Status: {raw_status}"}), 400
+
+        user_id = session.get("user_id")
+        if status == "DONE" and not user_id:
+            return jsonify({"ok": False, "error": "No user_id in session. Please log out and log back in."}), 401
+
+        with get_db_connection() as conn:
+            if status == "DONE":
+                conn.execute(text("""
+                    UPDATE dbo.CaseTodos
+                    SET Status='DONE',
+                        CompletedAt=SYSUTCDATETIME(),
+                        CompletedByUserID=:UserID,
+                        CompletionNote=:Note,
+                        UpdatedAt=SYSUTCDATETIME()
+                    WHERE TodoID=:TodoID;
+                """), {"TodoID": todo_id, "UserID": user_id, "Note": note})
+            else:
+                conn.execute(text("""
+                    UPDATE dbo.CaseTodos
+                    SET Status=:Status,
+                        CompletedAt=NULL,
+                        CompletedByUserID=NULL,
+                        CompletionNote=NULL,
+                        UpdatedAt=SYSUTCDATETIME()
+                    WHERE TodoID=:TodoID;
+                """), {"TodoID": todo_id, "Status": status})
 
             conn.commit()
 

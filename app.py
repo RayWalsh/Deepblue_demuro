@@ -6,7 +6,7 @@ from flask import Flask, request, render_template, redirect, url_for, session, j
 from functools import wraps
 from sqlalchemy import create_engine, text
 from passlib.hash import pbkdf2_sha256
-from utils import get_db_connection, login_required
+
 
 # ----------------------------------------------------
 # ⚙️ Flask App Setup
@@ -17,6 +17,17 @@ app.secret_key = 'super-secret-key'  # TODO: Move to .env for production
 # 🔧 Allow session cookies over HTTP (for Codespaces)
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# ----------------------------------------------------
+# 🔐 Authentication Decorator
+# ----------------------------------------------------
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return wrapper
 
 # ----------------------------------------------------
 # 🔗 Blueprint: Email Rules
@@ -167,16 +178,7 @@ def get_db_connection():
         print(f"❌ Database connection failed: {e}")
         raise
 
-# ----------------------------------------------------
-# 🔐 Authentication Decorator
-# ----------------------------------------------------
-def login_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if 'username' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return wrapper
+
 
 # ----------------------------------------------------
 # 👤 Inject User Context (for topbar / header)
@@ -289,7 +291,11 @@ def login():
         try:
             with get_db_connection() as conn:
                 result = conn.execute(
-                    text("SELECT HashedPassword, IsActive FROM dbo.UsersSecure WHERE Username = :u"),
+                    text("""
+                        SELECT UserID, Username, HashedPassword, IsActive
+                        FROM dbo.UsersSecure
+                        WHERE Username = :u
+                    """),
                     {"u": username}
                 )
                 row = result.fetchone()
@@ -297,14 +303,21 @@ def login():
             if not row:
                 error = "Invalid username or password."
             else:
-                hashed_pw, is_active = row[0], bool(row[1])
+                m = row._mapping
+                user_id = m["UserID"]
+                hashed_pw = m["HashedPassword"]
+                is_active = bool(m["IsActive"])
+
                 if not is_active:
                     error = "Account is inactive."
-                elif pbkdf2_sha256.verify(password, hashed_pw.strip()):
-                    session['username'] = username
+                elif pbkdf2_sha256.verify(password, str(hashed_pw).strip()):
+                    session.clear()  # important: clean slate
+                    session["username"] = m["Username"]
+                    session["user_id"] = int(user_id)  # ✅ this is what timebars needs
                     return redirect(url_for('home'))
                 else:
                     error = "Invalid username or password."
+
         except Exception as e:
             print("Login logic error:", e)
             error = "Login failed due to a server error."

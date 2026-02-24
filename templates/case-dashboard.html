@@ -183,26 +183,8 @@
         <option value="">+ Add notice type…</option>
       </select>
 
-      <button class="tb-btn" id="tbAddNoticeBtn">Add</button>
-      <button class="tb-btn" id="tbRecalcBtn">Recalc</button>
-    </div>
-  </div>
-
-  <!-- KPI ROW -->
-  <div class="kpi-row" id="tbKpis">
-    <div class="kpi neutral">
-      <div class="kpi-label">Days to Timebar</div>
-      <div class="kpi-value" id="tbDaysToTimebar">—</div>
-    </div>
-
-    <div class="kpi neutral">
-      <div class="kpi-label">Timebar Date</div>
-      <div class="kpi-value" id="tbTimebarDate">—</div>
-    </div>
-
-    <div class="kpi neutral">
-      <div class="kpi-label">Next Notice Due</div>
-      <div class="kpi-value" id="tbNextNoticeDue">—</div>
+      <button class="tb-btn" id="tbAddNoticeBtn" type="button">Add</button>
+      <button class="tb-btn" id="tbRecalcBtn" type="button">Recalc</button>
     </div>
   </div>
 
@@ -214,7 +196,7 @@
     <!-- JS injects -->
   </div>
 
-  <!-- Upcoming todos for this case (timebars + missing voyage end) -->
+  <!-- Upcoming todos for this case -->
   <div class="tb-todos">
     <h3 class="tb-subtitle">Upcoming</h3>
     <div id="tbTodosList" class="tb-todos-list"></div>

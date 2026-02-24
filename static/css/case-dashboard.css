@@ -301,47 +301,241 @@ body.case-dashboard .case-header {
   }
 }
 
+
 /* =====================================================
-   NOTICES PANEL
+   NOTICES (TIMEBARS) — SINGLE SOURCE OF TRUTH
+   Covers:
+   - Panel header + actions
+   - Active notice cards + chips
+   - Global callout
+   - Upcoming list
 ===================================================== */
 
-.notices-panel {
-  position: relative;
+.notices-panel{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 
-/* KPI emphasis colours */
-.kpi-value.danger {
-  color: #c53030;
+/* ---------- Header row + actions ---------- */
+
+#timebarsPanel .panel-header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:6px;
 }
 
-.kpi-value.safe {
-  color: #1f9d55;
+#timebarsPanel .panel-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 
-/* Status row under KPIs */
-.notice-status {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+#timebarsPanel .tb-select{
+  height:32px;
+  padding:0 10px;
+  border:1px solid #dce3ec;
+  border-radius:8px;
+  background:#fff;
+  font-size:13px;
+  color:#475569;
 }
 
-.notice-status.warning {
-  background: #fff6e5;
-  color: #92400e;
+#timebarsPanel .tb-btn{
+  height:32px;
+  padding:0 12px;
+  border-radius:8px;
+  border:1px solid #dce3ec;
+  background:#f7f9fc;
+  font-size:13px;
+  font-weight:700;
+  color:#0e3a6d;
+  cursor:pointer;
 }
 
-.notice-status.safe {
-  background: #e6f6ec;
-  color: #065f46;
+#timebarsPanel .tb-btn:hover{ background:#eef3f9; }
+
+/* Danger button variant for Remove */
+#timebarsPanel .tb-btn.danger{
+  border-color:#f8cfc9;
+  background:#fdecea;
+  color:#9b1c1c;
+}
+#timebarsPanel .tb-btn.danger:hover{ background:#f8cfc9; }
+
+/* ---------- Global callout ---------- */
+
+#timebarsPanel .notice-callout{
+  border-radius:10px;
+  padding:12px 14px;
+  font-size:13.5px;
+  line-height:1.4;
 }
 
-.notice-status i {
-  font-size: 14px;
+#timebarsPanel .notice-callout.safe{ background:#e8f5ec; color:#1f7a3d; }
+#timebarsPanel .notice-callout.warning{ background:#fff6e0; color:#8a5a00; }
+#timebarsPanel .notice-callout.critical{ background:#fdecea; color:#9b1c1c; }
+#timebarsPanel .notice-callout.neutral{ background:#f7f9fc; color:#0e3a6d; }
+
+/* ---------- Active notice list ---------- */
+
+#timebarsPanel .tb-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+#timebarsPanel .tb-item{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  border:1px solid #eef2f7;
+  border-radius:12px;
+  background:#fff;
+}
+
+#timebarsPanel .tb-item-main{
+  flex:1;
+  min-width:0;
+}
+
+#timebarsPanel .tb-item-title{
+  font-size:14px;
+  font-weight:800;
+  color:#0e3a6d;
+  margin-bottom:4px;
+  line-height:1.2;
+}
+
+#timebarsPanel .tb-item-meta{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  font-size:12px;
+  color:#475569;
+}
+
+#timebarsPanel .tb-mini{
+  margin-top:8px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* Chips */
+#timebarsPanel .tb-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  background:#f1f5f9;
+  color:#475569;
+  border:1px solid #eef2f7;
+}
+
+#timebarsPanel .tb-chip.safe{
+  background:#e8f5ec;
+  border-color:#d7efe0;
+  color:#1f7a3d;
+}
+
+#timebarsPanel .tb-chip.warning{
+  background:#fff6e0;
+  border-color:#ffe9b5;
+  color:#8a5a00;
+}
+
+#timebarsPanel .tb-chip.critical{
+  background:#fdecea;
+  border-color:#f8cfc9;
+  color:#9b1c1c;
+}
+
+/* ✅ Expired should be red */
+#timebarsPanel .tb-chip.expired{
+  background:#fdecea;
+  border-color:#f8cfc9;
+  color:#9b1c1c;
+}
+
+/* Right side actions */
+#timebarsPanel .tb-item-actions{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  flex-shrink:0;
+}
+
+#timebarsPanel .tb-toggle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:800;
+  color:#475569;
+  user-select:none;
+}
+
+#timebarsPanel .tb-toggle input{
+  width:16px;
+  height:16px;
+  transform:translateY(1px);
+}
+
+/* ---------- Upcoming list ---------- */
+
+#timebarsPanel .tb-todos{
+  border-top:1px solid #eef2f7;
+  padding-top:12px;
+}
+
+#timebarsPanel .tb-subtitle{
+  font-size:12px;
+  font-weight:900;
+  color:#0e3a6d;
+  margin:0 0 8px;
+  letter-spacing:0.2px;
+}
+
+#timebarsPanel .tb-todos-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  font-size:13px;
+  color:#475569;
+}
+
+#timebarsPanel .tb-todo{
+  padding:8px 0;
+  border-bottom:1px dashed #eef2f7;
+}
+#timebarsPanel .tb-todo:last-child{ border-bottom:0; }
+
+#timebarsPanel .tb-todo-title{
+  font-size:13px;
+  color:#475569;
+}
+
+#timebarsPanel .tb-todo-meta{
+  font-size:12.5px;
+  font-weight:800;
+  color:#0e3a6d;
+  margin-top:2px;
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 520px){
+  #timebarsPanel .panel-header-row{ flex-direction:column; align-items:flex-start; }
+  #timebarsPanel .panel-actions{ width:100%; }
+  #timebarsPanel .tb-select{ flex:1; width:100%; }
 }
 
 /* =====================================================
@@ -605,53 +799,6 @@ body.case-dashboard .case-header {
   font-weight: 600;
 }
 
-/* =====================================================
-   NOTICES PANEL
-===================================================== */
-
-.notices-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* KPI ROW already exists – this just tightens it */
-.notices-panel .kpi-row {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-/* KPI STATES */
-
-.kpi.safe {
-  background: #e8f5ec;
-  color: #1f7a3d;
-}
-
-.kpi.warning {
-  background: #fff6e0;
-  color: #8a5a00;
-}
-
-.kpi.critical {
-  background: #fdecea;
-  color: #9b1c1c;
-}
-
-.kpi.expired {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.kpi.neutral {
-  background: #f7f9fc;
-  color: #0e3a6d;
-}
-
-/* KPI VALUE OVERRIDES (keep hierarchy strong) */
-.notices-panel .kpi-value {
-  font-size: 20px;
-  font-weight: 700;
-}
 
 /* =====================================================
    ACTION CALLOUT
