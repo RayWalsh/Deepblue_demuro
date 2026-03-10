@@ -602,3 +602,139 @@
 .settings-section.settings-wide {
   max-width: 1000px;
 }
+
+/* =====================================================
+   SETTINGS → TEMPLATE TABLE ROW INTERACTION
+   Enables click-anywhere row editing behaviour
+===================================================== */
+
+.settings-table tbody tr {
+  cursor: pointer;
+}
+
+.settings-table tbody tr:hover {
+  background: #f4f7fb;
+}
+
+/* =====================================================
+   SETTINGS → TEMPLATE TABLE ACTIONS
+===================================================== */
+
+.settings-table td.actions-right {
+  text-align: right;
+}
+
+/* Icon button */
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.icon-btn:hover {
+  color: #b42318;
+  background: #fdecec;
+}
+
+/* =====================================================
+   SETTINGS → TEMPLATE TABLE ROW HOVER INDICATOR
+===================================================== */
+
+.settings-table tbody tr {
+  position: relative;
+}
+
+.settings-table tbody tr::after {
+  content: "›";
+  position: absolute;
+  right: 36px;
+  opacity: 0;
+  color: #9ca3af;
+  font-size: 18px;
+  transition: opacity 0.15s ease;
+}
+
+.settings-table tbody tr:hover::after {
+  opacity: 1;
+}
+
+/* =====================================================
+   TEMPLATE EDITOR → VARIABLE PILLS
+===================================================== */
+
+.variable-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.variable-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.variable-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Pill tokens */
+.variable-chip {
+
+  appearance: none;
+  border: none;
+  background: #eef3f9;
+
+  color: #0e3a6d;
+  font-size: 12px;
+  font-weight: 600;
+
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  line-height: 1.4;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+/* Hover */
+.variable-chip:hover {
+  background: #dbe7f6;
+}
+
+/* Active click */
+.variable-chip:active {
+  transform: translateY(1px);
+}
+
+/* Optional subtle border for clarity */
+.variable-chip {
+  border: 1px solid #d7e2f0;
+}
+
+/* ======================================================
+   SETTINGS → TEMPLATE ACTION ICONS
+   Clone / Delete buttons in Email Templates table
+====================================================== */
+
+.clone-btn {
+  color: #6b7280;   /* subtle grey */
+}
+
+.clone-btn:hover {
+  color: #1f2937;   /* darker on hover */
+}
+
+.clone-btn,
+.delete-btn {
+  transition: color 0.15s ease;
+}

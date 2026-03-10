@@ -56,10 +56,13 @@ def upsert_missing_voyage_end_todo(conn, case_id: int, has_voyage_end: bool):
 
 def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = "VoyageEndDate"):
     """
-    - Uses dbo.Cases.<voyage_end_col> as voyage end date.
-    - Computes ExpiryDate for each CaseNotice and generates reminder todos.
+    Recalculate timebar expiry dates and reminder todos for a case.
+    Uses TemplateAssignments first, falling back to NoticeTypes.TemplateID.
     """
-    # 1) Get VoyageEndDate
+
+    # ------------------------------------------------
+    # 1️⃣ Get VoyageEndDate
+    # ------------------------------------------------
     row = conn.execute(text(f"""
         SELECT CaseID, {voyage_end_col} AS VoyageEndDate
         FROM dbo.Cases
@@ -74,79 +77,127 @@ def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = 
 
     upsert_missing_voyage_end_todo(conn, case_id, has_voyage_end)
 
-    # If missing, dismiss open reminders and clear expiry dates
     if not has_voyage_end:
+
         conn.execute(text("""
             UPDATE dbo.CaseTodos
             SET Status='DISMISSED', UpdatedAt=SYSUTCDATETIME()
-            WHERE CaseID=:CaseID AND Type='TIMEBAR_REMINDER' AND Status='OPEN';
+            WHERE CaseID=:CaseID
+              AND Type='TIMEBAR_REMINDER'
+              AND Status='OPEN';
         """), {"CaseID": case_id})
 
         conn.execute(text("""
             UPDATE dbo.CaseNotices
-            SET ExpiryDate = NULL, UpdatedAt=SYSUTCDATETIME()
+            SET ExpiryDate = NULL,
+                UpdatedAt = SYSUTCDATETIME()
             WHERE CaseID=:CaseID;
         """), {"CaseID": case_id})
 
         return {"ok": True, "scheduled": 0, "reason": "VoyageEndDate missing"}
 
-    # Coerce datetime -> date
+    # Normalize datetime → date
     if isinstance(voyage_end, datetime):
         voyage_end = voyage_end.date()
 
-    # 2) Load case notices
+    # ------------------------------------------------
+    # 2️⃣ Load case notices
+    # ------------------------------------------------
     notices = conn.execute(text("""
         SELECT
-          cn.CaseNoticeID,
-          cn.TimebarDaysSnapshot,
-          cn.ReminderOffsetsSnapshot,
-          cn.IsEnabled,
-          nt.Name AS NoticeTypeName,
-          nt.TemplateID
+            cn.CaseNoticeID,
+            cn.TimebarDaysSnapshot,
+            cn.ReminderOffsetsSnapshot,
+            cn.IsEnabled,
+            nt.Name AS NoticeTypeName,
+
+            ta.TemplateID AS AssignedTemplateID,
+            nt.TemplateID AS NoticeTypeTemplateID
+
         FROM dbo.CaseNotices cn
-        JOIN dbo.NoticeTypes nt ON nt.NoticeTypeID = cn.NoticeTypeID
+
+        JOIN dbo.NoticeTypes nt
+            ON nt.NoticeTypeID = cn.NoticeTypeID
+
+        LEFT JOIN dbo.TemplateAssignments ta
+            ON ta.AssignmentKey = 'TIMEBAR_REMINDER'
+            AND ta.OrgID = :OrgID
+            AND ta.IsActive = 1
+
         WHERE cn.CaseID = :CaseID
-    """), {"CaseID": case_id}).fetchall()
+    """), {
+        "CaseID": case_id,
+        "OrgID": org_id
+    }).fetchall()
 
     scheduled = 0
 
+    # ------------------------------------------------
+    # 3️⃣ Process notices
+    # ------------------------------------------------
     for n in notices:
+
         m = n._mapping
+
         case_notice_id = m["CaseNoticeID"]
         enabled = bool(m["IsEnabled"])
         notice_name = m["NoticeTypeName"]
-        template_id = m.get("TemplateID")
+
+        template_id = (
+            m.get("AssignedTemplateID")
+            or m.get("NoticeTypeTemplateID")
+        )
+
         timebar_days = int(m["TimebarDaysSnapshot"])
         offsets = parse_offsets(m["ReminderOffsetsSnapshot"])
 
+        # Disable reminders if notice disabled
         if not enabled:
+
             conn.execute(text("""
                 UPDATE dbo.CaseTodos
-                SET Status='DISMISSED', UpdatedAt=SYSUTCDATETIME()
+                SET Status='DISMISSED',
+                    UpdatedAt=SYSUTCDATETIME()
                 WHERE CaseID=:CaseID
                   AND Type='TIMEBAR_REMINDER'
-                  AND Status='OPEN'
                   AND RelatedEntityType='CaseNotice'
-                  AND RelatedEntityID=:CaseNoticeID;
-            """), {"CaseID": case_id, "CaseNoticeID": case_notice_id})
+                  AND RelatedEntityID=:CaseNoticeID
+                  AND Status='OPEN';
+            """), {
+                "CaseID": case_id,
+                "CaseNoticeID": case_notice_id
+            })
+
             continue
 
+        # ------------------------------------------------
+        # 4️⃣ Calculate expiry
+        # ------------------------------------------------
         expiry = voyage_end + timedelta(days=timebar_days)
 
         conn.execute(text("""
             UPDATE dbo.CaseNotices
-            SET ExpiryDate = :ExpiryDate, UpdatedAt=SYSUTCDATETIME()
-            WHERE CaseNoticeID = :CaseNoticeID;
-        """), {"ExpiryDate": expiry, "CaseNoticeID": case_notice_id})
+            SET ExpiryDate=:ExpiryDate,
+                UpdatedAt=SYSUTCDATETIME()
+            WHERE CaseNoticeID=:CaseNoticeID
+        """), {
+            "ExpiryDate": expiry,
+            "CaseNoticeID": case_notice_id
+        })
 
+        # ------------------------------------------------
+        # 5️⃣ Create / update reminder todos
+        # ------------------------------------------------
         for off in offsets:
-           # ✅ Due date (the date the reminder should be actioned)
+
             due = expiry - timedelta(days=off)
 
-            # ✅ Ensure "Notice" suffix (avoid double "Notice Notice")
-            display_name = notice_name if str(notice_name).lower().endswith("notice") else f"{notice_name} Notice"
+            display_name = (
+                notice_name
+                if str(notice_name).lower().endswith("notice")
+                else f"{notice_name} Notice"
+            )
 
-            # ✅ Make expiry wording explicit
             title = (
                 f"Send {display_name} — {off} days before timebar "
                 f"(timebar expires {expiry.isoformat()})"
@@ -154,17 +205,16 @@ def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = 
 
             meta = f"TIMEBAR:{case_notice_id}:OFFSET:{off}"
 
-            # Update existing OPEN item if it exists, else insert
             updated = conn.execute(text("""
                 UPDATE dbo.CaseTodos
                 SET DueDate=:DueDate,
                     Title=:Title,
                     TemplateID=:TemplateID,
+                    Status='OPEN',
                     UpdatedAt=SYSUTCDATETIME()
                 WHERE CaseID=:CaseID
                   AND Type='TIMEBAR_REMINDER'
-                  AND Status='OPEN'
-                  AND MetaKey=:MetaKey;
+                  AND MetaKey=:MetaKey
             """), {
                 "DueDate": due,
                 "Title": title,
@@ -174,11 +224,16 @@ def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = 
             }).rowcount
 
             if updated == 0:
+
                 conn.execute(text("""
                     INSERT INTO dbo.CaseTodos
-                      (CaseID, Type, Title, DueDate, Status, RelatedEntityType, RelatedEntityID, TemplateID, MetaKey)
+                        (CaseID, Type, Title, DueDate, Status,
+                         RelatedEntityType, RelatedEntityID,
+                         TemplateID, MetaKey)
                     VALUES
-                      (:CaseID, 'TIMEBAR_REMINDER', :Title, :DueDate, 'OPEN', 'CaseNotice', :CaseNoticeID, :TemplateID, :MetaKey);
+                        (:CaseID, 'TIMEBAR_REMINDER', :Title, :DueDate,
+                         'OPEN', 'CaseNotice', :CaseNoticeID,
+                         :TemplateID, :MetaKey)
                 """), {
                     "CaseID": case_id,
                     "Title": title,
@@ -187,6 +242,7 @@ def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = 
                     "TemplateID": template_id,
                     "MetaKey": meta
                 })
+
                 scheduled += 1
 
     return {"ok": True, "scheduled": scheduled}

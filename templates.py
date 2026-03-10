@@ -30,6 +30,7 @@ def get_templates():
                         TemplateID,
                         OrgID,
                         Name,
+                        Category,
                         Subject,
                         Body,
                         CreatedAt,
@@ -75,6 +76,7 @@ def create_template():
 
         org_id = int(payload.get("OrgID", 1))
         name = (payload.get("Name") or "").strip()
+        category = payload.get("Category")
         subject = payload.get("Subject")
         body = payload.get("Body")
 
@@ -89,14 +91,15 @@ def create_template():
             with get_db_connection() as conn:
 
                 row = conn.execute(text("""
-                    INSERT INTO dbo.EmailTemplates
-                    (OrgID, Name, Subject, Body, IsActive)
+                    INSERT INTO dbo.Templates
+                    (OrgID, Name, Category, Subject, Body, IsActive)
                     OUTPUT INSERTED.TemplateID
                     VALUES
-                    (:OrgID, :Name, :Subject, :Body, 1)
+                    (:OrgID, :Name, :Category, :Subject, :Body, 1)
                 """), {
                     "OrgID": org_id,
                     "Name": name,
+                    "Category": category,
                     "Subject": subject,
                     "Body": body
                 }).fetchone()
@@ -137,6 +140,7 @@ def update_template(template_id):
         org_id = int(payload.get("OrgID", 1))
 
         name = payload.get("Name")
+        category = payload.get("Category")
         subject = payload.get("Subject")
         body = payload.get("Body")
         is_active = payload.get("IsActive")
@@ -150,6 +154,10 @@ def update_template(template_id):
         if name is not None:
             sets.append("Name = :Name")
             params["Name"] = str(name).strip()
+
+        if category is not None:
+            sets.append("Category = :Category")
+            params["Category"] = category
 
         if subject is not None:
             sets.append("Subject = :Subject")
@@ -243,6 +251,81 @@ def delete_template(template_id):
 
     return inner()
 
+# =========================================================
+# CLONE TEMPLATE
+# =========================================================
+
+@templates_bp.route("/api/templates/<int:template_id>/clone", methods=["POST"])
+def clone_template(template_id):
+
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+
+        org_id = int(request.args.get("org_id", 1))
+
+        try:
+
+            with get_db_connection() as conn:
+
+                # Get original template
+                original = conn.execute(text("""
+                    SELECT
+                        Name,
+                        Category,
+                        Subject,
+                        Body
+                    FROM dbo.Templates
+                    WHERE TemplateID = :TemplateID
+                    AND OrgID = :OrgID
+                    AND IsActive = 1
+                """), {
+                    "TemplateID": template_id,
+                    "OrgID": org_id
+                }).fetchone()
+
+                if not original:
+                    return jsonify({
+                        "success": False,
+                        "error": "Template not found"
+                    }), 404
+
+                new_name = f"{original.Name} (Copy)"
+
+                # Insert clone
+                row = conn.execute(text("""
+                    INSERT INTO dbo.Templates
+                    (OrgID, Name, Category, Subject, Body, IsActive)
+                    OUTPUT INSERTED.TemplateID
+                    VALUES
+                    (:OrgID, :Name, :Category, :Subject, :Body, 1)
+                """), {
+                    "OrgID": org_id,
+                    "Name": new_name,
+                    "Category": original.Category,
+                    "Subject": original.Subject,
+                    "Body": original.Body
+                }).fetchone()
+
+                conn.commit()
+
+            return jsonify({
+                "success": True,
+                "TemplateID": int(row[0])
+            })
+
+        except Exception as e:
+
+            print("❌ Template clone error:", e)
+
+            return jsonify({
+                "success": False,
+                "error": str(e)
+            }), 500
+
+    return inner()
+
 # =====================================================
 # GET SINGLE TEMPLATE
 # =====================================================
@@ -264,6 +347,7 @@ def get_template(template_id):
                         TemplateID,
                         OrgID,
                         Name,
+                        Category,
                         Subject,
                         Body,
                         IsActive,
@@ -296,5 +380,82 @@ def get_template(template_id):
                 "success": False,
                 "error": str(e)
             }), 500
+
+    return inner()
+
+
+# =========================================================
+# TEMPLATE ASSIGNMENTS
+# =========================================================
+
+@templates_bp.route("/api/template-assignments", methods=["GET"])
+def get_template_assignments():
+
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+
+        org_id = int(request.args.get("org_id", 1))
+
+        with get_db_connection() as conn:
+
+            rows = conn.execute(text("""
+                SELECT
+                    ta.AssignmentID,
+                    ta.AssignmentKey,
+                    ta.AssignmentLabel,
+                    ta.TemplateID,
+                    t.Name AS TemplateName
+                FROM dbo.TemplateAssignments ta
+                LEFT JOIN dbo.Templates t
+                    ON t.TemplateID = ta.TemplateID
+                WHERE ta.OrgID = :OrgID
+                AND ta.IsActive = 1
+                ORDER BY ta.AssignmentLabel
+            """), {"OrgID": org_id}).fetchall()
+
+        return jsonify({
+            "success": True,
+            "assignments": [dict(r._mapping) for r in rows]
+        })
+
+    return inner()
+
+
+# =========================================================
+# UPDATE TEMPLATE ASSIGNMENT
+# =========================================================
+
+@templates_bp.route("/api/template-assignments/<int:assignment_id>", methods=["PATCH"])
+def update_template_assignment(assignment_id):
+
+    from app import get_db_connection, login_required
+
+    @login_required
+    def inner():
+
+        payload = request.get_json(force=True) or {}
+
+        template_id = payload.get("TemplateID")
+        org_id = int(payload.get("OrgID", 1))
+
+        with get_db_connection() as conn:
+
+            conn.execute(text("""
+                UPDATE dbo.TemplateAssignments
+                SET TemplateID = :TemplateID,
+                    UpdatedAt = SYSUTCDATETIME()
+                WHERE AssignmentID = :AssignmentID
+                AND OrgID = :OrgID
+            """), {
+                "TemplateID": template_id,
+                "AssignmentID": assignment_id,
+                "OrgID": org_id
+            })
+
+            conn.commit()
+
+        return jsonify({"success": True})
 
     return inner()

@@ -91,6 +91,7 @@ function loadMainSection(section) {
   if (section === "communications") {
     subnav.innerHTML = `
       <button data-sub="templates">Templates</button>
+      <button data-sub="templateAssignments">Template Assignments</button>
     `;
     attachSubnavHandlers(section);
     content.innerHTML = `<h3>Select a setting</h3>`;
@@ -160,6 +161,11 @@ function attachSubnavHandlers(section) {
       // =====================================================
       if (section === "communications" && sub === "templates") {
         renderTemplatesSettings();
+        return;
+      }
+
+      if (section === "communications" && sub === "templateAssignments") {
+        renderTemplateAssignments();
         return;
       }
 
@@ -359,19 +365,30 @@ async function renderTemplatesSettings() {
     const templates = Array.isArray(data) ? data : (data.templates || []);
 
     const rows = templates.map(t => `
-      <tr>
+      <tr data-template-id="${t.TemplateID}">
         <td>${t.Name || "-"}</td>
+        <td>${t.Category || "-"}</td>
         <td>${t.Subject || "-"}</td>
-        <td class="actions">
-          <button class="btn-secondary" data-edit-template="${t.TemplateID}">
-            Edit
+        <td class="actions actions-right">
+          <button
+            class="icon-btn clone-btn"
+            data-clone-template="${t.TemplateID}"
+            title="Clone template"
+          >
+            <i class="fa-solid fa-copy"></i>
           </button>
-          <button class="btn-danger" data-delete-template="${t.TemplateID}">
-            Delete
+
+          <button
+            class="icon-btn delete-btn"
+            data-delete-template="${t.TemplateID}"
+            title="Delete template"
+          >
+            <i class="fa-solid fa-trash"></i>
           </button>
+
         </td>
       </tr>
-    `).join("");
+      `).join("");
 
     content.innerHTML = `
       <div class="settings-section settings-wide">
@@ -387,8 +404,9 @@ async function renderTemplatesSettings() {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Category</th>
               <th>Subject</th>
-              <th style="width:160px;"></th>
+              <th style="width:60px;"></th>
             </tr>
           </thead>
           <tbody>
@@ -422,6 +440,127 @@ async function renderTemplatesSettings() {
 }
 
 // =====================================================
+// COMMUNICATIONS → TEMPLATE ASSIGNMENTS
+// =====================================================
+
+async function renderTemplateAssignments() {
+
+  const content = document.getElementById("settings-content-inner");
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="settings-section">
+
+      <h3>Template Assignments</h3>
+
+      <p class="muted">
+        Choose which email template is used for each automated message.
+      </p>
+
+      <table class="settings-table" id="templateAssignmentsTable">
+        <thead>
+          <tr>
+            <th>Message</th>
+            <th>Template</th>
+          </tr>
+        </thead>
+        <tbody id="templateAssignmentsBody"></tbody>
+      </table>
+
+    </div>
+  `;
+
+  try {
+
+    const [assignRes, templatesRes] = await Promise.all([
+      fetch("/api/template-assignments"),
+      fetch("/api/templates")
+    ]);
+
+    const assignData = await assignRes.json();
+    const templatesData = await templatesRes.json();
+
+    const assignments = assignData.assignments || [];
+    const templates = templatesData.templates || [];
+
+    const rows = assignments.map(a => {
+
+      const options = templates.map(t => {
+
+        const selected = t.TemplateID === a.TemplateID ? "selected" : "";
+
+        return `<option value="${t.TemplateID}" ${selected}>${t.Name}</option>`;
+
+      }).join("");
+
+      return `
+        <tr>
+          <td>${a.AssignmentLabel}</td>
+
+          <td>
+            <select data-assignment="${a.AssignmentID}">
+              <option value="">-- None --</option>
+              ${options}
+            </select>
+          </td>
+        </tr>
+      `;
+
+    }).join("");
+
+    document.getElementById("templateAssignmentsBody").innerHTML = rows;
+
+    attachTemplateAssignmentHandlers();
+
+  } catch (err) {
+
+    console.error("Assignment load error:", err);
+
+    content.innerHTML = `
+      <div class="settings-section error">
+        Failed to load template assignments.
+      </div>
+    `;
+
+  }
+
+}
+
+function attachTemplateAssignmentHandlers() {
+
+  document.querySelectorAll("[data-assignment]").forEach(select => {
+
+    select.addEventListener("change", async () => {
+
+      const assignmentID = select.dataset.assignment;
+      const templateID = select.value || null;
+
+      try {
+
+        await fetch(`/api/template-assignments/${assignmentID}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            TemplateID: templateID
+          })
+        });
+
+        showToast("Assignment updated", "success");
+
+      } catch (err) {
+
+        console.error(err);
+        showToast("Failed to update assignment", "error");
+
+      }
+
+    });
+
+  });
+
+}
+
+// =====================================================
 // TEMPLATE ACTIONS
 // =====================================================
 
@@ -433,17 +572,51 @@ function attachTemplateActions() {
     newBtn.onclick = () => openTemplateEditor();
   }
 
-  // EDIT TEMPLATE
-  document.querySelectorAll("[data-edit-template]").forEach(btn => {
-    btn.onclick = () => {
-      const id = btn.dataset.editTemplate;
-      openTemplateEditor(id);
-    };
+// =====================================================
+// CLONE TEMPLATE
+// =====================================================
+
+document.querySelectorAll("[data-clone-template]").forEach(btn => {
+
+  btn.addEventListener("click", async (e) => {
+
+    e.stopPropagation(); // prevent row click
+
+    const id = btn.dataset.cloneTemplate;
+
+    try {
+
+      const res = await fetch(`/api/templates/${id}/clone`, {
+        method: "POST"
+      });
+
+      const data = await res.json();
+
+      if (!data.success) throw new Error();
+
+      showToast("Template cloned", "success");
+      renderTemplatesSettings();
+
+    } catch (err) {
+
+      console.error("Clone failed:", err);
+      showToast("Failed to clone template", "error");
+
+    }
+
   });
 
+});
+
+  // =====================================================
   // DELETE TEMPLATE
+  // =====================================================
+
   document.querySelectorAll("[data-delete-template]").forEach(btn => {
-    btn.onclick = async () => {
+
+    btn.onclick = async (e) => {
+
+      e.stopPropagation(); // prevent row click
 
       const id = btn.dataset.deleteTemplate;
 
@@ -465,6 +638,24 @@ function attachTemplateActions() {
       }
 
     };
+
+  });
+
+  // =====================================================
+  // ROW CLICK → OPEN EDITOR
+  // =====================================================
+
+  document.querySelectorAll(".settings-table tbody tr").forEach(row => {
+
+    row.addEventListener("click", () => {
+
+      const id = row.dataset.templateId;
+      if (!id) return;
+
+      openTemplateEditor(id);
+
+    });
+
   });
 
 }
@@ -483,29 +674,44 @@ async function openTemplateEditor(templateId = null) {
 
       <h3>${templateId ? "Edit Template" : "New Template"}</h3>
 
-      <!-- VARIABLE INSERT -->
-      <div style="display:flex; gap:10px; align-items:center; margin-bottom:18px;">
-        <label style="font-weight:600;">Insert Variable</label>
+      <!-- VARIABLE CHIPS -->
+      <div class="variable-toolbar">
 
-        <select id="variablePicker">
-          <option value="">Select...</option>
-          <option value="{{VesselName}}">Vessel Name</option>
-          <option value="{{VoyageNo}}">Voyage No</option>
-          <option value="{{ChartererName}}">Charterer Name</option>
-          <option value="{{CaseRef}}">Case Reference</option>
-          <option value="{{TimebarExpiryDate}}">Timebar Expiry</option>
-          <option value="{{VoyageEndDate}}">Voyage End Date</option>
-        </select>
+        <span class="variable-label">Insert Variable:</span>
 
-        <button type="button" class="btn-secondary" id="insertVariableBtn">
-          Insert
-        </button>
+        <div class="variable-chips">
+
+          <button class="variable-chip" data-variable="VesselName">VesselName</button>
+          <button class="variable-chip" data-variable="VoyageNo">VoyageNo</button>
+          <button class="variable-chip" data-variable="ChartererName">ChartererName</button>
+          <button class="variable-chip" data-variable="CaseRef">CaseRef</button>
+          <button class="variable-chip" data-variable="TimebarExpiryDate">TimebarExpiry</button>
+          <button class="variable-chip" data-variable="VoyageEndDate">VoyageEndDate</button>
+
+        </div>
+
       </div>
 
       <!-- NAME -->
       <div class="form-group">
         <label>Name</label>
         <input id="templateName" placeholder="Template name">
+      </div>
+
+      <!-- CATEGORY -->
+      <div class="form-group">
+        <label>Category</label>
+
+        <select id="templateCategory">
+
+          <option value="">Select category</option>
+          <option value="Claims">Claims</option>
+          <option value="Notifications">Notifications</option>
+          <option value="Reminders">Reminders</option>
+          <option value="Internal">Internal</option>
+
+        </select>
+
       </div>
 
       <!-- SUBJECT -->
@@ -541,12 +747,7 @@ async function openTemplateEditor(templateId = null) {
             </div>
 
             <div class="template-panel-body">
-
-              <div
-                id="templatePreview"
-                class="template-preview-text"
-              ></div>
-
+              <div id="templatePreview" class="template-preview-text"></div>
             </div>
 
           </div>
@@ -593,32 +794,36 @@ async function openTemplateEditor(templateId = null) {
   renderTemplatePreview();
 
   // =====================================================
-  // VARIABLE INSERT
+  // VARIABLE CHIP INSERT
   // =====================================================
 
-  const picker = document.getElementById("variablePicker");
-  const insertBtn = document.getElementById("insertVariableBtn");
+  document.querySelectorAll(".variable-chip").forEach(chip => {
 
-  insertBtn.onclick = () => {
+    chip.addEventListener("click", () => {
 
-    const variable = picker.value;
-    if (!variable || !activeField) return;
+      if (!activeField) return;
 
-    const start = activeField.selectionStart || 0;
-    const end = activeField.selectionEnd || 0;
+      const variableName = chip.dataset.variable;
+      const variable = "{{" + variableName + "}}";
 
-    activeField.value =
-      activeField.value.substring(0, start) +
-      variable +
-      activeField.value.substring(end);
+      const start = activeField.selectionStart || 0;
+      const end = activeField.selectionEnd || 0;
 
-    activeField.focus();
-    activeField.selectionStart = activeField.selectionEnd = start + variable.length;
+      activeField.value =
+        activeField.value.substring(0, start) +
+        variable +
+        activeField.value.substring(end);
 
-    picker.value = "";
+      activeField.focus();
+      activeField.selectionStart =
+      activeField.selectionEnd =
+        start + variable.length;
 
-    renderTemplatePreview();
-  };
+      renderTemplatePreview();
+
+    });
+
+  });
 
   // =====================================================
   // LOAD TEMPLATE (EDIT MODE)
@@ -636,6 +841,7 @@ async function openTemplateEditor(templateId = null) {
       const t = data.template;
 
       nameField.value = t.Name || "";
+      document.getElementById("templateCategory").value = t.Category || "";
       subjectField.value = t.Subject || "";
       bodyField.value = t.Body || "";
 
@@ -653,57 +859,73 @@ async function openTemplateEditor(templateId = null) {
   // SAVE TEMPLATE
   // =====================================================
 
-  document.getElementById("saveTemplateBtn").onclick = async () => {
+  const saveBtn = document.getElementById("saveTemplateBtn");
 
-    const payload = {
+  if (saveBtn) {
 
-      Name: nameField.value.trim(),
-      Subject: subjectField.value.trim(),
-      Body: bodyField.value
+    saveBtn.addEventListener("click", async () => {
 
-    };
+      const payload = {
+        Name: nameField.value.trim(),
+        Category: document.getElementById("templateCategory").value,
+        Subject: subjectField.value.trim(),
+        Body: bodyField.value
+      };
 
-    if (!payload.Name) {
-      showToast("Template name required", "error");
-      return;
-    }
+      if (!payload.Name) {
+        showToast("Template name required", "error");
+        return;
+      }
 
-    try {
+      try {
 
-      let res;
+        let res;
 
-      if (templateId) {
+        if (templateId) {
 
-        res = await fetch(`/api/templates/${templateId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+          res = await fetch(`/api/templates/${templateId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-      } else {
+        } else {
 
-        res = await fetch(`/api/templates`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+          res = await fetch(`/api/templates`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+        }
+
+        if (!res.ok) {
+          const txt = await res.text();
+          console.error("Server error:", txt);
+          throw new Error("Save failed");
+        }
+
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.error || "Save failed");
+        }
+
+        showToast("Template saved", "success");
+
+        renderTemplatesSettings();
+
+      } catch (err) {
+
+        console.error("Template save failed:", err);
+
+        showToast("Failed to save template", "error");
 
       }
 
-      const data = await res.json();
-      if (!data.success) throw new Error();
+    });
 
-      showToast("Template saved", "success");
-      renderTemplatesSettings();
-
-    } catch (err) {
-
-      console.error("Template save failed", err);
-      showToast("Failed to save template", "error");
-
-    }
-
-  };
+  }
 
   // =====================================================
   // CANCEL
