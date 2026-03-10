@@ -525,3 +525,80 @@
 .toast.error {
   background: #b91c1c;
 }
+
+/* =====================================================
+   TEMPLATE EDITOR LAYOUT
+===================================================== */
+
+.settings-section.template-editor {
+  max-width: 980px;
+}
+
+.template-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+/* Editor + preview panels */
+
+.template-panel {
+  display: flex;
+  flex-direction: column;
+  height: 340px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* Panel header */
+
+.template-panel-header {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+/* Panel body */
+
+.template-panel-body {
+  flex: 1;
+  padding: 12px;
+  overflow: auto;
+}
+
+/* Textarea fills panel */
+
+.template-panel-body textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Preview text */
+
+.template-preview-text {
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* =====================================================
+   SETTINGS → WIDE SECTIONS (TABLES / DATA)
+===================================================== */
+
+.settings-section.settings-wide {
+  max-width: 1000px;
+}

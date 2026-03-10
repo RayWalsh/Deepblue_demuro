@@ -1,0 +1,39 @@
+<div id="tbGenerateModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:720px;">
+
+    <div class="modal-header">
+      <h3 style="margin:0;">Generated Notice</h3>
+      <button id="tbGenerateClose" class="modal-close">×</button>
+    </div>
+
+    <div class="modal-body">
+
+      <label class="muted">Subject</label>
+      <input
+        id="tbGenSubject"
+        type="text"
+        class="form-control"
+        style="width:100%;"
+        readonly
+      />
+
+      <div style="height:16px;"></div>
+
+      <label class="muted">Body</label>
+      <textarea
+        id="tbGenBody"
+        class="form-control"
+        style="width:100%; min-height:260px;"
+        readonly
+      ></textarea>
+
+    </div>
+
+    <div class="modal-footer" style="display:flex; gap:8px; justify-content:flex-end;">
+      <button id="tbCopySubject" class="tb-btn secondary">Copy Subject</button>
+      <button id="tbCopyBody" class="tb-btn secondary">Copy Body</button>
+      <button id="tbGenerateDone" class="tb-btn">Close</button>
+    </div>
+
+  </div>
+</div>

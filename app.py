@@ -70,6 +70,12 @@ from case_documents import case_documents_bp
 app.register_blueprint(case_documents_bp)
 
 # ----------------------------------------------------
+# 📂 Blueprint: Templates
+# ----------------------------------------------------
+from templates import templates_bp
+app.register_blueprint(templates_bp)
+
+# ----------------------------------------------------
 # 📂 Blueprint: Timebars 
 # ----------------------------------------------------
 from timebars import timebars_bp

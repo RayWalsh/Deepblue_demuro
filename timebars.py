@@ -23,6 +23,17 @@ def parse_offsets(offset_str: str):
             continue
     return sorted(list(set(offsets)), reverse=True)
 
+def merge_template(subject: str, body: str, context: dict):
+    subject = subject or ""
+    body = body or ""
+
+    for key, value in context.items():
+        token = f"{{{{{key}}}}}"
+        subject = subject.replace(token, str(value or ""))
+        body = body.replace(token, str(value or ""))
+
+    return subject, body
+
 def upsert_missing_voyage_end_todo(conn, case_id: int, has_voyage_end: bool):
     todo_type = "MISSING_VOYAGE_END_DATE"
     title = "⚠ Voyage End Date is empty — timebar reminders can’t be scheduled"
@@ -129,7 +140,7 @@ def recalc_case_timebars(conn, case_id: int, org_id: int, voyage_end_col: str = 
         """), {"ExpiryDate": expiry, "CaseNoticeID": case_notice_id})
 
         for off in offsets:
-            # ✅ Due date (the date the reminder should be actioned)
+           # ✅ Due date (the date the reminder should be actioned)
             due = expiry - timedelta(days=off)
 
             # ✅ Ensure "Notice" suffix (avoid double "Notice Notice")
@@ -559,5 +570,109 @@ def update_case_todo(todo_id):
             conn.commit()
 
         return jsonify({"ok": True})
+
+    return inner()
+
+@timebars_bp.route("/api/timebars/todos/<int:todo_id>/generate", methods=["GET"])
+def generate_notice_from_todo(todo_id):
+    from app import get_db_connection, login_required
+    from flask import session
+    from datetime import datetime
+
+    @login_required
+    def inner():
+        org_id = 1  # TODO: replace with session org later
+
+        with get_db_connection() as conn:
+
+            # 1️⃣ Load Todo + Case + NoticeType
+            todo = conn.execute(text("""
+                SELECT
+                    t.TodoID,
+                    t.CaseID,
+                    t.TemplateID AS TodoTemplateID,
+                    cn.CaseNoticeID,
+                    cn.ExpiryDate,
+                    nt.Name AS NoticeTypeName,
+                    nt.TemplateID AS NoticeTypeTemplateID,
+                    c.VesselName,
+                    c.CharterersName AS ChartererName,
+                    c.VoyageEndDate,
+                    c.DeepBlueRef
+                FROM dbo.CaseTodos t
+                LEFT JOIN dbo.CaseNotices cn
+                    ON cn.CaseNoticeID = t.RelatedEntityID
+                LEFT JOIN dbo.NoticeTypes nt
+                    ON nt.NoticeTypeID = cn.NoticeTypeID
+                LEFT JOIN dbo.Cases c
+                    ON c.CaseID = t.CaseID
+                WHERE t.TodoID = :TodoID
+            """), {"TodoID": todo_id}).fetchone()
+
+            if not todo:
+                return jsonify({"ok": False, "error": "Todo not found"}), 404
+
+            m = todo._mapping
+
+            # 2️⃣ Determine template (Todo first, then NoticeType fallback)
+            template_id = m.get("TodoTemplateID") or m.get("NoticeTypeTemplateID")
+
+            if not template_id:
+                return jsonify({
+                    "ok": False,
+                    "error": "No template linked (Todo.TemplateID and NoticeType.TemplateID are both NULL)"
+                }), 400
+
+            # 3️⃣ Load Template
+            template = conn.execute(text("""
+                SELECT TemplateID, Name, Subject, Body
+                FROM dbo.Templates
+                WHERE TemplateID = :TemplateID
+                  AND OrgID = :OrgID
+                  AND IsActive = 1
+            """), {
+                "TemplateID": int(template_id),
+                "OrgID": org_id
+            }).fetchone()
+
+            if not template:
+                return jsonify({"ok": False, "error": "Template not found"}), 404
+
+            t = template._mapping
+
+            # 4️⃣ Normalize date/datetime safely
+            expiry = m.get("ExpiryDate")
+            voyage_end = m.get("VoyageEndDate")
+
+            expiry_date = expiry.date() if isinstance(expiry, datetime) else expiry
+            voyage_end_date = voyage_end.date() if isinstance(voyage_end, datetime) else voyage_end
+
+            # 5️⃣ Pretty date formatter
+            def fmt(d):
+                return d.strftime("%d %b %Y") if d else ""
+
+            # 6️⃣ Merge context
+            context = {
+                "VesselName": m.get("VesselName"),
+                "ChartererName": m.get("ChartererName"),
+                "VoyageEndDate": fmt(voyage_end_date),
+                "TimebarExpiryDate": fmt(expiry_date),
+                "NoticeTypeName": m.get("NoticeTypeName"),
+                "Today": fmt(datetime.utcnow().date()),
+                "CaseRef": m.get("DeepBlueRef"),
+            }
+
+            # 7️⃣ Merge template tokens
+            subject, body = merge_template(
+                t.get("Subject"),
+                t.get("Body"),
+                context
+            )
+
+        return jsonify({
+            "ok": True,
+            "subject": subject,
+            "body": body
+        })
 
     return inner()

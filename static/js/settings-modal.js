@@ -41,9 +41,15 @@ function loadMainSection(section) {
   const subnav = document.querySelector(".settings-subnav");
   const content = document.getElementById("settings-content-inner");
 
+  if (!subnav || !content) return;
+
+  // Reset columns
   subnav.innerHTML = "";
   content.innerHTML = "";
 
+  // =====================================================
+  // ACCOUNT
+  // =====================================================
   if (section === "account") {
     subnav.innerHTML = `
       <button data-sub="profile">Profile</button>
@@ -51,8 +57,12 @@ function loadMainSection(section) {
     `;
     attachSubnavHandlers(section);
     content.innerHTML = `<h3>Select a setting</h3>`;
+    return;
   }
 
+  // =====================================================
+  // GENERAL
+  // =====================================================
   if (section === "general") {
     subnav.innerHTML = `
       <button data-sub="language">Language & Time</button>
@@ -60,15 +70,42 @@ function loadMainSection(section) {
     `;
     attachSubnavHandlers(section);
     content.innerHTML = `<h3>Select a setting</h3>`;
+    return;
   }
 
+  // =====================================================
+  // ADMIN
+  // =====================================================
   if (section === "admin") {
     subnav.innerHTML = `
       <button data-sub="users">Users</button>
     `;
     attachSubnavHandlers(section);
     content.innerHTML = `<h3>Select an admin setting</h3>`;
+    return;
   }
+
+  // =====================================================
+  // COMMUNICATIONS
+  // =====================================================
+  if (section === "communications") {
+    subnav.innerHTML = `
+      <button data-sub="templates">Templates</button>
+    `;
+    attachSubnavHandlers(section);
+    content.innerHTML = `<h3>Select a setting</h3>`;
+    return;
+  }
+
+  // =====================================================
+  // DEFAULT FALLBACK  ✅ ADD HERE
+  // =====================================================
+  content.innerHTML = `
+    <div class="settings-section">
+      <h3>${section}</h3>
+      <p class="muted">Settings coming soon.</p>
+    </div>
+  `;
 }
 
 
@@ -78,26 +115,63 @@ function loadMainSection(section) {
 
 function attachSubnavHandlers(section) {
   const subnav = document.querySelector(".settings-subnav");
+  const content = document.getElementById("settings-content-inner");
+
+  if (!subnav || !content) return;
 
   subnav.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
-      subnav.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+
+      // Reset active state
+      subnav.querySelectorAll("button")
+        .forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
       const sub = btn.dataset.sub;
 
+      // =====================================================
+      // ACCOUNT
+      // =====================================================
       if (section === "account" && sub === "password") {
         renderChangePassword();
         return;
       }
 
+      if (section === "account" && sub === "profile") {
+        content.innerHTML = `
+          <div class="settings-section">
+            <h3>Profile</h3>
+            <p class="muted">Profile settings coming soon.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // =====================================================
+      // ADMIN
+      // =====================================================
       if (section === "admin" && sub === "users") {
         renderAdminUsers();
         return;
       }
 
-      document.getElementById("settings-content-inner").innerHTML =
-        `<h3>${btn.textContent}</h3><p>Settings coming soon.</p>`;
+      // =====================================================
+      // COMMUNICATIONS ✅ NEW
+      // =====================================================
+      if (section === "communications" && sub === "templates") {
+        renderTemplatesSettings();
+        return;
+      }
+
+      // =====================================================
+      // DEFAULT FALLBACK
+      // =====================================================
+      content.innerHTML = `
+        <div class="settings-section">
+          <h3>${btn.textContent}</h3>
+          <p class="muted">Settings coming soon.</p>
+        </div>
+      `;
     });
   });
 }
@@ -260,6 +334,386 @@ async function renderAdminUsers() {
   }
 }
 
+// =====================================================
+// COMMUNICATIONS → EMAIL TEMPLATES
+// =====================================================
+
+async function renderTemplatesSettings() {
+
+  const content = document.getElementById("settings-content-inner");
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="settings-section">
+      <h3>Email Templates</h3>
+      <p class="muted">Loading templates…</p>
+    </div>
+  `;
+
+  try {
+
+    const res = await fetch("/api/templates");
+    const data = await res.json();
+
+    // Support both API response styles
+    const templates = Array.isArray(data) ? data : (data.templates || []);
+
+    const rows = templates.map(t => `
+      <tr>
+        <td>${t.Name || "-"}</td>
+        <td>${t.Subject || "-"}</td>
+        <td class="actions">
+          <button class="btn-secondary" data-edit-template="${t.TemplateID}">
+            Edit
+          </button>
+          <button class="btn-danger" data-delete-template="${t.TemplateID}">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `).join("");
+
+    content.innerHTML = `
+      <div class="settings-section settings-wide">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3>Email Templates (${templates.length})</h3>
+          <button class="btn-primary" id="newTemplateBtn">
+            + New Template
+          </button>
+        </div>
+
+        <table class="settings-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Subject</th>
+              <th style="width:160px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${templates.length ? rows : `
+              <tr>
+                <td colspan="3" class="muted" style="text-align:center; padding:30px;">
+                  No templates created yet.
+                </td>
+              </tr>
+            `}
+          </tbody>
+        </table>
+
+      </div>
+    `;
+
+    attachTemplateActions();
+
+  } catch (err) {
+
+    console.error("Template load error:", err);
+
+    content.innerHTML = `
+      <div class="settings-section error">
+        <h3>Email Templates</h3>
+        <p>Failed to load templates.</p>
+      </div>
+    `;
+  }
+
+}
+
+// =====================================================
+// TEMPLATE ACTIONS
+// =====================================================
+
+function attachTemplateActions() {
+
+  // NEW TEMPLATE
+  const newBtn = document.getElementById("newTemplateBtn");
+  if (newBtn) {
+    newBtn.onclick = () => openTemplateEditor();
+  }
+
+  // EDIT TEMPLATE
+  document.querySelectorAll("[data-edit-template]").forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.dataset.editTemplate;
+      openTemplateEditor(id);
+    };
+  });
+
+  // DELETE TEMPLATE
+  document.querySelectorAll("[data-delete-template]").forEach(btn => {
+    btn.onclick = async () => {
+
+      const id = btn.dataset.deleteTemplate;
+
+      if (!confirm("Delete this template?")) return;
+
+      try {
+
+        await fetch(`/api/templates/${id}`, {
+          method: "DELETE"
+        });
+
+        showToast("Template deleted", "success");
+        renderTemplatesSettings();
+
+      } catch {
+
+        showToast("Failed to delete template", "error");
+
+      }
+
+    };
+  });
+
+}
+
+// =====================================================
+// TEMPLATE EDITOR
+// =====================================================
+
+async function openTemplateEditor(templateId = null) {
+
+  const content = document.getElementById("settings-content-inner");
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="settings-section template-editor">
+
+      <h3>${templateId ? "Edit Template" : "New Template"}</h3>
+
+      <!-- VARIABLE INSERT -->
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:18px;">
+        <label style="font-weight:600;">Insert Variable</label>
+
+        <select id="variablePicker">
+          <option value="">Select...</option>
+          <option value="{{VesselName}}">Vessel Name</option>
+          <option value="{{VoyageNo}}">Voyage No</option>
+          <option value="{{ChartererName}}">Charterer Name</option>
+          <option value="{{CaseRef}}">Case Reference</option>
+          <option value="{{TimebarExpiryDate}}">Timebar Expiry</option>
+          <option value="{{VoyageEndDate}}">Voyage End Date</option>
+        </select>
+
+        <button type="button" class="btn-secondary" id="insertVariableBtn">
+          Insert
+        </button>
+      </div>
+
+      <!-- NAME -->
+      <div class="form-group">
+        <label>Name</label>
+        <input id="templateName" placeholder="Template name">
+      </div>
+
+      <!-- SUBJECT -->
+      <div class="form-group">
+        <label>Subject</label>
+        <input id="templateSubject" placeholder="Email subject">
+      </div>
+
+      <!-- BODY -->
+      <div class="form-group">
+        <label>Email Body</label>
+
+        <div class="template-editor-layout">
+
+          <!-- EDITOR -->
+          <div class="template-panel">
+
+            <div class="template-panel-header">
+              Email Editor
+            </div>
+
+            <div class="template-panel-body">
+              <textarea id="templateBody"></textarea>
+            </div>
+
+          </div>
+
+          <!-- PREVIEW -->
+          <div class="template-panel">
+
+            <div class="template-panel-header">
+              Email Preview
+            </div>
+
+            <div class="template-panel-body">
+
+              <div
+                id="templatePreview"
+                class="template-preview-text"
+              ></div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button class="btn-primary" id="saveTemplateBtn">
+          Save Template
+        </button>
+
+        <button class="btn-secondary" id="cancelTemplateBtn">
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  `;
+
+  // =====================================================
+  // TRACK ACTIVE FIELD
+  // =====================================================
+
+  let activeField = null;
+
+  const nameField = document.getElementById("templateName");
+  const subjectField = document.getElementById("templateSubject");
+  const bodyField = document.getElementById("templateBody");
+
+  [nameField, subjectField, bodyField].forEach(field => {
+    field.addEventListener("focus", () => {
+      activeField = field;
+    });
+  });
+
+  // =====================================================
+  // PREVIEW HANDLER
+  // =====================================================
+
+  bodyField.addEventListener("input", renderTemplatePreview);
+  renderTemplatePreview();
+
+  // =====================================================
+  // VARIABLE INSERT
+  // =====================================================
+
+  const picker = document.getElementById("variablePicker");
+  const insertBtn = document.getElementById("insertVariableBtn");
+
+  insertBtn.onclick = () => {
+
+    const variable = picker.value;
+    if (!variable || !activeField) return;
+
+    const start = activeField.selectionStart || 0;
+    const end = activeField.selectionEnd || 0;
+
+    activeField.value =
+      activeField.value.substring(0, start) +
+      variable +
+      activeField.value.substring(end);
+
+    activeField.focus();
+    activeField.selectionStart = activeField.selectionEnd = start + variable.length;
+
+    picker.value = "";
+
+    renderTemplatePreview();
+  };
+
+  // =====================================================
+  // LOAD TEMPLATE (EDIT MODE)
+  // =====================================================
+
+  if (templateId) {
+
+    try {
+
+      const res = await fetch(`/api/templates/${templateId}`);
+      const data = await res.json();
+
+      if (!data.success) throw new Error();
+
+      const t = data.template;
+
+      nameField.value = t.Name || "";
+      subjectField.value = t.Subject || "";
+      bodyField.value = t.Body || "";
+
+      renderTemplatePreview();
+
+    } catch (err) {
+
+      console.error("Template load failed", err);
+      showToast("Failed to load template", "error");
+
+    }
+  }
+
+  // =====================================================
+  // SAVE TEMPLATE
+  // =====================================================
+
+  document.getElementById("saveTemplateBtn").onclick = async () => {
+
+    const payload = {
+
+      Name: nameField.value.trim(),
+      Subject: subjectField.value.trim(),
+      Body: bodyField.value
+
+    };
+
+    if (!payload.Name) {
+      showToast("Template name required", "error");
+      return;
+    }
+
+    try {
+
+      let res;
+
+      if (templateId) {
+
+        res = await fetch(`/api/templates/${templateId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+      } else {
+
+        res = await fetch(`/api/templates`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+      }
+
+      const data = await res.json();
+      if (!data.success) throw new Error();
+
+      showToast("Template saved", "success");
+      renderTemplatesSettings();
+
+    } catch (err) {
+
+      console.error("Template save failed", err);
+      showToast("Failed to save template", "error");
+
+    }
+
+  };
+
+  // =====================================================
+  // CANCEL
+  // =====================================================
+
+  document.getElementById("cancelTemplateBtn").onclick = () => {
+    renderTemplatesSettings();
+  };
+
+}
 
 // =====================================================
 // ADMIN → ACTIONS
@@ -423,3 +877,31 @@ function showToast(message, type = "success") {
     toast.classList.add("hidden");
   }, 2200);
 }
+
+function renderTemplatePreview() {
+
+  const textarea = document.getElementById("templateBody");
+  const preview = document.getElementById("templatePreview");
+
+  if (!textarea || !preview) return;
+
+  let text = textarea.value;
+
+  Object.keys(previewData).forEach(key => {
+
+    const regex = new RegExp(`{{${key}}}`, "g");
+    text = text.replace(regex, previewData[key]);
+
+  });
+
+  preview.textContent = text;
+}
+
+const previewData = {
+  VesselName: "OCEANIC FORTUNE",
+  VoyageNo: "VOY123",
+  ChartererName: "Glencore",
+  CaseRef: "DBLS-2026-001",
+  TimebarExpiryDate: "15 April 2026",
+  VoyageEndDate: "10 March 2026"
+};

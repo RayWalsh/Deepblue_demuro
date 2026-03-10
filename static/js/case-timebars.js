@@ -15,6 +15,45 @@ document.addEventListener("DOMContentLoaded", () => {
     callout: document.getElementById("tbCallout"),
   };
 
+  // ============================
+  // 🔵 Generate Modal Elements
+  // ============================
+  const genEls = {
+    modal: document.getElementById("tbGenerateModal"),
+    close: document.getElementById("tbGenerateClose"),
+    close2: document.getElementById("tbGenerateDone"),
+    subject: document.getElementById("tbGenSubject"),
+    body: document.getElementById("tbGenBody"),
+    copySubject: document.getElementById("tbCopySubject"),
+    copyBody: document.getElementById("tbCopyBody"),
+  };
+
+  function openGenModal(subject, body) {
+    if (!genEls.modal) return;
+    genEls.subject.value = subject || "";
+    genEls.body.value = body || "";
+    genEls.modal.style.display = "block";
+  }
+
+  function closeGenModal() {
+    if (!genEls.modal) return;
+    genEls.modal.style.display = "none";
+  }
+
+  // ============================
+  // 🔵 Modal Button Wiring
+  // ============================
+  genEls.close?.addEventListener("click", closeGenModal);
+  genEls.close2?.addEventListener("click", closeGenModal);
+
+  genEls.copySubject?.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(genEls.subject.value || ""); } catch {}
+  });
+
+  genEls.copyBody?.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(genEls.body.value || ""); } catch {}
+  });
+
   // Local state
   let currentNotices = [];
   let currentTodos = [];
@@ -48,11 +87,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Convert "... (expires 2026-04-29)" into "... (expires 29 Apr 2026)"
   function humanizeExpiresInTitle(title) {
-  const s = String(title || "");
-  return s
-    .replace(/\(expires\s+(\d{4}-\d{2}-\d{2})\)/g, (m, iso) => `(expires ${fmtDate(iso)})`)
-    .replace(/\(timebar expires\s+(\d{4}-\d{2}-\d{2})\)/gi, (m, iso) => `(Timebar expires ${fmtDate(iso)})`);
-}
+    const s = String(title || "");
+    return s
+      .replace(/\(expires\s+(\d{4}-\d{2}-\d{2})\)/g, (m, iso) => `(expires ${fmtDate(iso)})`)
+      .replace(/\(timebar expires\s+(\d{4}-\d{2}-\d{2})\)/gi, (m, iso) => `(Timebar expires ${fmtDate(iso)})`);
+  }
 
   // ----------------------------
   // API
@@ -270,7 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="tb-todo-title">${humanizeExpiresInTitle(t.Title)}</div>
               <div class="tb-todo-meta">${t.DueDate ? fmtDate(t.DueDate) : "No due date"}</div>
             </div>
-            <button class="tb-btn" data-done="${t.TodoID}">Done</button>
+
+            <div class="tb-todo-actions">
+              <button class="tb-btn secondary" data-generate="${t.TodoID}">Generate</button>
+              <button class="tb-btn" data-done="${t.TodoID}">Done</button>
+            </div>
           </div>
         `).join("")
       : `<div class="muted">No upcoming tasks.</div>`;
@@ -319,20 +362,51 @@ document.addEventListener("DOMContentLoaded", () => {
   function wireTodoHandlers() {
     if (!els.todosList) return;
 
+    // ----------------------------
+    // Mark todo as DONE
+    // ----------------------------
     els.todosList.querySelectorAll("button[data-done]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-done");
         if (!id) return;
 
-        console.log("PATCH todo", id, { Status: "DONE" });
-        // ✅ Single source of truth: PATCH the todo status
-        await api(`/api/timebars/todos/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ Status: "DONE" })  // must be Status, must be DONE
-        });
+        try {
+          await api(`/api/timebars/todos/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ Status: "DONE" })
+          });
 
-        await refresh();
+          await refresh();
+        } catch (e) {
+          console.error(e);
+          alert(e.message || "Failed to update task.");
+        }
+      });
+    });
+
+    // ----------------------------
+    // Generate notice
+    // ----------------------------
+    els.todosList.querySelectorAll("button[data-generate]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-generate");
+        if (!id) return;
+
+        try {
+          const data = await api(`/api/timebars/todos/${id}/generate`);
+
+          if (!data?.ok) {
+            alert(data?.error || "Failed to generate notice.");
+            return;
+          }
+
+          openGenModal(data.subject, data.body);
+
+        } catch (e) {
+          console.error(e);
+          alert(e.message || "Failed to generate notice.");
+        }
       });
     });
   }
