@@ -988,19 +988,35 @@ body.no-scroll {
 }
 
 .drawer-tab {
-  flex: 1;
-  padding: 10px;
+  appearance: none;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #5b6b7c;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: #f1f5f9;
+  color: #475569;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.drawer-tab:hover {
+  background: #e8eef6;
+  color: #0e3a6d;
 }
 
 .drawer-tab.active {
-  color: #0e3a6d;
-  border-bottom: 2px solid #0e3a6d;
+  background: #0e3a6d;
+  color: #ffffff;
+  border-color: #0e3a6d;
+  position: relative;
+  top: 1px;
+  box-shadow: 0 1px 0 #0e3a6d;
 }
 
 .drawer-panel {
